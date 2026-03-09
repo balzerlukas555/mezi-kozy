@@ -15,17 +15,22 @@ color:white;
 text-align:center;
 }
 
-/* ===== START SCREEN ===== */
+/* ===== START & END SCREEN ===== */
 
-#startScreen{
+#startScreen, #endScreen{
 height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
 background:linear-gradient(135deg,#0f5e1c,#0b3d13);
+position: fixed;
+width: 100%;
+top: 0;
+left: 0;
+z-index: 100;
 }
 
-.start-card{
+.card-ui{
 background:white;
 color:#222;
 padding:40px;
@@ -35,17 +40,10 @@ width:90%;
 max-width:400px;
 }
 
-.start-card h1{
-margin-top:0;
-color:#0f5e1c;
-}
+.card-ui h1{ margin-top:0; color:#0f5e1c; }
+.card-ui p{ margin:10px 0 20px 0; color:#555; }
 
-.start-card p{
-margin:10px 0 20px 0;
-color:#555;
-}
-
-.start-card input{
+.card-ui input{
 width:100%;
 padding:12px;
 font-size:16px;
@@ -53,9 +51,10 @@ border-radius:10px;
 border:1px solid #ccc;
 margin-bottom:20px;
 text-align:center;
+box-sizing: border-box;
 }
 
-.start-card button{
+.btn-main{
 width:100%;
 padding:14px;
 font-size:18px;
@@ -65,9 +64,10 @@ border:none;
 border-radius:10px;
 cursor:pointer;
 transition:0.3s;
+font-weight: bold;
 }
 
-.start-card button:hover{
+.btn-main:hover{
 background:#ff1a1a;
 transform:scale(1.05);
 }
@@ -76,7 +76,7 @@ transform:scale(1.05);
 
 .player-box{
 display:inline-block;
-margin:10px 35px; /* větší mezera */
+margin:10px 35px;
 padding:10px;
 background:#222;
 border-radius:12px;
@@ -86,6 +86,7 @@ min-width:160px;
 .active-player{
 color:#ffd700;
 font-weight:bold;
+border: 2px solid #ffd700;
 }
 
 /* ===== KARTY ===== */
@@ -94,7 +95,7 @@ font-weight:bold;
 display:flex;
 justify-content:center;
 align-items:flex-start;
-gap:80px; /* bylo 80px */
+gap:80px;
 flex-wrap:wrap;
 margin-top:30px;
 }
@@ -107,7 +108,7 @@ align-items:center;
 
 .card-row{
 display:flex;
-gap:40px; /* bylo 40px */
+gap:40px;
 }
 
 .card img{
@@ -116,14 +117,15 @@ border-radius:10px;
 box-shadow:0 6px 12px rgba(0,0,0,0.6);
 }
 
-/* ===== TLAČÍTKA ===== */
+/* ===== TLAČÍTKA HRY ===== */
 
-button{
+button.game-btn{
 padding:10px 18px;
 font-weight:bold;
 margin:5px;
 border:none;
 border-radius:8px;
+cursor: pointer;
 }
 
 #nextBtn{
@@ -148,77 +150,53 @@ min-height:24px;
 }
 
 @media (max-width:768px){
-
-.card img{
-width:65px;
-}
-
-#cardsArea{
-gap:25px;
-}
-
-.card-row{
-gap:10px;
-}
-
-.player-box{
-display:block;
-margin:10px auto;
-width:90%;
-}
-
-button{
-width:90%;
-max-width:300px;
-font-size:18px;
-padding:14px;
-}
-}
-
-@media (max-width:400px){
-.card img{
-width:55px;
-}
+.card img{ width:65px; }
+#cardsArea{ gap:25px; }
+.card-row{ gap:10px; }
+.player-box{ display:block; margin:10px auto; width:90%; }
+button.game-btn{ width:90%; max-width:300px; font-size:18px; padding:14px; }
 }
 </style>
 </head>
 <body>
 
 <div id="startScreen">
-<div class="start-card">
-<h1>Karetní hra Mezi Kozy</h1>
-<p>Vítejte na webu. Zadejte své jméno a pojďte si zahrát!</p>
-
-<input type="text" id="playerName" placeholder="Zadej své jméno">
-<button id="startBtn">ZAČÍT HRU</button>
+    <div class="card-ui">
+        <h1>Mezi Kozy</h1>
+        <p>Zadejte své jméno a pojďte hrát!</p>
+        <input type="text" id="playerName" placeholder="Zadej své jméno">
+        <button id="startBtn" class="btn-main">ZAČÍT HRU</button>
+    </div>
 </div>
+
+<div id="endScreen" style="display:none;">
+    <div class="card-ui">
+        <h1 id="endTitle">Konec hry</h1>
+        <p id="endMsg"></p>
+        <button onclick="location.reload()" class="btn-main">NOVÁ HRA</button>
+    </div>
 </div>
 
 <div id="game" style="display:none;">
-<div id="playersRow"></div>
-<h3>BANK: <span id="pot">0</span> Kč</h3>
-<div id="cardsArea"></div>
-<div id="msg"></div>
+    <div id="playersRow"></div>
+    <h3>BANK: <span id="pot">0</span> Kč</h3>
+    <div id="cardsArea"></div>
+    <div id="msg"></div>
 
-<div id="actions" style="display:none;">
-<input type="number" id="bet" value="50" min="1">
-<button id="playBtn">HRAJU</button>
-<button id="allInBtn">HRÁT O VŠECHNO</button>
-<button id="passBtn">PAS</button>
-</div>
+    <div id="actions" style="display:none;">
+        <input type="number" id="bet" value="50" min="1">
+        <button id="playBtn" class="game-btn" style="background:#c40000; color:white;">HRAJU</button>
+        <button id="allInBtn" class="game-btn" style="background:#ffd700;">ALL IN</button>
+        <button id="passBtn" class="game-btn" style="background:#666; color:white;">PAS</button>
+    </div>
 
-<button id="nextBtn">DALŠÍ KOLO</button>
+    <button id="nextBtn" class="game-btn">DALŠÍ KOLO</button>
 </div>
 
 <script>
-
 const ranks=["7","8","9","10","Sp","Sv","K","A"];
 const suits=["Z","C","K","ZL"];
-
-const npcNames=[
-"Radek","Pepa","Martin","David","Tomáš","Milan","Ondra",
-"Karel","Honza","Filip","Michal","Roman","Jirka","Vojta","Adam"
-];
+const npcNames=["Radek","Pepa","Martin","David","Tomáš","Milan","Ondra","Karel","Honza","Filip","Michal","Roman","Jirka","Vojta","Adam"];
 
 let state;
 let playerName="Ty";
@@ -228,265 +206,226 @@ const $=id=>document.getElementById(id);
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 
 function setNextButton(active){
-const btn=$('nextBtn');
-if(active){
-btn.classList.add("active");
-btn.disabled=false;
-}else{
-btn.classList.remove("active");
-btn.disabled=true;
-}
+    const btn=$('nextBtn');
+    if(active){ btn.classList.add("active"); btn.disabled=false; }
+    else{ btn.classList.remove("active"); btn.disabled=true; }
 }
 
 function createDeck(){
-let deck=[];
-for(let s of suits){
-for(let r of ranks){
-deck.push({suit:s,rank:r});
-}
-}
-for(let i=deck.length-1;i>0;i--){
-let j=Math.floor(Math.random()*(i+1));
-[deck[i],deck[j]]=[deck[j],deck[i]];
-}
-return deck;
+    let deck=[];
+    for(let s of suits) for(let r of ranks) deck.push({suit:s,rank:r});
+    for(let i=deck.length-1;i>0;i--){
+        let j=Math.floor(Math.random()*(i+1));
+        [deck[i],deck[j]]=[deck[j],deck[i]];
+    }
+    return deck;
 }
 
 function drawCard(){ return state.deck.pop(); }
 
 function renderCard(id,card){
-if(!card){ $(id).innerHTML=""; return; }
-$(id).innerHTML=`<img src="karty/${card.rank}_${card.suit}.jpg">`;
+    const el=$(id);
+    if(!el) return;
+    if(!card){ el.innerHTML=""; return; }
+    el.innerHTML=`<img src="karty/${card.rank}_${card.suit}.jpg">`;
 }
 
 function updateUI(){
-$('pot').innerText=state.pot;
-
-let html="";
-state.players.forEach((p,index)=>{
-let activeClass = state.currentTurn === index ? "active-player" : "";
-
-html+=`<div class="player-box ${activeClass}">
-${p.name}<br>
-${p.bal} Kč ${p.out?"(Vypadl)":""}
-<div style="font-size:12px;color:#ffd700" id="log_${p.name}"></div>
-</div>`;
-});
-$('playersRow').innerHTML=html;
+    $('pot').innerText=state.pot;
+    let html="";
+    state.players.forEach((p,index)=>{
+        let activeClass = state.currentTurn === index ? "active-player" : "";
+        html+=`<div class="player-box ${activeClass}">
+            ${p.name}<br>
+            ${p.bal} Kč ${p.out?"<span style='color:red'>(Vypadl)</span>":""}
+            <div style="font-size:12px;color:#ffd700" id="log_${p.name}"></div>
+        </div>`;
+    });
+    $('playersRow').innerHTML=html;
 }
 
 function addLog(text){
-state.players.forEach(p=>{
-let el=document.getElementById("log_"+p.name);
-if(el) el.innerText="";
-});
-let name=text.split(" ")[0];
-let el=document.getElementById("log_"+name);
-if(el) el.innerText=text;
+    state.players.forEach(p=>{
+        let el=document.getElementById("log_"+p.name);
+        if(el) el.innerText="";
+    });
+    let name=text.split(" ")[0];
+    let el=document.getElementById("log_"+name);
+    if(el) el.innerText=text;
 }
 
 function renderCardsArea(){
-let html="";
-state.players.forEach((p,i)=>{
-if(p.out) return;
-html+=`
-<div class="player-cards">
-<div class="card-row">
-<div id="p${i}_c1" class="card"></div>
-<div id="p${i}_ct" class="card"></div>
-<div id="p${i}_c2" class="card"></div>
-</div>
-</div>`;
-});
-$('cardsArea').innerHTML=html;
-}
-
-function randomNPC(){
-let shuffled=[...npcNames].sort(()=>0.5-Math.random());
-return [shuffled[0],shuffled[1]];
+    let html="";
+    state.players.forEach((p,i)=>{
+        if(p.out) return;
+        html+=`<div class="player-cards">
+            <div class="card-row">
+                <div id="p${i}_c1" class="card"></div>
+                <div id="p${i}_ct" class="card"></div>
+                <div id="p${i}_c2" class="card"></div>
+            </div>
+        </div>`;
+    });
+    $('cardsArea').innerHTML=html;
 }
 
 function startGame(){
+    let nameInput=$('playerName').value.trim();
+    if(nameInput) playerName=nameInput;
+    let shuffled=[...npcNames].sort(()=>0.5-Math.random());
 
-let nameInput=$('playerName').value.trim();
-if(nameInput) playerName=nameInput;
+    state={
+        deck:createDeck(),
+        pot:0,
+        currentTurn:null,
+        players:[
+            {name:shuffled[0],bal:1000,isNPC:true,out:false},
+            {name:playerName,bal:1000,isNPC:false,out:false},
+            {name:shuffled[1],bal:1000,isNPC:true,out:false}
+        ]
+    };
 
-let [n1,n2]=randomNPC();
-
-state={
-deck:createDeck(),
-pot:0,
-currentTurn:null,
-players:[
-{name:n1,bal:1000,isNPC:true,out:false},
-{name:playerName,bal:1000,isNPC:false,out:false},
-{name:n2,bal:1000,isNPC:true,out:false}
-]
-};
-
-$('startScreen').style.display="none";
-$('game').style.display="block";
-
-startRound();
+    $('startScreen').style.display="none";
+    $('game').style.display="block";
+    startRound();
 }
 
 async function startRound(){
+    if(!roundOver) return;
+    
+    // KONTROLA KONCE HRY
+    const user = state.players[1];
+    const npcs = [state.players[0], state.players[2]];
+    
+    if(user.bal <= 0 || user.out) {
+        showEnd(false);
+        return;
+    }
+    if(npcs.every(n => n.bal <= 0 || n.out)) {
+        showEnd(true);
+        return;
+    }
 
-if(!roundOver) return;
+    roundOver=false;
+    setNextButton(false);
+    state.deck=createDeck();
+    
+    // Základní vklad (pot)
+    state.players.forEach(p=>{
+        if(!p.out && p.bal>=50){ p.bal-=50; state.pot+=50; }
+        else if(p.bal < 50) p.out = true;
+    });
 
-roundOver=false;
-setNextButton(false);
-state.deck=createDeck();
+    updateUI();
+    renderCardsArea();
 
-if(state.pot===0){
-state.players.forEach(p=>{
-if(!p.out && p.bal>=50){
-p.bal-=50;
-state.pot+=50;
-}
-});
-}
+    for(let i=0;i<state.players.length;i++){
+        if(state.players[i].out) continue;
+        state.currentTurn = i;
+        updateUI();
+        await turn(i);
+        if(roundOver) break;
+    }
 
-updateUI();
-renderCardsArea();
-
-for(let i=0;i<state.players.length;i++){
-if(state.players[i].out) continue;
-
-state.currentTurn = i;
-updateUI();
-
-await turn(i);
-
-if(roundOver){
-setNextButton(true);
-return;
-}
-}
-
-roundOver=true;
-setNextButton(true);
+    roundOver=true;
+    setNextButton(true);
 }
 
 async function turn(i){
+    let p=state.players[i];
+    let c1=drawCard();
+    let c2=drawCard();
 
-let p=state.players[i];
-if(p.out) return;
+    renderCard(`p${i}_c1`,c1);
+    renderCard(`p${i}_c2`,c2);
+    await delay(800);
 
-let c1=drawCard();
-let c2=drawCard();
+    if(c1.rank===c2.rank){
+        if(c1.rank==="A"){
+            p.bal+=state.pot; state.pot=0;
+            addLog(p.name+" vybral bank!");
+            roundOver=true;
+        }else{
+            p.bal-=50; state.pot+=50;
+            addLog(p.name+" platí 50 Kč");
+        }
+        updateUI();
+        return;
+    }
 
-renderCard(`p${i}_c1`,c1);
-renderCard(`p${i}_c2`,c2);
+    if(p.isNPC){
+        let min=Math.min(ranks.indexOf(c1.rank),ranks.indexOf(c2.rank));
+        let max=Math.max(ranks.indexOf(c1.rank),ranks.indexOf(c2.rank));
+        let gap=max-min-1;
+        if(gap<=0 || Math.random()<0.25){
+            addLog(p.name+" PAS");
+            await delay(600);
+            return;
+        }
+        let bet=Math.min(gap*35,p.bal,state.pot);
+        addLog(p.name+" sází "+bet);
+        await evaluate(p,i,c1,c2,bet);
+    }else{
+        await userTurn(p,i,c1,c2);
+    }
 
-await delay(800);
-
-if(c1.rank===c2.rank){
-if(c1.rank==="A"){
-p.bal+=state.pot;
-state.pot=0;
-addLog(p.name+" vybral celý bank!");
-updateUI();
-roundOver=true;
-return;
-}else{
-p.bal-=50;
-state.pot+=50;
-addLog(p.name+" platí 50 Kč");
-updateUI();
-return;
-}
-}
-
-if(p.isNPC){
-
-let min=Math.min(ranks.indexOf(c1.rank),ranks.indexOf(c2.rank));
-let max=Math.max(ranks.indexOf(c1.rank),ranks.indexOf(c2.rank));
-let gap=max-min-1;
-
-if(gap<=0){
-addLog(p.name+" dává PAS");
-await delay(800);
-return;
-}
-
-let bet=Math.min(gap*30,p.bal,state.pot);
-
-if(Math.random()<0.25){
-addLog(p.name+" se bojí a dává PAS");
-await delay(800);
-return;
-}
-
-addLog(p.name+" sází "+bet+" Kč");
-await evaluate(p,i,c1,c2,bet);
-
-}else{
-await userTurn(p,i,c1,c2);
-}
-
-if(p.bal<=0){
-p.out=true;
-updateUI();
-}
+    if(p.bal<=0) p.out=true;
+    updateUI();
 }
 
 function userTurn(p,i,c1,c2){
-return new Promise(resolve=>{
-$('actions').style.display="block";
-
-$('playBtn').onclick=async()=>{
-let bet=Math.min(parseInt($('bet').value),p.bal,state.pot);
-addLog(p.name+" sází "+bet+" Kč");
-$('actions').style.display="none";
-await evaluate(p,i,c1,c2,bet);
-resolve();
-};
-
-$('allInBtn').onclick=async()=>{
-let bet=Math.min(state.pot,p.bal);
-addLog(p.name+" jde ALL IN za "+bet+" Kč");
-$('actions').style.display="none";
-await evaluate(p,i,c1,c2,bet);
-resolve();
-};
-
-$('passBtn').onclick=()=>{
-addLog(p.name+" dává PAS");
-$('actions').style.display="none";
-resolve();
-};
-});
+    return new Promise(resolve=>{
+        $('actions').style.display="block";
+        $('playBtn').onclick=async()=>{
+            let val = parseInt($('bet').value);
+            let bet=Math.min(val,p.bal,state.pot);
+            $('actions').style.display="none";
+            await evaluate(p,i,c1,c2,bet);
+            resolve();
+        };
+        $('allInBtn').onclick=async()=>{
+            let bet=Math.min(state.pot,p.bal);
+            $('actions').style.display="none";
+            await evaluate(p,i,c1,c2,bet);
+            resolve();
+        };
+        $('passBtn').onclick=()=>{
+            addLog(p.name+" PAS");
+            $('actions').style.display="none";
+            resolve();
+        };
+    });
 }
 
 async function evaluate(p,i,c1,c2,bet){
+    let t=drawCard();
+    renderCard(`p${i}_ct`,t);
+    await delay(800);
 
-let t=drawCard();
-renderCard(`p${i}_ct`,t);
-await delay(800);
+    let min=Math.min(ranks.indexOf(c1.rank),ranks.indexOf(c2.rank));
+    let max=Math.max(ranks.indexOf(c1.rank),ranks.indexOf(c2.rank));
+    let val=ranks.indexOf(t.rank);
 
-let min=Math.min(ranks.indexOf(c1.rank),ranks.indexOf(c2.rank));
-let max=Math.max(ranks.indexOf(c1.rank),ranks.indexOf(c2.rank));
-let val=ranks.indexOf(t.rank);
-
-if(val>min && val<max){
-p.bal+=bet;
-state.pot-=bet;
-addLog(p.name+" vyhrává "+bet+" Kč");
-if(state.pot===0) roundOver=true;
-}else{
-p.bal-=bet;
-state.pot+=bet;
-addLog(p.name+" prohrává "+bet+" Kč");
+    if(val>min && val<max){
+        p.bal+=bet; state.pot-=bet;
+        addLog(p.name+" vyhrál "+bet);
+        if(state.pot<=0) roundOver=true;
+    }else{
+        p.bal-=bet; state.pot+=bet;
+        addLog(p.name+" prohrál "+bet);
+    }
+    updateUI();
 }
 
-updateUI();
-await delay(600);
+function showEnd(win){
+    $('endScreen').style.display="flex";
+    $('endTitle').innerText = win ? "Vítězství!" : "Konec hry";
+    $('endTitle').style.color = win ? "#0f5e1c" : "#c40000";
+    $('endMsg').innerText = win ? "Gratulujeme, oškubal jsi všechny u stolu!" : "Bohužel jsi přišel o všechny peníze.";
 }
 
 $('startBtn').onclick=startGame;
 $('nextBtn').onclick=startRound;
-
 </script>
 </body>
 </html>
