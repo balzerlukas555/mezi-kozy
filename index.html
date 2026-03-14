@@ -2,24 +2,28 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mezi Kozy - Profi Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mezi Kozy - Mobilní Verze</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/8294/8294512.png">
     <style>
         :root {
             --primary-green: #0b4d1a;
             --gold: #ffd700;
-            --card-w: 90px;
-            --card-h: 150px;
+            --card-w: 85px;
+            --card-h: 140px;
         }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
             background: var(--primary-green);
             color: white;
             text-align: center;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         /* OBRAZOVKY */
@@ -28,7 +32,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: rgba(0,0,0,0.92);
+            background: rgba(0,0,0,0.95);
             position: fixed;
             width: 100%;
             top: 0;
@@ -39,11 +43,10 @@
         .card-ui {
             background: #fdfdfd;
             color: #222;
-            padding: 25px;
-            border-radius: 12px;
-            width: 85%;
-            max-width: 320px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 300px;
         }
 
         .btn-main {
@@ -52,139 +55,134 @@
             background: #c40000;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             text-transform: uppercase;
-            transition: 0.2s;
-        }
-
-        .btn-main:hover { background: #e60000; }
-
-        /* NASTAVENÍ */
-        #settingsToggle {
-            margin-top: 15px;
-            font-size: 0.85rem;
-            color: #666;
-            cursor: pointer;
-            text-decoration: underline;
-            display: block;
         }
 
         #settingsBox {
             margin-top: 15px;
             padding-top: 15px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid #ddd;
             display: none;
             text-align: left;
+            font-size: 0.85rem;
         }
 
-        .setting-item { margin-bottom: 12px; }
-        .setting-item label { display: block; font-size: 0.75rem; font-weight: bold; margin-bottom: 4px; color: #444; }
-        
         select, input {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
+            margin: 5px 0 12px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 4px;
         }
 
-        /* HERNÍ PLOCHA (Zmenšená) */
+        /* HORNÍ LIŠTA (PENÍZE) */
         #playersRow {
             display: flex;
             justify-content: center;
-            flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             padding: 8px;
             background: rgba(0,0,0,0.4);
+            position: sticky;
+            top: 0;
+            z-index: 50;
         }
 
         .player-box {
-            padding: 6px 10px;
+            padding: 5px;
             background: #1a1a1a;
-            border-radius: 8px;
-            min-width: 80px;
-            border: 2px solid transparent;
-            font-size: 0.75rem;
+            border-radius: 6px;
+            min-width: 65px;
+            border: 1px solid transparent;
+            font-size: 0.7rem;
         }
 
         .active-player { border-color: var(--gold); color: var(--gold); }
 
-        #potArea { margin: 10px 0; color: var(--gold); font-size: 1.1rem; }
-
-        #msg { height: 1.2em; font-weight: bold; color: var(--gold); font-size: 0.9rem; margin-bottom: 10px; }
-
-        /* KARTY (Kompaktní) */
-        #cardsArea {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 80px; /* místo pro fixní ovládání */
+        /* HERNÍ PLOCHA */
+        #gameArea {
+            flex: 1;
+            padding-bottom: 100px; /* Místo pro spodní panel */
         }
 
+        #potArea { margin: 10px 0; font-size: 1rem; color: var(--gold); }
+        #msg { height: 1.2em; font-weight: bold; font-size: 0.85rem; color: var(--gold); margin-bottom: 10px; }
+
         .player-row-ui {
-            background: rgba(255,255,255,0.03);
+            background: rgba(255,255,255,0.05);
+            margin: 5px auto;
+            padding: 6px;
+            width: 92%;
             border-radius: 10px;
-            padding: 8px;
-            width: 95%;
-            max-width: 500px;
         }
 
         .card-row {
             display: flex;
             justify-content: center;
-            gap: 6px;
+            gap: 5px;
             margin-top: 5px;
         }
 
         .card img {
             width: var(--card-w);
             height: var(--card-h);
-            border-radius: 6px;
-            background: #082b0f;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            border-radius: 5px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
         }
 
+        /* ANIMACE */
         .shuffling { animation: shake 0.4s infinite; }
         @keyframes shake {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-1deg); }
-            75% { transform: rotate(1deg); }
+            0% { transform: rotate(0); }
+            50% { transform: rotate(1deg); }
         }
 
-        /* FIXNÍ OVLÁDÁNÍ */
+        /* SPODNÍ OVLÁDACÍ PANEL */
         #actions {
             position: fixed;
             bottom: 0;
+            left: 0;
             width: 100%;
-            background: rgba(0,0,0,0.8);
-            padding: 10px;
-            box-sizing: border-box;
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.85);
+            padding: 10px 0;
+            backdrop-filter: blur(8px);
             display: none;
+            z-index: 60;
         }
 
         .game-btn {
-            padding: 10px 15px;
-            font-size: 0.8rem;
+            padding: 10px 14px;
+            font-size: 0.75rem;
             margin: 3px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
+            text-transform: uppercase;
         }
 
-        #nextBtn { background: #444; color: white; display: none; margin: 10px auto; width: 150px; }
-        #nextBtn.active { background: #c40000; display: block; }
+        #nextBtn {
+            background: #c40000;
+            color: white;
+            width: 150px;
+            margin: 10px auto;
+            display: none;
+        }
 
+        /* --- MOBILNÍ SPECIFIKA (MEDIA QUERIES) --- */
         @media (max-width: 600px) {
             :root {
-                --card-w: 65px;
-                --card-h: 108px;
+                --card-w: 22vw; /* Dynamická šířka podle displeje */
+                --card-h: 36vw;
             }
-            .player-box { min-width: 65px; font-size: 0.7rem; }
+
+            .player-box { min-width: 20vw; font-size: 0.65rem; }
+            .game-btn { padding: 8px 10px; font-size: 0.7rem; }
+            #potArea { font-size: 0.9rem; }
+            #msg { font-size: 0.75rem; }
         }
     </style>
 </head>
@@ -192,25 +190,21 @@
 
 <div id="startScreen">
     <div class="card-ui">
-        <h1 style="color:var(--primary-green); margin:0 0 10px 0; font-size: 1.5rem;">Mezi Kozy</h1>
-        <input type="text" id="playerName" placeholder="Tvé jméno..." style="margin-bottom:10px;">
-        <button id="startBtn" class="btn-main">VSTOUPIT DO HRY</button>
+        <h2 style="color:var(--primary-green); margin-top:0;">Mezi Kozy</h2>
+        <input type="text" id="playerName" placeholder="Tvé jméno...">
+        <button id="startBtn" class="btn-main">HRÁT</button>
         
-        <span id="settingsToggle" onclick="document.getElementById('settingsBox').style.display='block'">⚙️ Nastavení</span>
+        <div id="settingsToggle" onclick="document.getElementById('settingsBox').style.display='block'" style="margin-top:10px; font-size:0.75rem; color:#888; cursor:pointer;">⚙️ Nastavení hry</div>
         
         <div id="settingsBox">
-            <div class="setting-item">
-                <label>Počet protihráčů:</label>
-                <select id="npcCount">
-                    <option value="1">1 Protihráč</option>
-                    <option value="2" selected>2 Protihráči</option>
-                    <option value="3">3 Protihráči</option>
-                </select>
-            </div>
-            <div class="setting-item">
-                <label>Počáteční peníze (pro všechny):</label>
-                <input type="number" id="startMoney" value="1000" min="100">
-            </div>
+            <label>Počet soupeřů:</label>
+            <select id="npcCount">
+                <option value="1">1 Protihráč</option>
+                <option value="2" selected>2 Protihráči</option>
+                <option value="3">3 Protihráči</option>
+            </select>
+            <label>Počáteční vklad (Kč):</label>
+            <input type="number" id="startMoney" value="1000">
         </div>
     </div>
 </div>
@@ -219,23 +213,27 @@
     <div class="card-ui">
         <h1 id="endTitle"></h1>
         <p id="endMsg"></p>
-        <button onclick="location.reload()" class="btn-main">HRÁT ZNOVU</button>
+        <button onclick="location.reload()" class="btn-main">NOVÁ HRA</button>
     </div>
 </div>
 
 <div id="game" style="display:none;">
     <div id="playersRow"></div>
-    <div id="potArea">BANK: <strong id="pot">0</strong> Kč</div>
-    <div id="msg"></div>
     
-    <div id="cardsArea"></div>
-
-    <button id="nextBtn" class="game-btn active">DALŠÍ KOLO</button>
+    <div id="gameArea">
+        <div id="potArea">BANK: <strong id="pot">0</strong> Kč</div>
+        <div id="msg"></div>
+        <div id="cardsArea"></div>
+        <button id="nextBtn" class="game-btn">DALŠÍ KOLO</button>
+    </div>
 
     <div id="actions">
-        <input type="number" id="bet" value="50" min="10" step="10" style="width:80px; text-align:center; margin-bottom:5px;"> <br>
-        <button id="playBtn" class="game-btn" style="background:#c40000; color:white;">VSADIT</button>
-        <button id="allInBtn" class="game-btn" style="background:var(--gold); color:black;">ALL IN</button>
+        <div style="margin-bottom:8px;">
+            <span style="font-size:0.7rem; opacity:0.8;">SÁZKA:</span>
+            <input type="number" id="bet" value="50" min="10" step="10" style="width:60px; padding:5px; margin:0; display:inline-block; height:30px;">
+        </div>
+        <button id="playBtn" class="game-btn" style="background:#c40000; color:white;">HRÁT</button>
+        <button id="allInBtn" class="game-btn" style="background:var(--gold); color:black;">ALL-IN</button>
         <button id="passBtn" class="game-btn" style="background:#666; color:white;">PAS</button>
     </div>
 </div>
@@ -245,108 +243,52 @@
         "7_K": "https://hra-lora.cz/assets/cardsmini/7_d.jpg", "8_K": "https://hra-lora.cz/assets/cardsmini/8_d.jpg", "9_K": "https://hra-lora.cz/assets/cardsmini/9_d.jpg", "10_K": "https://hra-lora.cz/assets/cardsmini/t_d.jpg", "J_K": "https://hra-lora.cz/assets/cardsmini/j_d.jpg", "Q_K": "https://hra-lora.cz/assets/cardsmini/q_d.jpg", "K_K": "https://hra-lora.cz/assets/cardsmini/k_d.jpg", "A_K": "https://hra-lora.cz/assets/cardsmini/a_d.jpg",
         "7_Z": "https://hra-lora.cz/assets/cardsmini/7_s.jpg", "8_Z": "https://hra-lora.cz/assets/cardsmini/8_s.jpg", "9_Z": "https://hra-lora.cz/assets/cardsmini/9_s.jpg", "10_Z": "https://hra-lora.cz/assets/cardsmini/t_s.jpg", "J_Z": "https://hra-lora.cz/assets/cardsmini/j_s.jpg", "Q_Z": "https://hra-lora.cz/assets/cardsmini/q_s.jpg", "K_Z": "https://hra-lora.cz/assets/cardsmini/k_s.jpg", "A_Z": "https://hra-lora.cz/assets/cardsmini/a_s.jpg",
         "7_C": "https://hra-lora.cz/assets/cardsmini/7_h.jpg", "8_C": "https://hra-lora.cz/assets/cardsmini/8_h.jpg", "9_C": "https://hra-lora.cz/assets/cardsmini/9_h.jpg", "10_C": "https://hra-lora.cz/assets/cardsmini/t_h.jpg", "J_C": "https://hra-lora.cz/assets/cardsmini/j_h.jpg", "Q_C": "https://hra-lora.cz/assets/cardsmini/q_h.jpg", "K_C": "https://hra-lora.cz/assets/cardsmini/k_h.jpg", "A_C": "https://hra-lora.cz/assets/cardsmini/a_h.jpg",
-        "7_ZL": "https://hra-lora.cz/assets/cardsmini/7_c.jpg", "8_ZL": "https://hra-lora.cz/assets/cardsmini/8_c.jpg", "9_ZL": "https://hra-lora.cz/assets/cardsmini/9_c.jpg", "10_ZL": "https://hra-lora.cz/assets/cardsmini/t_c.jpg", "J_ZL": "https://hra-lora.cz/assets/cardsmini/j_c.jpg", "Q_ZL": "https://hra-lora.cz/assets/cardsmini/q_c.jpg", "K_ZL": "https://hra-lora.cz/assets/cardsmini/k_c.jpg", "A_ZL": "https://hra-lora.cz/assets/cardsmini/a_c.jpg",
-        "back": "https://hra-lora.cz/assets/cardsmini/back.jpg"
+        "7_ZL": "https://hra-lora.cz/assets/cardsmini/7_c.jpg", "8_ZL": "https://hra-lora.cz/assets/cardsmini/8_c.jpg", "9_ZL": "https://hra-lora.cz/assets/cardsmini/9_c.jpg", "10_ZL": "https://hra-lora.cz/assets/cardsmini/t_c.jpg", "J_ZL": "https://hra-lora.cz/assets/cardsmini/j_c.jpg", "Q_ZL": "https://hra-lora.cz/assets/cardsmini/q_c.jpg", "K_ZL": "https://hra-lora.cz/assets/cardsmini/k_c.jpg", "A_ZL": "https://hra-lora.cz/assets/cardsmini/a_c.jpg"
     };
 
     const ranks = ["7", "8", "9", "10", "J", "Q", "K", "A"];
     const suits = ["Z", "C", "K", "ZL"];
-    const namesPool = ["Mirek", "Karel", "Pepa", "Honza", "Milan", "Jana", "Hanka", "Láďa", "Iva", "Petr", "Dan", "Lucka", "Alena", "Vašek", "Radek"];
+    const names = ["Mirek", "Pepa", "Milan", "Karel", "Honza", "Jarda"];
 
-    let state;
-    let roundOver = true;
+    let state = { deck: [], pot: 0, players: [], currentTurn: 0 };
     let isFirstRound = true;
 
     const $ = id => document.getElementById(id);
     const delay = ms => new Promise(r => setTimeout(r, ms));
 
-    function shuffle(deck) {
-        for (let i = deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[j]] = [deck[j], deck[i]];
-        }
-        return deck;
-    }
-
     function createDeck() {
         let deck = [];
         for (let s of suits) for (let r of ranks) deck.push({ suit: s, rank: r });
-        return shuffle(deck);
-    }
-
-    function updateUI() {
-        $('pot').innerText = state.pot;
-        let html = "";
-        state.players.forEach((p, idx) => {
-            let active = state.currentTurn === idx ? "active-player" : "";
-            html += `<div class="player-box ${active}"><strong>${p.name}</strong><br>${p.bal > 0 ? p.bal : 'OUT'}</div>`;
-        });
-        $('playersRow').innerHTML = html;
-    }
-
-    function renderCardsArea() {
-        let html = "";
-        state.players.forEach((p, i) => {
-            if (p.bal <= 0) return;
-            html += `<div class="player-row-ui" id="ui_${i}">
-                <div style="font-size:0.7rem; opacity:0.6;">${p.name}</div>
-                <div class="card-row">
-                    <div id="p${i}_c1" class="card"></div>
-                    <div id="p${i}_ct" class="card" style="border:1px solid var(--gold); border-radius:6px;"></div>
-                    <div id="p${i}_c2" class="card"></div>
-                </div>
-            </div>`;
-        });
-        $('cardsArea').innerHTML = html;
-    }
-
-    function drawCardImg(id, card) {
-        const el = $(id);
-        if (!el) return;
-        el.innerHTML = card ? `<img src="${IMAGE_URLS[card.rank + '_' + card.suit]}">` : "";
+        return deck.sort(() => Math.random() - 0.5);
     }
 
     function startGame() {
-        let pName = $('playerName').value.trim() || "Ty";
-        let startMoney = parseInt($('startMoney').value) || 1000;
+        let name = $('playerName').value.trim() || "Ty";
+        let money = parseInt($('startMoney').value) || 1000;
         let nNpc = parseInt($('npcCount').value);
         
-        let enemies = namesPool.sort(() => 0.5 - Math.random()).slice(0, nNpc);
+        state.players = [{ name, bal: money, isNPC: false }];
+        for(let i=0; i<nNpc; i++) state.players.push({ name: names[i], bal: money, isNPC: true });
         
-        state = {
-            deck: [],
-            pot: 0,
-            currentTurn: null,
-            players: []
-        };
-
-        // Přidání NPC
-        enemies.forEach(name => state.players.push({ name, bal: startMoney, isNPC: true }));
-        // Přidání hráče doprostřed nebo na konec
-        state.players.splice(Math.floor(state.players.length/2), 0, { name: pName, bal: startMoney, isNPC: false });
-
-        $('startScreen').style.display = "none";
-        $('game').style.display = "block";
+        $('startScreen').style.display = 'none';
+        $('game').style.display = 'block';
         startRound();
     }
 
     async function startRound() {
-        if (!roundOver) return;
-        if (state.players.find(p => !p.isNPC).bal <= 0) return showEnd(false);
-        if (state.players.filter(p => p.isNPC).every(p => p.bal <= 0)) return showEnd(true);
+        if (state.players[0].bal <= 0) return showEnd(false);
+        if (state.players.slice(1).every(p => p.bal <= 0)) return showEnd(true);
 
-        roundOver = false;
-        $('nextBtn').classList.remove("active");
+        $('nextBtn').style.display = 'none';
         
         if (state.pot <= 0 || isFirstRound) {
-            $('msg').innerText = "Všichni vkládají 50 Kč...";
-            state.players.forEach(p => { if(p.bal > 0) { let take = Math.min(p.bal, 50); p.bal -= take; state.pot += take; }});
+            state.players.forEach(p => { if(p.bal > 0) { p.bal -= 50; state.pot += 50; }});
             isFirstRound = false;
         }
 
-        updateUI();
         renderCardsArea();
-
+        updateUI();
+        
         const rows = document.querySelectorAll('.player-row-ui');
         rows.forEach(r => r.classList.add('shuffling'));
         $('msg').innerText = "Míchám karty...";
@@ -359,67 +301,62 @@
             if (state.players[i].bal <= 0) continue;
             state.currentTurn = i;
             updateUI();
-            await turn(i);
+            await runTurn(i);
             if (state.pot <= 0) break;
         }
 
-        roundOver = true;
-        $('nextBtn').classList.add("active");
         state.currentTurn = null;
         updateUI();
+        $('nextBtn').style.display = 'block';
     }
 
-    async function turn(i) {
-        let p = state.players[i];
-        let c1 = state.deck.pop();
-        let c2 = state.deck.pop();
-        drawCardImg(`p${i}_c1`, c1);
-        drawCardImg(`p${i}_c2`, c2);
-        await delay(700);
+    async function runTurn(idx) {
+        let p = state.players[idx];
+        let c1 = state.deck.pop(), c2 = state.deck.pop();
+        drawCardImg(`p${idx}_c1`, c1); drawCardImg(`p${idx}_c2`, c2);
+        await delay(600);
 
         if (c1.rank === c2.rank) {
             if (c1.rank === "A") {
                 p.bal += state.pot; state.pot = 0;
-                $('msg').innerText = `${p.name}: ESA! Bere bank!`;
+                $('msg').innerText = `${p.name} má ESA a bere BANK!`;
             } else {
                 p.bal -= 50; state.pot += 50;
-                $('msg').innerText = `${p.name}: Stejné karty - platí 50.`;
+                $('msg').innerText = `${p.name} má stejné - platí 50.`;
             }
             updateUI(); await delay(1200); return;
         }
 
         if (p.isNPC) {
-            let v1 = ranks.indexOf(c1.rank), v2 = ranks.indexOf(c2.rank);
-            let gap = Math.abs(v1 - v2);
-            if (gap > 2 && Math.random() > 0.45) {
-                let bet = Math.min(gap * 30, p.bal, state.pot);
-                await evaluate(p, i, v1, v2, bet);
-            } else { await delay(600); }
+            let gap = Math.abs(ranks.indexOf(c1.rank) - ranks.indexOf(c2.rank));
+            if (gap > 2 && Math.random() > 0.5) {
+                let bet = Math.min(gap * 25, p.bal, state.pot);
+                await evalCard(p, idx, c1, c2, bet);
+            }
         } else {
-            await new Promise(resolve => {
-                $('actions').style.display = "block";
+            await new Promise(res => {
+                $('actions').style.display = 'block';
                 $('playBtn').onclick = async () => {
                     let b = Math.min(parseInt($('bet').value), p.bal, state.pot);
-                    $('actions').style.display = "none";
-                    await evaluate(p, i, ranks.indexOf(c1.rank), ranks.indexOf(c2.rank), b);
-                    resolve();
+                    $('actions').style.display = 'none';
+                    await evalCard(p, idx, c1, c2, b); res();
                 };
                 $('allInBtn').onclick = async () => {
                     let b = Math.min(p.bal, state.pot);
-                    $('actions').style.display = "none";
-                    await evaluate(p, i, ranks.indexOf(c1.rank), ranks.indexOf(c2.rank), b);
-                    resolve();
+                    $('actions').style.display = 'none';
+                    await evalCard(p, idx, c1, c2, b); res();
                 };
-                $('passBtn').onclick = () => { $('actions').style.display = "none"; resolve(); };
+                $('passBtn').onclick = () => { $('actions').style.display = 'none'; res(); };
             });
         }
     }
 
-    async function evaluate(p, i, v1, v2, bet) {
+    async function evalCard(p, idx, c1, c2, bet) {
         let t = state.deck.pop();
-        drawCardImg(`p${i}_ct`, t);
+        drawCardImg(`p${idx}_ct`, t);
         await delay(800);
-        let min = Math.min(v1, v2), max = Math.max(v1, v2), vt = ranks.indexOf(t.rank);
+        let v1 = ranks.indexOf(c1.rank), v2 = ranks.indexOf(c2.rank), vt = ranks.indexOf(t.rank);
+        let min = Math.min(v1, v2), max = Math.max(v1, v2);
 
         if (vt > min && vt < max) {
             p.bal += bet; state.pot -= bet;
@@ -431,13 +368,37 @@
             p.bal -= bet; state.pot += bet;
             $('msg').innerText = `${p.name} prohrál ${bet} Kč.`;
         }
-        updateUI(); await delay(1200);
+        updateUI(); await delay(1000);
+    }
+
+    function updateUI() {
+        $('pot').innerText = state.pot;
+        $('playersRow').innerHTML = state.players.map((p, i) => `
+            <div class="player-box ${state.currentTurn === i ? 'active-player' : ''}">
+                <strong>${p.name}</strong><br>${p.bal > 0 ? p.bal : 'OUT'}
+            </div>`).join('');
+    }
+
+    function renderCardsArea() {
+        $('cardsArea').innerHTML = state.players.map((p, i) => p.bal <= 0 ? '' : `
+            <div class="player-row-ui">
+                <div class="card-row">
+                    <div id="p${i}_c1" class="card"></div>
+                    <div id="p${i}_ct" class="card"></div>
+                    <div id="p${i}_c2" class="card"></div>
+                </div>
+            </div>`).join('');
+    }
+
+    function drawCardImg(id, card) {
+        const el = $(id);
+        if (el) el.innerHTML = `<img src="${IMAGE_URLS[card.rank + '_' + card.suit]}">`;
     }
 
     function showEnd(win) {
-        $('endScreen').style.display = "flex";
-        $('endTitle').innerText = win ? "Vítězství!" : "Bankrot!";
-        $('endMsg').innerText = win ? "Ovládl jsi stůl!" : "Příště to vyjde.";
+        $('endScreen').style.display = 'flex';
+        $('endTitle').innerText = win ? "VÍTĚZSTVÍ!" : "BANKROT!";
+        $('endMsg').innerText = win ? "Ovládl jsi stůl!" : "Zkus to znovu.";
     }
 
     $('startBtn').onclick = startGame;
