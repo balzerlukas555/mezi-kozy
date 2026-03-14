@@ -34,7 +34,7 @@
             color: #222;
             padding: 30px;
             border-radius: 15px;
-            width: 90%;
+            width: 85%;
             max-width: 350px;
         }
 
@@ -64,16 +64,17 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            padding: 15px;
+            padding: 10px;
             background: rgba(0,0,0,0.3);
         }
 
         .player-box {
-            padding: 10px;
+            padding: 8px;
             background: #222;
             border-radius: 10px;
-            min-width: 90px;
+            min-width: 85px;
             border: 2px solid transparent;
+            font-size: 0.9rem;
         }
 
         .active-player {
@@ -87,7 +88,7 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         .card-row {
@@ -95,9 +96,9 @@
             justify-content: center;
             gap: 10px;
             background: rgba(255,255,255,0.05);
-            padding: 15px;
+            padding: 12px;
             border-radius: 12px;
-            min-height: 180px;
+            min-height: 185px;
         }
 
         .card img {
@@ -105,6 +106,7 @@
             height: 175px;
             border-radius: 8px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            background: #0b3d13;
         }
 
         /* ANIMACE MÍCHÁNÍ */
@@ -113,37 +115,58 @@
         }
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-3px, 0px) rotate(-1deg); }
-            40% { transform: translate(3px, 2px) rotate(1deg); }
-            60% { transform: translate(-1px, -1px) rotate(1deg); }
-            80% { transform: translate(-3px, 1px) rotate(-1deg); }
+            25% { transform: translate(-2px, 0px) rotate(-1deg); }
+            50% { transform: translate(2px, 1px) rotate(1deg); }
+            75% { transform: translate(-1px, -1px) rotate(0deg); }
             100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
 
         /* OVLÁDÁNÍ */
         #actions {
-            background: rgba(0,0,0,0.4);
-            padding: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
             position: fixed;
             bottom: 0;
             width: 100%;
             box-sizing: border-box;
+            z-index: 10;
         }
 
         .game-btn {
-            padding: 12px 20px;
+            padding: 12px 18px;
             font-weight: bold;
-            margin: 5px;
+            margin: 4px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             text-transform: uppercase;
         }
 
-        #nextBtn { background: #444; color: white; width: 200px; margin: 10px auto; }
+        #nextBtn { background: #444; color: white; width: 180px; margin: 10px auto; }
         #nextBtn.active { background: #c40000; box-shadow: 0 0 15px #c40000; }
 
-        #msg { color: #ffd700; font-weight: bold; height: 1.5em; margin: 10px; }
+        #msg { color: #ffd700; font-weight: bold; height: 1.5em; margin: 10px; padding: 0 10px; }
+
+        /* MOBILNÍ RESPONSIVITA */
+        @media (max-width: 600px) {
+            .card img { 
+                width: 80px; 
+                height: 133px; 
+            }
+            .card-row { 
+                gap: 5px; 
+                padding: 10px;
+                min-height: 145px;
+            }
+            .player-box {
+                min-width: 75px;
+                font-size: 0.8rem;
+                padding: 5px;
+            }
+            h2 { font-size: 1.2rem; margin: 10px 0; }
+            #actions { padding: 10px; }
+            .game-btn { padding: 10px 14px; font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
@@ -154,7 +177,7 @@
         <label style="display:block; text-align:left; font-size:0.8rem; color:#666;">Tvé jméno:</label>
         <input type="text" id="playerName" placeholder="Zadej jméno...">
         
-        <label style="display:block; text-align:left; font-size:0.8rem; color:#666;">Počáteční peníze (pro všechny):</label>
+        <label style="display:block; text-align:left; font-size:0.8rem; color:#666;">Počáteční peníze (všichni):</label>
         <input type="number" id="startMoney" value="1000" min="100">
         
         <button id="startBtn" class="btn-main">VSTOUPIT DO HRY</button>
@@ -179,7 +202,7 @@
     <button id="nextBtn" class="game-btn">DALŠÍ KOLO</button>
 
     <div id="actions" style="display:none;">
-        <input type="number" id="bet" value="50" min="10" step="10" style="width:100px;"> <br>
+        <input type="number" id="bet" value="50" min="10" step="10" style="width:100px; padding:10px; margin-bottom:10px; border-radius:5px; border:none;"> <br>
         <button id="playBtn" class="game-btn" style="background:#c40000; color:white;">VSADIT</button>
         <button id="allInBtn" class="game-btn" style="background:#ffd700; color:black;">ALL IN</button>
         <button id="passBtn" class="game-btn" style="background:#666; color:white;">PAS</button>
@@ -197,16 +220,15 @@
 
     const ranks = ["7", "8", "9", "10", "J", "Q", "K", "A"];
     const suits = ["Z", "C", "K", "ZL"];
-    const npcPool = ["Mirek", "Karel", "Pepa", "Milan", "Honza", "Jana", "Hanka", "Láďa"];
+    const npcPool = ["Mirek", "Karel", "Pepa", "Milan", "Honza", "Jana", "Hanka", "Láďa", "Radek", "Iva", "Petr", "Dan", "Lucka", "Alena", "Vašek"];
 
     let state;
     let roundOver = true;
-    let firstRound = true;
+    let firstStart = true;
 
     const $ = id => document.getElementById(id);
     const delay = ms => new Promise(r => setTimeout(r, ms));
 
-    // Fisher-Yates míchání (nejvíce náhodné)
     function shuffleDeck(deck) {
         for (let i = deck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -235,7 +257,7 @@
         let html = "";
         state.players.forEach((p, i) => {
             if (p.bal <= 0) return;
-            html += `<div><small>${p.name}</small><div class="card-row" id="row_${i}">
+            html += `<div><small style="opacity:0.7">${p.name}</small><div class="card-row" id="row_${i}">
                 <div id="p${i}_c1" class="card"></div>
                 <div id="p${i}_ct" class="card" style="border: 2px solid #ffd700; border-radius:8px;"></div>
                 <div id="p${i}_c2" class="card"></div>
@@ -279,8 +301,8 @@
         roundOver = false;
         $('nextBtn').classList.remove("active");
         
-        // PRAVIDLO 1: Vklad pouze pokud je bank prázdný nebo je to úplně první kolo
-        if (state.pot === 0 || firstRound) {
+        // LOGIKA VKLADŮ: Pouze pokud je bank prázdný
+        if (state.pot <= 0 || firstStart) {
             $('msg').innerText = "Bank je prázdný, všichni vkládají 50 Kč...";
             state.players.forEach(p => {
                 if (p.bal > 0) {
@@ -289,18 +311,18 @@
                     state.pot += pay;
                 }
             });
-            firstRound = false;
+            firstStart = false;
         } else {
-            $('msg').innerText = "V banku zbývají peníze, hrajeme dál!";
+            $('msg').innerText = "V banku jsou peníze, hrajeme dál bez vkladů.";
         }
 
         updateUI();
         renderCardsArea();
 
-        // PRAVIDLO 2: Animace míchání
+        // ANIMACE MÍCHÁNÍ
         const rows = document.querySelectorAll('.card-row');
         rows.forEach(r => r.classList.add('shuffling'));
-        $('msg').innerText = "Míchám karty...";
+        $('msg').innerText = "Míchám balíček...";
         await delay(1200);
         rows.forEach(r => r.classList.remove('shuffling'));
         
@@ -328,14 +350,15 @@
         drawCardImg(`p${i}_c2`, c2);
         await delay(800);
 
+        // SPECIÁLNÍ PRAVIDLA: STEJNÉ KARTY / ESA
         if (c1.rank === c2.rank) {
             if (c1.rank === "A") {
                 p.bal += state.pot;
-                $('msg').innerText = `${p.name} má DVĚ ESA a vybírá BANK!`;
+                $('msg').innerText = `${p.name} má DVĚ ESA a bere BANK!`;
                 state.pot = 0;
             } else {
                 p.bal -= 50; state.pot += 50;
-                $('msg').innerText = `${p.name} má stejné karty a platí 50 Kč.`;
+                $('msg').innerText = `${p.name} má stejné karty (${c1.rank}) a platí 50 Kč.`;
             }
             updateUI();
             await delay(1500);
@@ -355,7 +378,7 @@
         } else {
             await new Promise(resolve => {
                 $('actions').style.display = "block";
-                $('msg').innerText = "Tvé karty! Vsaď si:";
+                $('msg').innerText = "Tvé karty! Kolik vsadíš?";
                 $('playBtn').onclick = async () => {
                     let bet = Math.min(parseInt($('bet').value) || 10, p.bal, state.pot);
                     $('actions').style.display = "none";
@@ -385,11 +408,11 @@
 
         if (vt > min && vt < max) {
             p.bal += bet; state.pot -= bet;
-            $('msg').innerText = `${p.name} vyhrál ${bet} Kč!`;
+            $('msg').innerText = `${p.name} trefil! Vyhrává ${bet} Kč.`;
         } else if (vt === min || vt === max) {
             let penalty = bet * 2;
             p.bal -= penalty; state.pot += penalty;
-            $('msg').innerText = `KOZA! ${p.name} platí ${penalty} Kč!`;
+            $('msg').innerText = `KOZA! ${p.name} platí dvojnásobek: ${penalty} Kč!`;
         } else {
             p.bal -= bet; state.pot += bet;
             $('msg').innerText = `${p.name} netrefil a ztrácí ${bet} Kč.`;
@@ -401,7 +424,7 @@
     function showEnd(win) {
         $('endScreen').style.display = "flex";
         $('endTitle').innerText = win ? "Vítězství!" : "Bankrot!";
-        $('endMsg').innerText = win ? "Všechny jsi oškubal!" : "Došly ti peníze.";
+        $('endMsg').innerText = win ? "Všechny jsi oškubal a ovládl jsi stůl!" : "Bohužel ti došly peníze.";
     }
 
     $('startBtn').onclick = startGame;
