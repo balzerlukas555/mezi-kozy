@@ -3,55 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mezi Kozy - Karetní hra</title>
+    <title>Mezi Kozy - Hospodská hra</title>
 
-    <link rel="apple-touch-icon" href="SEM_VLOZ_ODKAZ_NA_IKONKU">
-    <link rel="icon" type="image/png" href="SEM_VLOZ_ODKAZ_NA_IKONKU">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8294/8294512.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/8294/8294512.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent: #bb86fc;
-            --text-main: #e0e0e0;
-            --text-dim: #a0a0a0;
-            --green: #03dac6;
-            --red: #cf6679;
+            --wood: #3e2723;
+            --felt: #1b5e20;
+            --gold: #ffd700;
+            --paper: #f5f5dc;
+            --text-dark: #212121;
         }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: 'Georgia', serif;
+            background: var(--wood) url('https://www.transparenttextures.com/patterns/dark-wood.png');
+            color: white;
             margin: 0; padding: 10px;
             display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh; overflow-x: hidden;
+            min-height: 100vh;
         }
-        h1 { margin: 10px 0; font-size: 1.8rem; color: var(--accent); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .game-container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 15px; }
-        .section { background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid #333; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .stat-item { background: #252525; padding: 10px; border-radius: 8px; text-align: center; }
-        .stat-label { font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 4px; }
-        .stat-value { font-size: 1.1rem; font-weight: bold; color: var(--green); }
-        .table-area { display: flex; justify-content: center; gap: 15px; margin: 20px 0; perspective: 1000px; min-height: 150px; }
-        .card-slot { width: 90px; height: 135px; border: 2px dashed #444; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); }
-        .card-img { width: 100%; height: 100%; border-radius: 6px; object-fit: cover; box-shadow: 0 4px 8px rgba(0,0,0,0.5); animation: flipIn 0.5s ease-out; }
-        @keyframes flipIn { from { transform: rotateY(90deg); opacity: 0; } to { transform: rotateY(0deg); opacity: 1; } }
+
+        h1 { 
+            margin: 10px 0; 
+            font-size: 2.2rem; 
+            color: var(--gold); 
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px #000;
+            letter-spacing: 2px;
+        }
+
+        .game-container { width: 100%; max-width: 600px; }
+
+        .section { 
+            background: rgba(0,0,0,0.6); 
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 2px solid #5d4037;
+            margin-bottom: 15px;
+        }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .stat-item { 
+            background: rgba(255,255,255,0.05); 
+            padding: 10px; 
+            border-radius: 5px; 
+            text-align: center;
+            border: 1px solid #795548;
+        }
+
+        .stat-label { font-size: 0.8rem; color: #ccc; display: block; margin-bottom: 3px; }
+        .stat-value { font-size: 1.3rem; font-weight: bold; color: var(--gold); }
+
+        /* Hrací stůl - zelené plátno */
+        .table-area { 
+            background: var(--felt) url('https://www.transparenttextures.com/patterns/felt.png');
+            border: 10px solid #5d4037;
+            border-radius: 40px;
+            display: flex; justify-content: center; align-items: center;
+            gap: 12px; margin: 15px 0; 
+            min-height: 180px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.6), 0 10px 20px rgba(0,0,0,0.5);
+            padding: 10px;
+        }
+
+        .card-slot { 
+            width: 85px; height: 125px; 
+            border: 1px dashed rgba(255,255,255,0.3); 
+            border-radius: 6px; 
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .card-img { 
+            width: 100%; height: 100%; 
+            border-radius: 5px; 
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.8);
+            animation: dealCard 0.4s ease-out;
+            object-fit: cover;
+        }
+
+        @keyframes dealCard { from { transform: translateY(-40px) rotate(5deg); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Ovládací tlačítka */
         .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        input[type="number"] { background: #2c2c2c; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; font-size: 1rem; width: 100%; outline: none; }
-        button { background: var(--accent); color: black; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: transform 0.1s, filter 0.2s; font-size: 1rem; }
-        button:active { transform: scale(0.95); }
-        button:disabled { background: #444; color: #888; cursor: not-allowed; }
-        .full-width { grid-column: span 2; }
-        .log { height: 120px; overflow-y: auto; font-size: 0.85rem; padding: 10px; background: #000; border-radius: 8px; color: #0f0; font-family: 'Courier New', monospace; border: 1px solid #333; }
-        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; max-width: 400px; width: 100%; border: 1px solid var(--accent); }
+        
+        input[type="number"] { 
+            grid-column: span 2;
+            background: var(--paper); border: 2px solid #9e9e9e; 
+            color: var(--text-dark); padding: 12px; border-radius: 5px; 
+            font-size: 1.2rem; text-align: center; font-weight: bold; outline: none;
+        }
+
+        button { 
+            padding: 15px; border-radius: 5px; border: none;
+            font-weight: bold; font-size: 1.1rem; cursor: pointer;
+            text-transform: uppercase; box-shadow: 0 4px #222;
+            transition: all 0.1s;
+        }
+
+        button#bet-btn { background: #d32f2f; color: white; }
+        button#pass-btn { background: #5d4037; color: white; }
+        
+        button:active { transform: translateY(2px); box-shadow: 0 2px #111; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+        /* Log jako starý papír */
+        .log { 
+            height: 110px; overflow-y: auto; 
+            padding: 12px; background: var(--paper); 
+            color: var(--text-dark); border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.3);
+            font-size: 0.9rem;
+        }
+
+        .log-entry { border-bottom: 1px dashed #bbb; padding: 4px 0; }
+
+        /* Modální okno */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: var(--paper); color: var(--text-dark); padding: 30px; border-radius: 8px; text-align: center; width: 85%; max-width: 380px; border: 4px solid var(--wood); }
+        
         .hidden { display: none; }
-        @media (max-width: 768px) { .card-slot { width: 75px; height: 112px; } .table-area { min-height: 125px; } }
+        @media (max-width: 768px) { .card-slot { width: 75px; height: 110px; } .table-area { border-width: 6px; padding: 5px; } }
     </style>
 </head>
 <body>
@@ -60,12 +141,12 @@
 
 <div id="setup-screen" class="modal">
     <div class="modal-content">
-        <h2>Nové posezení</h2>
-        <p style="color: var(--text-dim);">Zadej své jméno a počet soupeřů</p>
-        <input type="text" id="player-name" placeholder="Tvé jméno" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #444; background: #2c2c2c; color: white;">
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button onclick="startGame(1)" style="flex: 1;">1 Protivník</button>
-            <button onclick="startGame(2)" style="flex: 1;">2 Protivníci</button>
+        <img src="https://cdn-icons-png.flaticon.com/512/8294/8294512.png" width="70" alt="Ikonka">
+        <h2 style="margin:10px 0; font-family: Georgia;">U hracího stolu</h2>
+        <input type="text" id="player-name" placeholder="Tvé jméno..." style="width: 100%; padding: 12px; margin: 15px 0; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc;">
+        <div style="display: flex; gap: 10px;">
+            <button onclick="startGame(1)" style="flex: 1; background: #2e7d32; color: white; box-shadow: 0 4px #1b5e20;">Jeden soupeř</button>
+            <button onclick="startGame(2)" style="flex: 1; background: #2e7d32; color: white; box-shadow: 0 4px #1b5e20;">Dva soupeři</button>
         </div>
     </div>
 </div>
@@ -74,61 +155,46 @@
     <div class="section">
         <div class="stats-grid">
             <div class="stat-item"><span class="stat-label">V Banku</span><span id="pot-display" class="stat-value">0</span></div>
-            <div class="stat-item"><span class="stat-label">Tvůj Kapitál</span><span id="player-money" class="stat-value">0</span></div>
+            <div class="stat-item"><span class="stat-label">Tvůj měšec</span><span id="player-money" class="stat-value">0</span></div>
         </div>
-        <div id="turn-indicator" style="text-align: center; font-weight: bold; color: var(--accent);">Na řadě: -</div>
+        <div id="turn-indicator" style="text-align: center; margin-top: 10px; color: var(--gold); font-style: italic;">Čeká se na hosty...</div>
     </div>
 
     <div class="table-area">
         <div class="card-slot" id="card1"></div>
-        <div class="card-slot" id="card3" style="border-style: solid; border-color: var(--accent); transform: scale(1.1); margin: 0 10px; z-index: 2;"></div>
+        <div class="card-slot" id="card3" style="transform: scale(1.1); z-index: 5;"></div>
         <div class="card-slot" id="card2"></div>
     </div>
 
     <div class="section controls" id="game-controls">
-        <input type="number" id="bet-amount" placeholder="Sázka..." min="1">
-        <button onclick="playTurn()" id="bet-btn">Vsadit</button>
-        <button onclick="passTurn()" id="pass-btn" style="background: var(--red);">Nehrát</button>
+        <input type="number" id="bet-amount" placeholder="Kolik vsadíš?">
+        <button onclick="playTurn()" id="bet-btn">Vsadit!</button>
+        <button onclick="passTurn()" id="pass-btn">Přejít</button>
     </div>
 
-    <div class="section">
-        <div id="game-log" class="log"></div>
-    </div>
+    <div class="log" id="game-log"></div>
 </div>
 
 <script>
-    // ==========================================
-    // NASTAVENÍ ODKAZŮ NA OBRÁZKY
-    // ==========================================
+    // TVOJE ODKAZY NA KARTY
     const IMAGE_URLS = {
-        // Barvy: C = Červené, Z = Zelené, K = Kule, ZL = Žaludy
-        "7_C": "ODKAZ_ZDE", "8_C": "ODKAZ_ZDE", "9_C": "ODKAZ_ZDE", "10_C": "ODKAZ_ZDE", "J_C": "ODKAZ_ZDE", "Q_C": "ODKAZ_ZDE", "K_C": "ODKAZ_ZDE", "A_C": "ODKAZ_ZDE",
-        "7_Z": "ODKAZ_ZDE", "8_Z": "ODKAZ_ZDE", "9_Z": "ODKAZ_ZDE", "10_Z": "ODKAZ_ZDE", "J_Z": "ODKAZ_ZDE", "Q_Z": "ODKAZ_ZDE", "K_Z": "ODKAZ_ZDE", "A_Z": "ODKAZ_ZDE",
-        "7_K": "ODKAZ_ZDE", "8_K": "ODKAZ_ZDE", "9_K": "ODKAZ_ZDE", "10_K": "ODKAZ_ZDE", "J_K": "ODKAZ_ZDE", "Q_K": "ODKAZ_ZDE", "K_K": "ODKAZ_ZDE", "A_K": "ODKAZ_ZDE",
-        "7_ZL": "ODKAZ_ZDE", "8_ZL": "ODKAZ_ZDE", "9_ZL": "ODKAZ_ZDE", "10_ZL": "ODKAZ_ZDE", "J_ZL": "ODKAZ_ZDE", "Q_ZL": "ODKAZ_ZDE", "K_ZL": "ODKAZ_ZDE", "A_ZL": "ODKAZ_ZDE",
-        
-        "back": "SEM_VLOZ_ODKAZ_NA_ZADNI_STRANU_KARTY",
-        "icon": "SEM_VLOZ_ODKAZ_NA_IKONKU_APLIKACE"
+        "7_K": "https://hra-lora.cz/assets/cardsmini/7_d.jpg", "8_K": "https://hra-lora.cz/assets/cardsmini/8_d.jpg", "9_K": "https://hra-lora.cz/assets/cardsmini/9_d.jpg", "10_K": "https://hra-lora.cz/assets/cardsmini/t_d.jpg", "J_K": "https://hra-lora.cz/assets/cardsmini/j_d.jpg", "Q_K": "https://hra-lora.cz/assets/cardsmini/q_d.jpg", "K_K": "https://hra-lora.cz/assets/cardsmini/k_d.jpg", "A_K": "https://hra-lora.cz/assets/cardsmini/a_d.jpg",
+        "7_Z": "https://hra-lora.cz/assets/cardsmini/7_s.jpg", "8_Z": "https://hra-lora.cz/assets/cardsmini/8_s.jpg", "9_Z": "https://hra-lora.cz/assets/cardsmini/9_s.jpg", "10_Z": "https://hra-lora.cz/assets/cardsmini/t_s.jpg", "J_Z": "https://hra-lora.cz/assets/cardsmini/j_s.jpg", "Q_Z": "https://hra-lora.cz/assets/cardsmini/q_s.jpg", "K_Z": "https://hra-lora.cz/assets/cardsmini/k_s.jpg", "A_Z": "https://hra-lora.cz/assets/cardsmini/a_s.jpg",
+        "7_C": "https://hra-lora.cz/assets/cardsmini/7_h.jpg", "8_C": "https://hra-lora.cz/assets/cardsmini/8_h.jpg", "9_C": "https://hra-lora.cz/assets/cardsmini/9_h.jpg", "10_C": "https://hra-lora.cz/assets/cardsmini/t_h.jpg", "J_C": "https://hra-lora.cz/assets/cardsmini/j_h.jpg", "Q_C": "https://hra-lora.cz/assets/cardsmini/q_h.jpg", "K_C": "https://hra-lora.cz/assets/cardsmini/k_h.jpg", "A_C": "https://hra-lora.cz/assets/cardsmini/a_h.jpg",
+        "7_ZL": "https://hra-lora.cz/assets/cardsmini/7_c.jpg", "8_ZL": "https://hra-lora.cz/assets/cardsmini/8_c.jpg", "9_ZL": "https://hra-lora.cz/assets/cardsmini/9_c.jpg", "10_ZL": "https://hra-lora.cz/assets/cardsmini/t_c.jpg", "J_ZL": "https://hra-lora.cz/assets/cardsmini/j_c.jpg", "Q_ZL": "https://hra-lora.cz/assets/cardsmini/q_c.jpg", "K_ZL": "https://hra-lora.cz/assets/cardsmini/k_c.jpg", "A_ZL": "https://hra-lora.cz/assets/cardsmini/a_c.jpg",
+        "back": "https://hra-lora.cz/assets/cardsmini/back.jpg",
+        "icon": "https://cdn-icons-png.flaticon.com/512/8294/8294512.png"
     };
 
-    // Logika hry
     const SUITS = ['C', 'Z', 'K', 'ZL'];
     const RANKS = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
     const RANK_VALUES = { '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
 
-    let deck = [];
-    let players = [];
-    let currentPlayerIndex = 0;
-    let pot = 0;
-    let tableCards = [];
+    let deck = [], players = [], currentPlayerIndex = 0, pot = 0, tableCards = [];
 
     function createDeck() {
         deck = [];
-        for (let suit of SUITS) {
-            for (let rank of RANKS) {
-                deck.push({ rank, suit });
-            }
-        }
+        for (let suit of SUITS) for (let rank of RANKS) deck.push({ rank, suit });
     }
 
     function shuffleDeck() {
@@ -138,50 +204,40 @@
         }
     }
 
-    function addLog(msg, color = 'var(--text-main)') {
+    function addLog(msg, color = 'var(--text-dark)') {
         const log = document.getElementById('game-log');
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         entry.style.color = color;
-        entry.textContent = `> ${msg}`;
+        entry.textContent = `• ${msg}`;
         log.prepend(entry);
     }
 
     function updateUI() {
         const human = players.find(p => p.type === 'human');
-        if (human) document.getElementById('player-money').textContent = human.money;
-        document.getElementById('pot-display').textContent = pot;
-        document.getElementById('turn-indicator').textContent = `Na řadě: ${players[currentPlayerIndex].name}`;
+        if (human) document.getElementById('player-money').textContent = human.money + " ,-";
+        document.getElementById('pot-display').textContent = pot + " ,-";
+        document.getElementById('turn-indicator').textContent = `Hraje: ${players[currentPlayerIndex].name}`;
         
         const controls = document.getElementById('game-controls');
-        if (players[currentPlayerIndex].type === 'human') {
-            controls.querySelectorAll('button, input').forEach(el => el.disabled = false);
-        } else {
-            controls.querySelectorAll('button, input').forEach(el => el.disabled = true);
-        }
+        const isHuman = players[currentPlayerIndex].type === 'human';
+        controls.querySelectorAll('button, input').forEach(el => el.disabled = !isHuman);
     }
 
     function startGame(npcCount) {
-        const nameInput = document.getElementById('player-name').value.trim();
-        const pName = nameInput || "Hráč";
-        
-        players = [{ name: pName, money: 1000, type: 'human' }];
-        for (let i = 1; i <= npcCount; i++) {
-            players.push({ name: `NPC ${i}`, money: 1000, type: 'npc' });
-        }
-        
+        const pName = document.getElementById('player-name').value.trim() || "Ty";
+        players = [{ name: pName, money: 500, type: 'human' }];
+        for (let i = 1; i <= npcCount; i++) players.push({ name: `Štamgast ${i}`, money: 500, type: 'npc' });
         document.getElementById('setup-screen').classList.add('hidden');
         newRound();
     }
 
     function newRound() {
         if (pot === 0) {
-            players.forEach(p => { p.money -= 10; pot += 10; });
-            addLog("Všichni vložili 10 do banku.", 'var(--text-dim)');
+            players.forEach(p => { p.money -= 20; pot += 20; });
+            addLog("Každý vsadil 20 do společného banku.");
         }
-        createDeck();
-        shuffleDeck();
-        startTurn();
+        createDeck(); shuffleDeck(); startTurn();
     }
 
     function startTurn() {
@@ -192,24 +248,19 @@
         tableCards = [deck.pop(), deck.pop()];
         tableCards.sort((a, b) => RANK_VALUES[a.rank] - RANK_VALUES[b.rank]);
         
-        renderCard('card1', tableCards[0]);
-        renderCard('card2', tableCards[1]);
+        setTimeout(() => renderCard('card1', tableCards[0]), 200);
+        setTimeout(() => renderCard('card2', tableCards[1]), 400);
         
         updateUI();
-        if (players[currentPlayerIndex].type === 'npc') {
-            setTimeout(npcAction, 1500);
-        }
+        if (players[currentPlayerIndex].type === 'npc') setTimeout(npcAction, 1500);
     }
 
     function renderCard(slotId, card) {
         const slot = document.getElementById(slotId);
         const img = document.createElement('img');
-        const key = `${card.rank}_${card.suit}`;
-        img.src = IMAGE_URLS[key] !== "ODKAZ_ZDE" ? IMAGE_URLS[key] : IMAGE_URLS["back"];
+        img.src = IMAGE_URLS[`${card.rank}_${card.suit}`] || IMAGE_URLS["back"];
         img.className = 'card-img';
-        img.alt = key;
-        slot.innerHTML = '';
-        slot.appendChild(img);
+        slot.innerHTML = ''; slot.appendChild(img);
     }
 
     function playTurn() {
@@ -217,16 +268,18 @@
         let bet = parseInt(betInput.value);
         const player = players[currentPlayerIndex];
 
-        if (isNaN(bet) || bet <= 0) { addLog("Zadej platnou sázku!"); return; }
-        if (bet > player.money) { addLog("Nemáš dost peněz!"); return; }
-        if (bet > pot) { addLog("V banku je jen " + pot); return; }
+        if (isNaN(bet) || bet <= 0) return;
+        if (bet > player.money || bet > pot) {
+            addLog("Tolik u sebe nemáš nebo víc než je v banku!");
+            return;
+        }
 
         evaluateTurn(bet);
         betInput.value = '';
     }
 
     function passTurn() {
-        addLog(`${players[currentPlayerIndex].name} se hry neúčastní.`);
+        addLog(`${players[currentPlayerIndex].name} se tentokrát bojí a pasuje.`);
         nextPlayer();
     }
 
@@ -235,46 +288,32 @@
         const card3 = deck.pop();
         renderCard('card3', card3);
 
-        const v1 = RANK_VALUES[tableCards[0].rank];
-        const v2 = RANK_VALUES[tableCards[1].rank];
-        const v3 = RANK_VALUES[card3.rank];
+        const v1 = RANK_VALUES[tableCards[0].rank], v2 = RANK_VALUES[tableCards[1].rank], v3 = RANK_VALUES[card3.rank];
 
         setTimeout(() => {
             if (v3 > v1 && v3 < v2) {
-                player.money += bet;
-                pot -= bet;
-                addLog(`${player.name} vyhrál ${bet}!`, 'var(--green)');
+                player.money += bet; pot -= bet;
+                addLog(`${player.name} trefil mezeru a bere ${bet} ,-`, '#2e7d32');
             } else if (v3 === v1 || v3 === v2) {
-                const penalty = bet * 2;
-                player.money -= penalty;
-                pot += penalty;
-                addLog(`${player.name} trefil KOZU! Platí ${penalty}.`, 'var(--red)');
+                player.money -= bet * 2; pot += bet * 2;
+                addLog(`${player.name} trefil KOZU! Platí dvojnásob (${bet*2})!`, '#c62828');
             } else {
-                player.money -= bet;
-                pot += bet;
-                addLog(`${player.name} prohrál ${bet}.`, 'var(--red)');
+                player.money -= bet; pot += bet;
+                addLog(`${player.name} netrefil a prohrává ${bet} ,-`, '#c62828');
             }
             
-            if (pot <= 0) {
-                addLog("Bank je prázdný, začíná nové kolo!");
-                pot = 0;
-            }
-            
+            if (pot <= 0) { pot = 0; addLog("Bank byl vybrán! Příště musíme znova vsadit."); }
             checkElimination();
-        }, 1000);
+        }, 800);
     }
 
     function checkElimination() {
-        players = players.filter(p => {
-            if (p.money <= 0) {
-                addLog(`${p.name} zbankrotoval!`, 'orange');
-                return false;
-            }
-            return true;
-        });
-
-        if (players.length === 1) {
-            alert("Konec hry! Vítěz: " + players[0].name);
+        players = players.filter(p => p.money > 0);
+        if (players.length === 1 && players[0].type === 'human') {
+            alert("Gratulujeme! Vybílil jsi celou hospodu!");
+            location.reload();
+        } else if (players.find(p => p.type === 'human') === undefined) {
+            alert("Došly ti prachy! Hostinský tě vyprovodil ke dveřím.");
             location.reload();
         } else {
             nextPlayer();
@@ -283,25 +322,21 @@
 
     function nextPlayer() {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-        if (deck.length < 5) newRound();
-        else startTurn();
+        if (deck.length < 5) newRound(); else startTurn();
     }
 
     function npcAction() {
         const npc = players[currentPlayerIndex];
-        const v1 = RANK_VALUES[tableCards[0].rank];
-        const v2 = RANK_VALUES[tableCards[1].rank];
-        const gap = v2 - v1;
-
+        const gap = RANK_VALUES[tableCards[1].rank] - RANK_VALUES[tableCards[0].rank];
+        // Štamgast hraje, jen když je šance (mezera aspoň 3 karty)
         if (gap > 3) {
             const bet = Math.min(Math.floor(npc.money * 0.2), pot);
-            addLog(`${npc.name} sází ${bet}.`);
+            addLog(`${npc.name} sází ${bet} ,-`);
             evaluateTurn(bet);
         } else {
             passTurn();
         }
     }
 </script>
-
 </body>
 </html>
