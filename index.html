@@ -33,7 +33,6 @@
             min-height: 100vh;
         }
 
-        /* OBRAZOVKY */
         #startScreen, #endScreen {
             height: 100vh;
             display: flex;
@@ -86,7 +85,6 @@
             box-sizing: border-box;
         }
 
-        /* HORNÍ LIŠTA (PENÍZE) */
         #playersRow {
             display: flex;
             justify-content: center;
@@ -109,14 +107,13 @@
 
         .active-player { border-color: var(--gold); color: var(--gold); }
 
-        /* HERNÍ PLOCHA */
         #gameArea {
             flex: 1;
-            padding-bottom: 100px; /* Místo pro spodní panel */
+            padding-bottom: 110px;
         }
 
         #potArea { margin: 10px 0; font-size: 1rem; color: var(--gold); }
-        #msg { height: 1.2em; font-weight: bold; font-size: 0.85rem; color: var(--gold); margin-bottom: 10px; }
+        #msg { height: 2.8em; font-weight: bold; font-size: 0.85rem; color: var(--gold); margin-bottom: 10px; padding: 0 10px; display: flex; align-items: center; justify-content: center; }
 
         .player-row-ui {
             background: rgba(255,255,255,0.05);
@@ -140,14 +137,12 @@
             box-shadow: 0 3px 6px rgba(0,0,0,0.4);
         }
 
-        /* ANIMACE */
         .shuffling { animation: shake 0.4s infinite; }
         @keyframes shake {
             0% { transform: rotate(0); }
             50% { transform: rotate(1deg); }
         }
 
-        /* SPODNÍ OVLÁDACÍ PANEL */
         #actions {
             position: fixed;
             bottom: 0;
@@ -179,13 +174,11 @@
             display: none;
         }
 
-        /* --- MOBILNÍ SPECIFIKA (MEDIA QUERIES) --- */
         @media (max-width: 600px) {
             :root {
-                --card-w: 22vw; /* Dynamická šířka podle displeje */
+                --card-w: 22vw;
                 --card-h: 36vw;
             }
-
             .player-box { min-width: 20vw; font-size: 0.65rem; }
             .game-btn { padding: 8px 10px; font-size: 0.7rem; }
             #potArea { font-size: 0.9rem; }
@@ -200,9 +193,7 @@
         <h2 style="color:var(--primary-green); margin-top:0;">Mezi Kozy</h2>
         <input type="text" id="playerName" placeholder="Tvé jméno...">
         <button id="startBtn" class="btn-main">HRÁT</button>
-        
         <div id="settingsToggle" onclick="document.getElementById('settingsBox').style.display='block'" style="margin-top:10px; font-size:0.75rem; color:#888; cursor:pointer;">⚙️ Nastavení hry</div>
-        
         <div id="settingsBox">
             <label>Počet soupeřů:</label>
             <select id="npcCount">
@@ -226,14 +217,12 @@
 
 <div id="game" style="display:none;">
     <div id="playersRow"></div>
-    
     <div id="gameArea">
         <div id="potArea">BANK: <strong id="pot">0</strong> Kč</div>
         <div id="msg"></div>
         <div id="cardsArea"></div>
         <button id="nextBtn" class="game-btn">DALŠÍ KOLO</button>
     </div>
-
     <div id="actions">
         <div style="margin-bottom:8px;">
             <span style="font-size:0.7rem; opacity:0.8;">SÁZKA:</span>
@@ -255,10 +244,11 @@
 
     const ranks = ["7", "8", "9", "10", "J", "Q", "K", "A"];
     const suits = ["Z", "C", "K", "ZL"];
-    const names = ["Mirek", "Pepa", "Milan", "Karel", "Honza", "Jarda"];
+    const names = ["Pepa", "Martin", "Karel", "Honza"];
 
-    let state = { deck: [], pot: 0, players: [], currentTurn: 0 };
+    let state = { deck: [], pot: 0, players: [], currentTurn: null };
     let isFirstRound = true;
+    let someoneBetThisRound = false;
 
     const $ = id => document.getElementById(id);
     const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -273,10 +263,8 @@
         let name = $('playerName').value.trim() || "Ty";
         let money = parseInt($('startMoney').value) || 1000;
         let nNpc = parseInt($('npcCount').value);
-        
         state.players = [{ name, bal: money, isNPC: false }];
         for(let i=0; i<nNpc; i++) state.players.push({ name: names[i], bal: money, isNPC: true });
-        
         $('startScreen').style.display = 'none';
         $('game').style.display = 'block';
         startRound();
@@ -285,23 +273,21 @@
     async function startRound() {
         if (state.players[0].bal <= 0) return showEnd(false);
         if (state.players.slice(1).every(p => p.bal <= 0)) return showEnd(true);
-
         $('nextBtn').style.display = 'none';
-        
+        someoneBetThisRound = false;
+
         if (state.pot <= 0 || isFirstRound) {
-            state.players.forEach(p => { if(p.bal > 0) { p.bal -= 50; state.pot += 50; }});
+            state.players.forEach(p => { if(p.bal > 0) { let take = Math.min(p.bal, 50); p.bal -= take; state.pot += take; }});
             isFirstRound = false;
         }
 
         renderCardsArea();
         updateUI();
-        
         const rows = document.querySelectorAll('.player-row-ui');
         rows.forEach(r => r.classList.add('shuffling'));
         $('msg').innerText = "Míchám karty...";
         await delay(1000);
         rows.forEach(r => r.classList.remove('shuffling'));
-        
         state.deck = createDeck();
 
         for (let i = 0; i < state.players.length; i++) {
@@ -310,6 +296,13 @@
             updateUI();
             await runTurn(i);
             if (state.pot <= 0) break;
+        }
+
+        // PRAVIDLO: Pokud nikdo nesázel, všichni dají 50
+        if (!someoneBetThisRound && state.pot > 0) {
+            $('msg').innerText = "Nikdo nevsadil! Všichni povinně přihazují 50 Kč.";
+            await delay(1500);
+            state.players.forEach(p => { if(p.bal > 0) { let take = Math.min(p.bal, 50); p.bal -= take; state.pot += take; }});
         }
 
         state.currentTurn = null;
@@ -335,10 +328,27 @@
         }
 
         if (p.isNPC) {
-            let gap = Math.abs(ranks.indexOf(c1.rank) - ranks.indexOf(c2.rank));
-            if (gap > 2 && Math.random() > 0.5) {
-                let bet = Math.min(gap * 25, p.bal, state.pot);
-                await evalCard(p, idx, c1, c2, bet);
+            let v1 = ranks.indexOf(c1.rank), v2 = ranks.indexOf(c2.rank);
+            let gap = Math.abs(v1 - v2) - 1; // Počet karet uprostřed
+            let chance = 0;
+            if (gap >= 6) chance = 0.85;
+            else if (gap >= 4) chance = 0.50;
+            else if (gap >= 2) chance = 0.20;
+
+            if (Math.random() < chance) {
+                let betType = Math.random();
+                let finalBet = 0;
+                if (gap >= 6 && betType > 0.7 && p.bal <= state.pot) {
+                    finalBet = p.bal; // ALL IN
+                    $('msg').innerText = `${p.name} dává ALL-IN!`;
+                } else {
+                    finalBet = Math.min(Math.floor((gap / 7) * state.pot * 0.6), p.bal, state.pot);
+                    finalBet = Math.max(finalBet, 10);
+                }
+                await evalCard(p, idx, c1, c2, finalBet);
+            } else {
+                $('msg').innerText = `${p.name} pasuje.`;
+                await delay(600);
             }
         } else {
             await new Promise(res => {
@@ -353,12 +363,13 @@
                     $('actions').style.display = 'none';
                     await evalCard(p, idx, c1, c2, b); res();
                 };
-                $('passBtn').onclick = () => { $('actions').style.display = 'none'; res(); };
+                $('passBtn').onclick = () => { $('actions').style.display = 'none'; $('msg').innerText = "Pasuješ."; res(); };
             });
         }
     }
 
     async function evalCard(p, idx, c1, c2, bet) {
+        if (bet > 0) someoneBetThisRound = true;
         let t = state.deck.pop();
         drawCardImg(`p${idx}_ct`, t);
         await delay(800);
@@ -367,15 +378,15 @@
 
         if (vt > min && vt < max) {
             p.bal += bet; state.pot -= bet;
-            $('msg').innerText = `${p.name} vyhrál ${bet} Kč.`;
+            $('msg').innerText = `${p.name} trefil! Vyhrává ${bet} Kč.`;
         } else if (vt === min || vt === max) {
             p.bal -= (bet * 2); state.pot += (bet * 2);
-            $('msg').innerText = `KOZA! ${p.name} platí ${bet*2} Kč.`;
+            $('msg').innerText = `KOZA! ${p.name} platí dvojnásobek: ${bet*2} Kč.`;
         } else {
             p.bal -= bet; state.pot += bet;
-            $('msg').innerText = `${p.name} prohrál ${bet} Kč.`;
+            $('msg').innerText = `${p.name} netrefil a prohrál ${bet} Kč.`;
         }
-        updateUI(); await delay(1000);
+        updateUI(); await delay(1200);
     }
 
     function updateUI() {
@@ -391,7 +402,7 @@
             <div class="player-row-ui">
                 <div class="card-row">
                     <div id="p${i}_c1" class="card"></div>
-                    <div id="p${i}_ct" class="card"></div>
+                    <div id="p${i}_ct" class="card" style="border:1px solid rgba(255,215,0,0.3); border-radius:5px;"></div>
                     <div id="p${i}_c2" class="card"></div>
                 </div>
             </div>`).join('');
@@ -405,7 +416,7 @@
     function showEnd(win) {
         $('endScreen').style.display = 'flex';
         $('endTitle').innerText = win ? "VÍTĚZSTVÍ!" : "BANKROT!";
-        $('endMsg').innerText = win ? "Ovládl jsi stůl!" : "Zkus to znovu.";
+        $('endMsg').innerText = win ? "Všechny jsi oškubal!" : "Zkus to znovu.";
     }
 
     $('startBtn').onclick = startGame;
