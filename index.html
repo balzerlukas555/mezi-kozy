@@ -54,6 +54,7 @@
             width: 90%; 
             max-width: 320px; 
             color: #222;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
 
         /* --- SCREENS --- */
@@ -240,12 +241,12 @@
         <h2 style="color:var(--primary-green); margin:0 0 15px 0;">Přihlášení</h2>
         <input type="email" id="email" placeholder="E-mail z Tipovačky">
         <input type="password" id="pass" placeholder="Heslo">
-        <button id="authBtn" class="btn-main" style="background:var(--primary-green)">VSTOUPIT</button>
+        <button id="authBtn" class="btn-main" style="background:var(--primary-green); margin-bottom: 20px;">VSTOUPIT</button>
 
-        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #ccc;">
-            <p style="font-size: 0.75rem; color: #666; margin-bottom: 8px;">Chceš hrát jen tak?</p>
+        <div style="border-top: 1px solid #eee; padding-top: 15px; text-align: center;">
+            <p style="font-size: 0.75rem; color: #777; margin-bottom: 10px;">Nemáš účet v Tipovačce?</p>
             <button onclick="window.location.href='guest.html'" 
-                    style="background: #444; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 0.75rem; font-weight: bold;">
+                    style="background: #555; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 0.75rem; font-weight: bold;">
                 HRÁT JAKO HOST
             </button>
         </div>
@@ -328,7 +329,7 @@
     let userData = null;
 
     const IMAGE_URLS = {
-        "7_K": "https://hra-lora.cz/assets/cardsmini/7_d.jpg", "8_K": "https://hra-lora.cz/assets/cardsmini/8_d.jpg", "9_K": "https://hra-lora.cz/assets/cardsmini/7_d.jpg", "10_K": "https://hra-lora.cz/assets/cardsmini/t_d.jpg", "J_K": "https://hra-lora.cz/assets/cardsmini/j_d.jpg", "Q_K": "https://hra-lora.cz/assets/cardsmini/q_d.jpg", "K_K": "https://hra-lora.cz/assets/cardsmini/k_d.jpg", "A_K": "https://hra-lora.cz/assets/cardsmini/a_d.jpg",
+        "7_K": "https://hra-lora.cz/assets/cardsmini/7_d.jpg", "8_K": "https://hra-lora.cz/assets/cardsmini/8_d.jpg", "9_K": "https://hra-lora.cz/assets/cardsmini/9_d.jpg", "10_K": "https://hra-lora.cz/assets/cardsmini/t_d.jpg", "J_K": "https://hra-lora.cz/assets/cardsmini/j_d.jpg", "Q_K": "https://hra-lora.cz/assets/cardsmini/q_d.jpg", "K_K": "https://hra-lora.cz/assets/cardsmini/k_d.jpg", "A_K": "https://hra-lora.cz/assets/cardsmini/a_d.jpg",
         "7_Z": "https://hra-lora.cz/assets/cardsmini/7_s.jpg", "8_Z": "https://hra-lora.cz/assets/cardsmini/8_s.jpg", "9_Z": "https://hra-lora.cz/assets/cardsmini/9_s.jpg", "10_Z": "https://hra-lora.cz/assets/cardsmini/t_s.jpg", "J_Z": "https://hra-lora.cz/assets/cardsmini/j_s.jpg", "Q_Z": "https://hra-lora.cz/assets/cardsmini/q_s.jpg", "K_Z": "https://hra-lora.cz/assets/cardsmini/k_s.jpg", "A_Z": "https://hra-lora.cz/assets/cardsmini/a_s.jpg",
         "7_C": "https://hra-lora.cz/assets/cardsmini/7_h.jpg", "8_C": "https://hra-lora.cz/assets/cardsmini/8_h.jpg", "9_C": "https://hra-lora.cz/assets/cardsmini/9_h.jpg", "10_C": "https://hra-lora.cz/assets/cardsmini/t_h.jpg", "J_C": "https://hra-lora.cz/assets/cardsmini/j_h.jpg", "Q_C": "https://hra-lora.cz/assets/cardsmini/q_h.jpg", "K_C": "https://hra-lora.cz/assets/cardsmini/k_h.jpg", "A_C": "https://hra-lora.cz/assets/cardsmini/a_h.jpg",
         "7_ZL": "https://hra-lora.cz/assets/cardsmini/7_c.jpg", "8_ZL": "https://hra-lora.cz/assets/cardsmini/8_c.jpg", "9_ZL": "https://hra-lora.cz/assets/cardsmini/9_c.jpg", "10_ZL": "https://hra-lora.cz/assets/cardsmini/t_c.jpg", "J_ZL": "https://hra-lora.cz/assets/cardsmini/j_c.jpg", "Q_ZL": "https://hra-lora.cz/assets/cardsmini/q_c.jpg", "K_ZL": "https://hra-lora.cz/assets/cardsmini/k_c.jpg", "A_ZL": "https://hra-lora.cz/assets/cardsmini/a_c.jpg"
