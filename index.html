@@ -277,7 +277,7 @@
     <div class="card-ui">
         <h1 id="endTitle"></h1>
         <p id="endMsg"></p>
-        <button onclick="window.finishGame()" class="btn-main">ULOŽIT A KONEC</button>
+        <button id="finishBtn" class="btn-main">ULOŽIT A KONEC</button>
     </div>
 </div>
 
@@ -382,7 +382,7 @@
         }).then(() => alert(`Převedeno! Získal jsi ${tipAdded} TC.`));
     };
 
-    // --- HERNÍ LOGIKA (ZACHOVÁNA + TVÉ ÚPRAVY) ---
+    // --- HERNÍ LOGIKA ---
 
     function createDeck() {
         let deck = [];
@@ -394,7 +394,6 @@
         let money = parseInt($('startMoney').value) || 1000;
         let nNpc = parseInt($('npcCount').value);
         
-        // Hráč má jméno z Firebase
         state.players = [{ name: userData.name || "Ty", bal: money, isNPC: false }];
         
         for(let i=0; i<nNpc; i++) {
@@ -468,7 +467,8 @@
                 p.bal += state.pot; state.pot = 0;
                 $('msg').innerText = `${p.name} má ESA a vybírá celý BANK!`;
             } else {
-                p.bal -= 50; state.pot += 50;
+                p.bal = Math.max(0, p.bal - 50); 
+                state.pot += 50;
                 $('msg').innerText = `${p.name} má stejné karty (${c1.rank}) - platí 50.`;
             }
             updateUI(); await delay(1500); return;
@@ -492,9 +492,7 @@
                     finalBet = Math.max(finalBet, 10);
                 }
                 
-                // TVÁ ÚPRAVA: Zaokrouhlování na desítky u NPC
                 finalBet = Math.round(finalBet / 10) * 10;
-                
                 await evalCard(p, idx, c1, c2, finalBet);
             } else {
                 $('msg').innerText = `${p.name} pasuje.`;
@@ -529,13 +527,17 @@
         let min = Math.min(v1, v2), max = Math.max(v1, v2);
 
         if (vt > min && vt < max) {
-            p.bal += bet; state.pot -= bet;
+            p.bal += bet; 
+            state.pot -= bet;
             $('msg').innerText = `${p.name} trefil! Vyhrává ${bet} Kč.`;
         } else if (vt === min || vt === max) {
-            p.bal -= (bet * 2); state.pot += (bet * 2);
-            $('msg').innerText = `KOZA! ${p.name} trefil hranu a platí ${bet*2} Kč.`;
+            let penalty = bet * 2;
+            p.bal = Math.max(0, p.bal - penalty); 
+            state.pot += penalty;
+            $('msg').innerText = `KOZA! ${p.name} trefil hranu a platí ${penalty} Kč.`;
         } else {
-            p.bal -= bet; state.pot += bet;
+            p.bal = Math.max(0, p.bal - bet); 
+            state.pot += bet;
             $('msg').innerText = `${p.name} netrefil a prohrál ${bet} Kč.`;
         }
         updateUI(); await delay(1300);
@@ -568,23 +570,25 @@
     function showEnd(win) {
         $('endScreen').style.display = 'flex';
         $('endTitle').innerText = win ? "VÍTĚZSTVÍ!" : "KONEC HRY";
-        // Zobrazí zůstatek hráče bez banku
-        const playerFinal = state.players[0].bal;
-        $('endMsg').innerText = win ? `Všechny jsi oškubal! Na konci máš ${playerFinal} Coinů.` : `Došly ti peníze. Končíš s 0 Coiny.`;
+        
+        const playerFinal = Math.max(0, state.players[0].bal);
+        $('endMsg').innerText = win 
+            ? `Všechny jsi oškubal! Do trezoru si připíšeš ${playerFinal} Coinů.` 
+            : `Hra skončila. Tentokrát jsi nic nevyhrál, ale o nic nepřicházíš.`;
     }
 
-    window.finishGame = () => {
-        // TVÁ ÚPRAVA: Při konci se to, co má hráč u sebe, přičte do peněženky na Firebase
-        const playerFinal = state.players[0].bal;
+    // --- KLÍČOVÁ OPRAVA: PŘIČÍTÁNÍ MÍSTO PŘEPISOVÁNÍ ---
+    $('finishBtn').onclick = () => {
+        const playerWin = Math.max(0, state.players[0].bal); 
         const currentVault = userData.coins || 0;
         
+        // PŘIČÍTÁME k aktuálnímu stavu v trezoru
         update(ref(db, `tips/${userUid}`), {
-            coins: currentVault + playerFinal
+            coins: currentVault + playerWin
         }).then(() => {
             $('endScreen').style.display = 'none';
             $('game').style.display = 'none';
             $('startScreen').style.display = 'flex';
-            // Reset pro novou hru
             isFirstRound = true;
             state.pot = 0;
         });
