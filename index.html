@@ -258,7 +258,7 @@
         <div id="loginFields" style="display: none; margin-top: 15px; text-align: left;">
             <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px; text-align: center;">Přihlášením hraješ o Tip-Coiny v Tipovačce</p>
             <label style="font-size: 0.7rem; color: #888; margin-left: 5px;">E-mail z Tipovačky</label>
-            <input type="email" id="email" placeholder="vas@email.cz" style="margin-bottom: 10px;">
+            <input type="email" id="email" placeholder="Zadejte váš E-mail." style="margin-bottom: 10px;">
             <label style="font-size: 0.7rem; color: #888; margin-left: 5px;">Heslo</label>
             <input type="password" id="pass" placeholder="••••••••">
             <button id="authBtn" class="btn-main" style="background:var(--primary-green); margin-top: 5px;">VSTOUPIT</button>
@@ -306,7 +306,7 @@
 <div id="game" style="display:none;">
     <div id="playersRow"></div>
     <div id="gameArea">
-        <div id="potArea">BANK: <strong id="pot">0</strong> Kč</div>
+        <div id="potArea">BANK: <strong id="pot">0</strong> C</div>
         <div id="msg"></div>
         <div id="cardsArea"></div>
         <button id="nextBtn" class="game-btn">DALŠÍ KOLO</button>
@@ -462,7 +462,7 @@
         }
 
         if (!someoneBetThisRound && state.pot > 0) {
-            $('msg').innerText = "Nikdo nevsadil! Všichni povinně přihazují 50 Kč.";
+            $('msg').innerText = "Nikdo nevsadil! Všichni povinně přihazují 50 C.";
             await delay(1800);
             state.players.forEach(p => { 
                 if(p.bal > 0) { 
@@ -506,7 +506,7 @@
 
             if (Math.random() < chance) {
                 let finalBet = 0;
-                if (gap >= 6 && Math.random() > 0.7 && p.bal <= state.pot) {
+                if (gap >= 5 && Math.random() > 0.7 && p.bal <= state.pot) {
                     finalBet = p.bal;
                     $('msg').innerText = `${p.name} dává ALL-IN!`;
                 } else {
@@ -551,16 +551,16 @@
         if (vt > min && vt < max) {
             p.bal += bet; 
             state.pot -= bet;
-            $('msg').innerText = `${p.name} trefil! Vyhrává ${bet} Kč.`;
+            $('msg').innerText = `${p.name} trefil! Vyhrává ${bet} C.`;
         } else if (vt === min || vt === max) {
             let penalty = bet * 2;
             p.bal = Math.max(0, p.bal - penalty); 
             state.pot += penalty;
-            $('msg').innerText = `KOZA! ${p.name} trefil hranu a platí ${penalty} Kč.`;
+            $('msg').innerText = `KOZA! ${p.name} trefil hranu a platí ${penalty} C.`;
         } else {
             p.bal = Math.max(0, p.bal - bet); 
             state.pot += bet;
-            $('msg').innerText = `${p.name} netrefil a prohrál ${bet} Kč.`;
+            $('msg').innerText = `${p.name} netrefil a prohrál ${bet} C.`;
         }
         updateUI(); await delay(1300);
     }
