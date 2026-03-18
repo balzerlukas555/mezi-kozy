@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mezi Kozy</title>
+    <title>Mezi Kozy - Casino</title>
 
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/8294/8294512.png">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8294/8294512.png">
@@ -33,6 +33,30 @@
             min-height: 100vh;
         }
 
+        /* --- AUTH UI --- */
+        #authContainer { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: #0b4d1a; 
+            z-index: 9998; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .auth-box { 
+            background: #fdfdfd; 
+            padding: 25px; 
+            border-radius: 15px; 
+            width: 90%; 
+            max-width: 320px; 
+            color: #222;
+        }
+
+        /* --- SCREENS --- */
         #startScreen, #endScreen {
             height: 100vh;
             display: flex;
@@ -55,6 +79,16 @@
             max-width: 300px;
         }
 
+        /* --- DASHBOARD PRO PŘEVOD --- */
+        .dashboard {
+            background: #e2e8f0;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: #1e293b;
+        }
+
         .btn-main {
             width: 100%;
             padding: 12px;
@@ -65,6 +99,17 @@
             cursor: pointer;
             font-weight: bold;
             text-transform: uppercase;
+        }
+
+        .btn-transfer {
+            background: #0b4d1a;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            cursor: pointer;
         }
 
         #settingsBox {
@@ -85,6 +130,7 @@
             box-sizing: border-box;
         }
 
+        /* --- GAME UI --- */
         #playersRow {
             display: flex;
             justify-content: center;
@@ -189,11 +235,26 @@
 </head>
 <body>
 
-<div id="startScreen">
+<div id="authContainer">
+    <div class="auth-box">
+        <h2 style="color:var(--primary-green); margin:0 0 15px 0;">Přihlášení</h2>
+        <input type="email" id="email" placeholder="E-mail z Tipovačky">
+        <input type="password" id="pass" placeholder="Heslo">
+        <button id="authBtn" class="btn-main" style="background:var(--primary-green)">VSTOUPIT</button>
+    </div>
+</div>
+
+<div id="startScreen" style="display:none;">
     <div class="card-ui">
-        <h2 style="color:var(--primary-green); margin-top:0;">Mezi Kozy</h2>
-        <input type="text" id="playerName" placeholder="Tvé jméno...">
-        <button id="startBtn" class="btn-main">HRÁT</button>
+        <div class="dashboard">
+            <div style="margin-bottom:5px">Hráč: <strong id="userDisplay">...</strong></div>
+            <div>Trezor: <strong id="vaultDisplay">0</strong> Coinů</div>
+            <div>Tipovačka: <strong id="tcDisplay">0</strong> TC</div>
+            <button class="btn-transfer" onclick="window.transferMoney()">PŘEVÉST DO TIPOVAČKY (10:1)</button>
+        </div>
+        
+        <button id="startBtn" class="btn-main">HRÁT KOZY</button>
+        
         <div id="settingsToggle" onclick="document.getElementById('settingsBox').style.display='block'" style="margin-top:10px; font-size:0.75rem; color:#888; cursor:pointer;">⚙️ Nastavení hry</div>
         <div id="settingsBox">
             <label>Počet soupeřů:</label>
@@ -202,9 +263,13 @@
                 <option value="2" selected>2 Protihráči</option>
                 <option value="3">3 Protihráči</option>
             </select>
-            <label>Počáteční vklad (Kč):</label>
-            <input type="number" id="startMoney" value="1000">
+            <label>Počáteční vklad (Coiny):</label>
+            <select id="startMoney">
+                <option value="500">500 Coinů</option>
+                <option value="1000" selected>1000 Coinů</option>
+            </select>
         </div>
+        <button onclick="window.logout()" style="margin-top:15px; background:transparent; border:none; color:#666; cursor:pointer; font-size:0.7rem;">Odhlásit se</button>
     </div>
 </div>
 
@@ -212,7 +277,7 @@
     <div class="card-ui">
         <h1 id="endTitle"></h1>
         <p id="endMsg"></p>
-        <button onclick="location.reload()" class="btn-main">NOVÁ HRA</button>
+        <button onclick="window.finishGame()" class="btn-main">ULOŽIT A KONEC</button>
     </div>
 </div>
 
@@ -235,7 +300,25 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC2xPE4YnIanTiRgrwsoXgoclTyOq0BraE",
+        authDomain: "tipovacka-fce0e.firebaseapp.com",
+        databaseURL: "https://tipovacka-fce0e-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "tipovacka-fce0e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    let userUid = null;
+    let userData = null;
+
     const IMAGE_URLS = {
         "7_K": "https://hra-lora.cz/assets/cardsmini/7_d.jpg", "8_K": "https://hra-lora.cz/assets/cardsmini/8_d.jpg", "9_K": "https://hra-lora.cz/assets/cardsmini/9_d.jpg", "10_K": "https://hra-lora.cz/assets/cardsmini/t_d.jpg", "J_K": "https://hra-lora.cz/assets/cardsmini/j_d.jpg", "Q_K": "https://hra-lora.cz/assets/cardsmini/q_d.jpg", "K_K": "https://hra-lora.cz/assets/cardsmini/k_d.jpg", "A_K": "https://hra-lora.cz/assets/cardsmini/a_d.jpg",
         "7_Z": "https://hra-lora.cz/assets/cardsmini/7_s.jpg", "8_Z": "https://hra-lora.cz/assets/cardsmini/8_s.jpg", "9_Z": "https://hra-lora.cz/assets/cardsmini/9_s.jpg", "10_Z": "https://hra-lora.cz/assets/cardsmini/t_s.jpg", "J_Z": "https://hra-lora.cz/assets/cardsmini/j_s.jpg", "Q_Z": "https://hra-lora.cz/assets/cardsmini/q_s.jpg", "K_Z": "https://hra-lora.cz/assets/cardsmini/k_s.jpg", "A_Z": "https://hra-lora.cz/assets/cardsmini/a_s.jpg",
@@ -254,6 +337,53 @@
     const $ = id => document.getElementById(id);
     const delay = ms => new Promise(r => setTimeout(r, ms));
 
+    // --- AUTH LOGIKA ---
+
+    document.getElementById('authBtn').onclick = () => {
+        const email = $('email').value;
+        const pass = $('pass').value;
+        signInWithEmailAndPassword(auth, email, pass).catch(err => alert("Chyba: " + err.message));
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            userUid = user.uid;
+            onValue(ref(db, `tips/${userUid}`), (snap) => {
+                userData = snap.val();
+                if (userData) {
+                    $('userDisplay').innerText = userData.name || "Hráč";
+                    $('vaultDisplay').innerText = userData.coins || 0;
+                    $('tcDisplay').innerText = userData.balance || 0;
+                    $('authContainer').style.display = 'none';
+                    $('startScreen').style.display = 'flex';
+                }
+            });
+        } else {
+            $('authContainer').style.display = 'flex';
+            $('startScreen').style.display = 'none';
+        }
+    });
+
+    window.logout = () => signOut(auth);
+
+    window.transferMoney = () => {
+        const coins = userData.coins || 0;
+        if (coins < 10) return alert("Musíš mít aspoň 10 Coinů!");
+        const input = prompt(`Kolik Coinů chceš převést? (Kurz 10:1)\nAktuálně máš: ${coins}`, coins);
+        const amount = parseInt(input);
+        if (isNaN(amount) || amount < 10 || amount > coins) return alert("Neplatná částka!");
+        
+        const tipAdded = Math.floor(amount / 10);
+        const remainingCoins = coins - amount;
+        
+        update(ref(db, `tips/${userUid}`), {
+            balance: (userData.balance || 0) + tipAdded,
+            coins: remainingCoins
+        }).then(() => alert(`Převedeno! Získal jsi ${tipAdded} TC.`));
+    };
+
+    // --- HERNÍ LOGIKA (ZACHOVÁNA + TVÉ ÚPRAVY) ---
+
     function createDeck() {
         let deck = [];
         for (let s of suits) for (let r of ranks) deck.push({ suit: s, rank: r });
@@ -261,11 +391,16 @@
     }
 
     function startGame() {
-        let name = $('playerName').value.trim() || "Ty";
         let money = parseInt($('startMoney').value) || 1000;
         let nNpc = parseInt($('npcCount').value);
-        state.players = [{ name, bal: money, isNPC: false }];
-        for(let i=0; i<nNpc; i++) state.players.push({ name: names[i], bal: money, isNPC: true });
+        
+        // Hráč má jméno z Firebase
+        state.players = [{ name: userData.name || "Ty", bal: money, isNPC: false }];
+        
+        for(let i=0; i<nNpc; i++) {
+            state.players.push({ name: names[i], bal: money, isNPC: true });
+        }
+        
         $('startScreen').style.display = 'none';
         $('game').style.display = 'block';
         startRound();
@@ -277,9 +412,14 @@
         $('nextBtn').style.display = 'none';
         someoneBetThisRound = false;
 
-        // VKLAD PŘI PRÁZDNÉM BANKU
         if (state.pot <= 0 || isFirstRound) {
-            state.players.forEach(p => { if(p.bal > 0) { let take = Math.min(p.bal, 50); p.bal -= take; state.pot += take; }});
+            state.players.forEach(p => { 
+                if(p.bal > 0) { 
+                    let take = Math.min(p.bal, 50); 
+                    p.bal -= take; 
+                    state.pot += take; 
+                }
+            });
             isFirstRound = false;
         }
 
@@ -300,11 +440,16 @@
             if (state.pot <= 0) break;
         }
 
-        // PRAVIDLO: Pokud NIKDO nesázel, všichni přihodí 50
         if (!someoneBetThisRound && state.pot > 0) {
             $('msg').innerText = "Nikdo nevsadil! Všichni povinně přihazují 50 Kč.";
             await delay(1800);
-            state.players.forEach(p => { if(p.bal > 0) { let take = Math.min(p.bal, 50); p.bal -= take; state.pot += take; }});
+            state.players.forEach(p => { 
+                if(p.bal > 0) { 
+                    let take = Math.min(p.bal, 50); 
+                    p.bal -= take; 
+                    state.pot += take; 
+                }
+            });
         }
 
         state.currentTurn = null;
@@ -318,7 +463,6 @@
         drawCardImg(`p${idx}_c1`, c1); drawCardImg(`p${idx}_c2`, c2);
         await delay(600);
 
-        // SPECIÁLNÍ KARTY (ESA A STEJNÉ)
         if (c1.rank === c2.rank) {
             if (c1.rank === "A") {
                 p.bal += state.pot; state.pot = 0;
@@ -334,23 +478,23 @@
             let v1 = ranks.indexOf(c1.rank), v2 = ranks.indexOf(c2.rank);
             let gap = Math.abs(v1 - v2) - 1; 
             let chance = 0;
-            
-            // LOGIKA ROZHODOVÁNÍ NPC
-            if (gap >= 6) chance = 0.85; // Velká mezera (např. 7 - A)
-            else if (gap >= 4) chance = 0.50; // Střední mezera
-            else if (gap >= 2) chance = 0.20; // Malá mezera
+            if (gap >= 6) chance = 0.85; 
+            else if (gap >= 4) chance = 0.50; 
+            else if (gap >= 2) chance = 0.20; 
 
             if (Math.random() < chance) {
                 let finalBet = 0;
-                // Šance na All-in při obří mezeře
                 if (gap >= 6 && Math.random() > 0.7 && p.bal <= state.pot) {
                     finalBet = p.bal;
                     $('msg').innerText = `${p.name} dává ALL-IN!`;
                 } else {
-                    // Sázka úměrná mezeře
                     finalBet = Math.min(Math.floor((gap / 7) * state.pot * 0.7), p.bal, state.pot);
                     finalBet = Math.max(finalBet, 10);
                 }
+                
+                // TVÁ ÚPRAVA: Zaokrouhlování na desítky u NPC
+                finalBet = Math.round(finalBet / 10) * 10;
+                
                 await evalCard(p, idx, c1, c2, finalBet);
             } else {
                 $('msg').innerText = `${p.name} pasuje.`;
@@ -369,7 +513,9 @@
                     $('actions').style.display = 'none';
                     await evalCard(p, idx, c1, c2, b); res();
                 };
-                $('passBtn').onclick = () => { $('actions').style.display = 'none'; res(); };
+                $('passBtn').onclick = () => { 
+                    $('actions').style.display = 'none'; res(); 
+                };
             });
         }
     }
@@ -422,11 +568,31 @@
     function showEnd(win) {
         $('endScreen').style.display = 'flex';
         $('endTitle').innerText = win ? "VÍTĚZSTVÍ!" : "KONEC HRY";
-        $('endMsg').innerText = win ? "Všechny jsi oškubal a bank je tvůj!" : "Došly ti peníze. Příště víc štěstí.";
+        // Zobrazí zůstatek hráče bez banku
+        const playerFinal = state.players[0].bal;
+        $('endMsg').innerText = win ? `Všechny jsi oškubal! Na konci máš ${playerFinal} Coinů.` : `Došly ti peníze. Končíš s 0 Coiny.`;
     }
+
+    window.finishGame = () => {
+        // TVÁ ÚPRAVA: Při konci se to, co má hráč u sebe, přičte do peněženky na Firebase
+        const playerFinal = state.players[0].bal;
+        const currentVault = userData.coins || 0;
+        
+        update(ref(db, `tips/${userUid}`), {
+            coins: currentVault + playerFinal
+        }).then(() => {
+            $('endScreen').style.display = 'none';
+            $('game').style.display = 'none';
+            $('startScreen').style.display = 'flex';
+            // Reset pro novou hru
+            isFirstRound = true;
+            state.pot = 0;
+        });
+    };
 
     $('startBtn').onclick = startGame;
     $('nextBtn').onclick = startRound;
+
 </script>
 </body>
 </html>
