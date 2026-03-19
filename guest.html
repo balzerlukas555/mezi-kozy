@@ -205,6 +205,7 @@
             <label>Počáteční vklad (C):</label>
             <input type="number" id="startMoney" value="1000">
         </div>
+        <button onclick="location.reload()" style="margin-top:15px; background:transparent; border:none; color:#666; cursor:pointer; font-size:0.7rem;">Odhlásit se</button>
     </div>
 </div>
 
@@ -277,7 +278,6 @@
         $('nextBtn').style.display = 'none';
         someoneBetThisRound = false;
 
-        // VKLAD PŘI PRÁZDNÉM BANKU
         if (state.pot <= 0 || isFirstRound) {
             state.players.forEach(p => { if(p.bal > 0) { let take = Math.min(p.bal, 50); p.bal -= take; state.pot += take; }});
             isFirstRound = false;
@@ -300,7 +300,6 @@
             if (state.pot <= 0) break;
         }
 
-        // PRAVIDLO: Pokud NIKDO nesázel, všichni přihodí 50
         if (!someoneBetThisRound && state.pot > 0) {
             $('msg').innerText = "Nikdo nevsadil! Všichni povinně přihazují 50 C.";
             await delay(1800);
@@ -318,7 +317,6 @@
         drawCardImg(`p${idx}_c1`, c1); drawCardImg(`p${idx}_c2`, c2);
         await delay(600);
 
-        // SPECIÁLNÍ KARTY (ESA A STEJNÉ)
         if (c1.rank === c2.rank) {
             if (c1.rank === "A") {
                 p.bal += state.pot; state.pot = 0;
@@ -335,22 +333,21 @@
             let gap = Math.abs(v1 - v2) - 1; 
             let chance = 0;
             
-            // LOGIKA ROZHODOVÁNÍ NPC
-            if (gap >= 6) chance = 0.85; // Velká mezera (např. 7 - A)
-            else if (gap >= 4) chance = 0.50; // Střední mezera
-            else if (gap >= 2) chance = 0.20; // Malá mezera
+            if (gap >= 6) chance = 0.85; 
+            else if (gap >= 4) chance = 0.50; 
+            else if (gap >= 2) chance = 0.20; 
 
             if (Math.random() < chance) {
                 let finalBet = 0;
-                // Šance na All-in při obří mezeře
                 if (gap >= 5 && Math.random() > 0.7 && p.bal <= state.pot) {
                     finalBet = p.bal;
                     $('msg').innerText = `${p.name} dává ALL-IN!`;
                 } else {
-                    // Sázka úměrná mezeře
                     finalBet = Math.min(Math.floor((gap / 7) * state.pot * 0.7), p.bal, state.pot);
                     finalBet = Math.max(finalBet, 10);
                 }
+                // ZAOKROUHLOVÁNÍ SÁZKY NPC NA 10
+                finalBet = Math.round(finalBet / 10) * 10;
                 await evalCard(p, idx, c1, c2, finalBet);
             } else {
                 $('msg').innerText = `${p.name} pasuje.`;
@@ -399,7 +396,7 @@
         $('pot').innerText = state.pot;
         $('playersRow').innerHTML = state.players.map((p, i) => `
             <div class="player-box ${state.currentTurn === i ? 'active-player' : ''}">
-                <strong>${p.name}</strong><br>${p.bal > 0 ? p.bal : 'BANKROT'}
+                <strong>${p.name}</strong><br>${p.bal > 0 ? (p.bal > 0 ? p.bal : 0) : 'BANKROT'}
             </div>`).join('');
     }
 
