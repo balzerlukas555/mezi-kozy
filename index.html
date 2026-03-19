@@ -272,7 +272,7 @@
             <div style="margin-bottom:5px">Hráč: <strong id="userDisplay">...</strong></div>
             <div>Trezor: <strong id="vaultDisplay">0</strong> Coinů</div>
             <div>Tipovačka: <strong id="tcDisplay">0</strong> TC</div>
-            <button class="btn-transfer" onclick="window.transferMoney()">PŘEVÉST DO TIPOVAČKY (10:1)</button>
+            <button class="btn-transfer" onclick="window.transferMoney()">PŘEVÉST DO TIPOVAČKY (20:1)</button>
         </div>
         
         <button id="startBtn" class="btn-main">HRÁT KOZY</button>
@@ -388,20 +388,30 @@
 
     window.logout = () => signOut(auth);
 
+    // --- UPRAVENÁ LOGIKA PŘEVODU (20:1 + ZAOKROUHLENÍ) ---
     window.transferMoney = () => {
         const coins = userData.coins || 0;
-        if (coins < 10) return alert("Musíš mít aspoň 10 Coinů!");
-        const input = prompt(`Kolik Coinů chceš převést? (Kurz 10:1)\nAktuálně máš: ${coins}`, coins);
-        const amount = parseInt(input);
-        if (isNaN(amount) || amount < 10 || amount > coins) return alert("Neplatná částka!");
+        const kurz = 20; // Nastavený nový kurz 20:1
         
-        const tipAdded = Math.floor(amount / 10);
-        const remainingCoins = coins - amount;
+        if (coins < kurz) return alert(`Musíš mít aspoň ${kurz} Coinů pro převod!`);
+        
+        const input = prompt(`Kolik Coinů chceš převést? (Kurz ${kurz}:1)\nAktuálně máš: ${coins}`, coins);
+        const amount = parseInt(input);
+        
+        if (isNaN(amount) || amount < kurz || amount > coins) return alert("Neplatná částka!");
+        
+        // Celočíselné dělení - získáme jen celé Tipcoiny
+        const tipAdded = Math.floor(amount / kurz); 
+        // Skutečně spotřebované coiny (např. u 130 to bude 120, zbytek 10 zůstane)
+        const usedCoins = tipAdded * kurz;
+        const remainingVault = coins - usedCoins;
         
         update(ref(db, `tips/${userUid}`), {
             balance: (userData.balance || 0) + tipAdded,
-            coins: remainingCoins
-        }).then(() => alert(`Převedeno! Získal jsi ${tipAdded} TC.`));
+            coins: remainingVault
+        }).then(() => {
+            alert(`Převedeno! Získal jsi ${tipAdded} TC.\nV trezoru ti zůstalo ${remainingVault} Coinů.`);
+        });
     };
 
     // --- HERNÍ LOGIKA ---
