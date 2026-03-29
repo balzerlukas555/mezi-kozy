@@ -205,7 +205,6 @@
             <label>Počáteční vklad (C):</label>
             <input type="number" id="startMoney" value="1000">
         </div>
-        <button onclick="window.location.href='https://balzerlukas555.github.io/mezi-kozy/'" style="margin-top:15px; background:transparent; border:none; color:#666; cursor:pointer; font-size:0.7rem;">Odhlásit se</button>
     </div>
 </div>
 
@@ -346,7 +345,6 @@
                     finalBet = Math.min(Math.floor((gap / 7) * state.pot * 0.7), p.bal, state.pot);
                     finalBet = Math.max(finalBet, 10);
                 }
-                // ZAOKROUHLOVÁNÍ SÁZKY NPC NA 10
                 finalBet = Math.round(finalBet / 10) * 10;
                 await evalCard(p, idx, c1, c2, finalBet);
             } else {
