@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mezi Kozy</title>
+    <title>Mezi Kozy - Tipovačka</title>
 
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/8294/8294512.png">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8294/8294512.png">
@@ -80,7 +80,6 @@
             max-width: 300px;
         }
 
-        /* --- DASHBOARD PRO PŘEVOD --- */
         .dashboard {
             background: #e2e8f0;
             border-radius: 10px;
@@ -131,7 +130,6 @@
             box-sizing: border-box;
         }
 
-        /* --- GAME UI --- */
         #playersRow {
             display: flex;
             justify-content: center;
@@ -240,22 +238,7 @@
     <div class="auth-box" style="text-align: center;">
         <h2 style="color:var(--primary-green); margin:0 0 20px 0; font-size: 1.8rem;">Mezi Kozy</h2>
         
-        <div style="margin-bottom: 25px;">
-            <p style="font-size: 0.9rem; color: #555; margin-bottom: 10px;">Chceš si Mezi-Kozy zahrát neutrálně?</p>
-            <button onclick="window.location.href='guest.html'" 
-                    style="background: #444; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; font-size: 1rem; font-weight: bold; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                Hrát Mezi Kozy
-            </button>
-        </div>
-
-        <div style="border-top: 1px solid #eee; margin: 20px 0;"></div>
-
-        <button id="toggleAuth" onclick="document.getElementById('loginFields').style.display='block'; this.style.display='none';"
-                style="background: var(--primary-green); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 0.85rem; font-weight: bold;">
-            PŘIHLÁSIT SE DO TIPOVAČKY
-        </button>
-
-        <div id="loginFields" style="display: none; margin-top: 15px; text-align: left;">
+        <div id="loginFields" style="text-align: left;">
             <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px; text-align: center;">Přihlášením hraješ o Tip-Coiny v Tipovačce</p>
             <label style="font-size: 0.7rem; color: #888; margin-left: 5px;">E-mail z Tipovačky</label>
             <input type="email" id="email" placeholder="Zadejte váš E-mail." style="margin-bottom: 10px;">
@@ -388,10 +371,9 @@
 
     window.logout = () => signOut(auth);
 
-    // --- UPRAVENÁ LOGIKA PŘEVODU (20:1 + ZAOKROUHLENÍ) ---
     window.transferMoney = () => {
         const coins = userData.coins || 0;
-        const kurz = 20; // Nastavený nový kurz 20:1
+        const kurz = 20; 
         
         if (coins < kurz) return alert(`Musíš mít aspoň ${kurz} Coinů pro převod!`);
         
@@ -400,9 +382,7 @@
         
         if (isNaN(amount) || amount < kurz || amount > coins) return alert("Neplatná částka!");
         
-        // Celočíselné dělení - získáme jen celé Tipcoiny
         const tipAdded = Math.floor(amount / kurz); 
-        // Skutečně spotřebované coiny (např. u 130 to bude 120, zbytek 10 zůstane)
         const usedCoins = tipAdded * kurz;
         const remainingVault = coins - usedCoins;
         
