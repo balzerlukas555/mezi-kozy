@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Extraliga simulátor (loga)</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 30px;
+      background: #0f172a;
+      color: white;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .teams {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .team {
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .team img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(0,0,0,0.8));
+      transition: 0.2s;
+    }
+
+    .team:hover img {
+      transform: scale(1.1);
+    }
+
+    .selected img {
+      filter: drop-shadow(0 0 10px #38bdf8);
+      transform: scale(1.15);
+    }
+
+    #match {
+      margin-top: 30px;
+      font-size: 22px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🏒 Simulátor Extraligy</h1>
+
+  <div class="teams" id="teams"></div>
+
+  <div id="match">Vyber dva týmy</div>
+
+  <button onclick="simulate()">Simulovat zápas</button>
+
+  <div id="result"></div>
+
+  <script>
+    const teams = {
+      pardubice: { name: "HC Dynamo Pardubice", attack: 92, defense: 88, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1" },
+      sparta: { name: "HC Sparta Praha", attack: 90, defense: 87, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fwueb1-spa.png&w=120&h=120&exact=1" },
+      trinec: { name: "HC Oceláři Třinec", attack: 85, defense: 92, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fccek3-tri.png&w=120&h=120&exact=1" },
+      mountfield: { name: "Mountfield HK", attack: 84, defense: 85, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fj9qyt-hkr.png&w=120&h=120&exact=1" },
+      vitkovice: { name: "HC Vítkovice Ridera", attack: 82, defense: 83, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F65gcx-vit.png&w=120&h=120&exact=1" },
+      kometa: { name: "HC Kometa Brno", attack: 83, defense: 82, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F8oo52-kom.png&w=120&h=120&exact=1" },
+      boleslav: { name: "BK Mladá Boleslav", attack: 80, defense: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fk1yj3-mbl.png&w=120&h=120&exact=1" },
+      litvinov: { name: "HC Verva Litvínov", attack: 81, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fifboo-lit.png&w=120&h=120&exact=1" },
+      liberec: { name: "Bílí Tygři Liberec", attack: 84, defense: 79, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fi5lg4-lib.png&w=120&h=120&exact=1" },
+      olomouc: { name: "HC Olomouc", attack: 76, defense: 82, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fy4tmv-olo.png&w=120&h=120&exact=1" },
+      plzen: { name: "HC Škoda Plzeň", attack: 78, defense: 79, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fpijgb-plz.png&w=120&h=120&exact=1" },
+      karlovy_vary: { name: "HC Energie Karlovy Vary", attack: 77, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F98xoj-kva.png&w=120&h=120&exact=1" },
+      kladno: { name: "Rytíři Kladno", attack: 74, defense: 75, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1" },
+      ceske_budejovice: { name: "Motor České Budějovice", attack: 79, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1" }
+    };
+
+    const container = document.getElementById("teams");
+
+    let selectedA = null;
+    let selectedB = null;
+
+    function renderTeams() {
+      for (let key in teams) {
+        const div = document.createElement("div");
+        div.classList.add("team");
+
+        div.innerHTML = `<img src="${teams[key].logo}" title="${teams[key].name}">`;
+
+        div.onclick = () => selectTeam(key, div);
+
+        container.appendChild(div);
+      }
+    }
+
+    function selectTeam(key, element) {
+      if (!selectedA) {
+        selectedA = key;
+        element.classList.add("selected");
+      } else if (!selectedB && key !== selectedA) {
+        selectedB = key;
+        element.classList.add("selected");
+      } else {
+        selectedA = key;
+        selectedB = null;
+        document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
+        element.classList.add("selected");
+      }
+
+      updateMatch();
+    }
+
+    function updateMatch() {
+      if (selectedA && selectedB) {
+        document.getElementById("match").innerText =
+          `${teams[selectedA].name} vs ${teams[selectedB].name}`;
+      }
+    }
+
+    function getGoals(att, def, isHome) {
+      let base = att / 20;
+      let random = Math.random() * 2.5;
+      let defenseFactor = def / 25;
+      let homeBonus = isHome ? 0.5 : 0;
+
+      let goals = Math.round(base + random - defenseFactor + homeBonus);
+      return Math.max(0, goals);
+    }
+
+    function simulate() {
+      if (!selectedA || !selectedB) {
+        document.getElementById("result").innerText = "Vyber dva týmy 😄";
+        return;
+      }
+
+      const A = teams[selectedA];
+      const B = teams[selectedB];
+
+      let goalsA = getGoals(A.attack, B.defense, true);
+      let goalsB = getGoals(B.attack, A.defense, false);
+
+      let resultText = "";
+
+      if (goalsA === goalsB) {
+        if (Math.random() < 0.5) {
+          goalsA++;
+          resultText = " (po prodloužení)";
+        } else {
+          goalsB++;
+          resultText = " (po nájezdech)";
+        }
+      }
+
+      document.getElementById("result").innerText =
+        `${A.name} ${goalsA} : ${goalsB} ${B.name}${resultText}`;
+    }
+
+    renderTeams();
+  </script>
+
+</body>
+</html>
