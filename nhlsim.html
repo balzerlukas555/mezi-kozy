@@ -3,23 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NHL Simulátor</title>
+  <title>NHL Simulátor s ratingy</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', Arial, sans-serif;
       text-align: center;
       margin: 0;
       padding: 20px 10px;
       background: #0b0e14;
-      color: #e2e8f0;
+      color: white;
     }
 
     h1 {
       margin-bottom: 20px;
       font-size: 1.8rem;
-      color: #ffffff;
-      text-transform: uppercase;
-      letter-spacing: 2px;
     }
 
     .teams {
@@ -27,16 +24,16 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 12px;
-      max-width: 1100px;
+      max-width: 1000px;
       margin: auto;
     }
 
     .team {
       cursor: pointer;
-      transition: all 0.2s ease-in-out;
+      transition: 0.2s;
       width: 65px; 
-      padding: 5px;
       background: #1a1f29;
+      padding: 5px;
       border-radius: 8px;
       border: 1px solid #2d3748;
     }
@@ -46,121 +43,101 @@
       height: auto;
       aspect-ratio: 1/1;
       object-fit: contain;
-      filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
-    }
-
-    .team:hover {
-      background: #2d3748;
-      transform: translateY(-3px);
     }
 
     .selected {
       border-color: #38bdf8;
       background: #1e293b;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+      transform: scale(1.1);
     }
 
     #match {
       margin-top: 25px;
-      font-size: 1.2rem;
-      min-height: 1.6em;
-      font-weight: 500;
+      font-size: 1.1rem;
+      min-height: 1.5em;
       color: #38bdf8;
     }
 
     button {
       margin-top: 20px;
-      padding: 15px 40px;
+      padding: 15px 30px;
       font-size: 18px;
       cursor: pointer;
-      background-color: #f1f5f9;
+      background-color: #38bdf8;
       border: none;
       border-radius: 8px;
-      color: #0b0e14;
+      color: #0f172a;
       font-weight: bold;
       width: 100%;
-      max-width: 320px;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      background-color: #38bdf8;
-      color: white;
-    }
-
-    button:active {
-      transform: scale(0.96);
+      max-width: 300px;
     }
 
     #result {
       margin-top: 30px;
-      font-size: 1.6rem;
-      font-weight: 800;
-      padding: 15px;
+      font-size: 1.5rem;
+      font-weight: bold;
       background: rgba(255,255,255,0.05);
+      padding: 20px;
       border-radius: 12px;
       display: inline-block;
-      min-width: 280px;
     }
 
     @media (min-width: 600px) {
-      .team { width: 85px; }
+      .team { width: 80px; }
       h1 { font-size: 2.5rem; }
-      #match { font-size: 24px; }
-      #result { font-size: 32px; }
     }
   </style>
 </head>
 <body>
 
-  <h1>🏒 NHL Simulator</h1>
+  <h1>🏒 NHL SIMULATOR</h1>
 
   <div class="teams" id="teams"></div>
 
-  <div id="match">Select two teams</div>
+  <div id="match">Vyber dva týmy</div>
 
-  <button onclick="simulate()">Simulate Game</button>
+  <button onclick="simulate()">Simulovat zápas</button>
 
   <div id="result"></div>
 
   <script>
     const teams = {
       // ATLANTIC
-      bos: { name: "Boston Bruins", logo: "SEM_VLOŽ" },
-      buf: { name: "Buffalo Sabres", logo: "SEM_VLOŽ" },
-      det: { name: "Detroit Red Wings", logo: "SEM_VLOŽ" },
-      fla: { name: "Florida Panthers", logo: "SEM_VLOŽ" },
-      mtl: { name: "Montreal Canadiens", logo: "SEM_VLOŽ" },
-      ott: { name: "Ottawa Senators", logo: "SEM_VLOŽ" },
-      tbl: { name: "Tampa Bay Lightning", logo: "SEM_VLOŽ" },
-      tor: { name: "Toronto Maple Leafs", logo: "SEM_VLOŽ" },
+      bos: { name: "Boston Bruins", attack: 88, defense: 90, logo: "SEM_VLOŽ" },
+      buf: { name: "Buffalo Sabres", attack: 84, defense: 82, logo: "SEM_VLOŽ" },
+      det: { name: "Detroit Red Wings", attack: 85, defense: 83, logo: "SEM_VLOŽ" },
+      fla: { name: "Florida Panthers", attack: 92, defense: 89, logo: "SEM_VLOŽ" },
+      mtl: { name: "Montreal Canadiens", attack: 79, defense: 80, logo: "SEM_VLOŽ" },
+      ott: { name: "Ottawa Senators", attack: 83, defense: 82, logo: "SEM_VLOŽ" },
+      tbl: { name: "Tampa Bay Lightning", attack: 89, defense: 86, logo: "SEM_VLOŽ" },
+      tor: { name: "Toronto Maple Leafs", attack: 93, defense: 85, logo: "SEM_VLOŽ" },
       // METROPOLITAN
-      car: { name: "Carolina Hurricanes", logo: "SEM_VLOŽ" },
-      cbj: { name: "Columbus Blue Jackets", logo: "SEM_VLOŽ" },
-      njd: { name: "New Jersey Devils", logo: "SEM_VLOŽ" },
-      nyi: { name: "New York Islanders", logo: "SEM_VLOŽ" },
-      nyr: { name: "New York Rangers", logo: "SEM_VLOŽ" },
-      phi: { name: "Philadelphia Flyers", logo: "SEM_VLOŽ" },
-      pit: { name: "Pittsburgh Penguins", logo: "SEM_VLOŽ" },
-      wsh: { name: "Washington Capitals", logo: "SEM_VLOŽ" },
+      car: { name: "Carolina Hurricanes", attack: 87, defense: 91, logo: "SEM_VLOŽ" },
+      cbj: { name: "Columbus Blue Jackets", attack: 78, defense: 77, logo: "SEM_VLOŽ" },
+      njd: { name: "New Jersey Devils", attack: 88, defense: 84, logo: "SEM_VLOŽ" },
+      nyi: { name: "New York Islanders", attack: 81, defense: 86, logo: "SEM_VLOŽ" },
+      nyr: { name: "New York Rangers", attack: 91, defense: 89, logo: "SEM_VLOŽ" },
+      phi: { name: "Philadelphia Flyers", attack: 80, defense: 82, logo: "SEM_VLOŽ" },
+      pit: { name: "Pittsburgh Penguins", attack: 84, defense: 81, logo: "SEM_VLOŽ" },
+      wsh: { name: "Washington Capitals", attack: 82, defense: 83, logo: "SEM_VLOŽ" },
       // CENTRAL
-      chi: { name: "Chicago Blackhawks", logo: "SEM_VLOŽ" },
-      col: { name: "Colorado Avalanche", logo: "SEM_VLOŽ" },
-      dal: { name: "Dallas Stars", logo: "SEM_VLOŽ" },
-      min: { name: "Minnesota Wild", logo: "SEM_VLOŽ" },
-      nsh: { name: "Nashville Predators", logo: "SEM_VLOŽ" },
-      stl: { name: "St. Louis Blues", logo: "SEM_VLOŽ" },
-      uta: { name: "Utah Hockey Club", logo: "SEM_VLOŽ" },
-      wpg: { name: "Winnipeg Jets", logo: "SEM_VLOŽ" },
+      chi: { name: "Chicago Blackhawks", attack: 77, defense: 78, logo: "SEM_VLOŽ" },
+      col: { name: "Colorado Avalanche", attack: 94, defense: 87, logo: "SEM_VLOŽ" },
+      dal: { name: "Dallas Stars", attack: 90, defense: 91, logo: "SEM_VLOŽ" },
+      min: { name: "Minnesota Wild", attack: 83, defense: 85, logo: "SEM_VLOŽ" },
+      nsh: { name: "Nashville Predators", attack: 86, defense: 87, logo: "SEM_VLOŽ" },
+      stl: { name: "St. Louis Blues", attack: 82, defense: 82, logo: "SEM_VLOŽ" },
+      uta: { name: "Utah Hockey Club", attack: 81, defense: 80, logo: "SEM_VLOŽ" },
+      wpg: { name: "Winnipeg Jets", attack: 87, defense: 89, logo: "SEM_VLOŽ" },
       // PACIFIC
-      ana: { name: "Anaheim Ducks", logo: "SEM_VLOŽ" },
-      cgy: { name: "Calgary Flames", logo: "SEM_VLOŽ" },
-      edm: { name: "Edmonton Oilers", logo: "SEM_VLOŽ" },
-      lak: { name: "Los Angeles Kings", logo: "SEM_VLOŽ" },
-      sjs: { name: "San Jose Sharks", logo: "SEM_VLOŽ" },
-      sea: { name: "Seattle Kraken", logo: "SEM_VLOŽ" },
-      van: { name: "Vancouver Canucks", logo: "SEM_VLOŽ" },
-      vgk: { name: "Vegas Golden Knights", logo: "SEM_VLOŽ" }
+      ana: { name: "Anaheim Ducks", attack: 78, defense: 79, logo: "SEM_VLOŽ" },
+      cgy: { name: "Calgary Flames", attack: 80, defense: 81, logo: "SEM_VLOŽ" },
+      edm: { name: "Edmonton Oilers", attack: 95, defense: 84, logo: "SEM_VLOŽ" },
+      lak: { name: "Los Angeles Kings", attack: 85, defense: 87, logo: "SEM_VLOŽ" },
+      sjs: { name: "San Jose Sharks", attack: 75, defense: 76, logo: "SEM_VLOŽ" },
+      sea: { name: "Seattle Kraken", attack: 81, defense: 84, logo: "SEM_VLOŽ" },
+      van: { name: "Vancouver Canucks", attack: 88, defense: 87, logo: "SEM_VLOŽ" },
+      vgk: { name: "Vegas Golden Knights", attack: 89, defense: 88, logo: "SEM_VLOŽ" }
     };
 
     const container = document.getElementById("teams");
@@ -198,22 +175,31 @@
         document.getElementById("match").innerText =
           `${teams[selectedA].name} vs ${teams[selectedB].name}`;
       } else if (selectedA) {
-          document.getElementById("match").innerText = "Select Opponent";
+          document.getElementById("match").innerText = "Vyber soupeře";
       }
+    }
+
+    // Výpočet gólů na základě ratingu
+    function getGoals(att, def, isHome) {
+      let base = att / 20; 
+      let random = Math.random() * 2.5; 
+      let defenseFactor = def / 25;
+      let homeBonus = isHome ? 0.4 : 0; // NHL home ice advantage je o něco menší
+      let goals = Math.round(base + random - defenseFactor + homeBonus);
+      return Math.max(0, goals);
     }
 
     function simulate() {
       if (!selectedA || !selectedB) {
-        document.getElementById("result").innerText = "Select two teams! 🏒";
+        document.getElementById("result").innerText = "Vyber dva týmy!";
         return;
       }
 
       const A = teams[selectedA];
       const B = teams[selectedB];
       
-      // Jednoduchá náhodná simulace gólů
-      let goalsA = Math.floor(Math.random() * 6);
-      let goalsB = Math.floor(Math.random() * 6);
+      let goalsA = getGoals(A.attack, B.defense, true);
+      let goalsB = getGoals(B.attack, A.defense, false);
       let suffix = "";
 
       if (goalsA === goalsB) {
@@ -227,8 +213,8 @@
       }
 
       document.getElementById("result").innerHTML = 
-        `<span style="color:#38bdf8">${goalsA}</span> : <span style="color:#38bdf8">${goalsB}</span><br>` +
-        `<small style="font-size: 1rem; color: #94a3b8">${A.name} vs ${B.name}${suffix}</small>`;
+        `<div style="font-size: 3rem;">${goalsA} : ${goalsB}</div>` +
+        `<div style="color: #94a3b8; margin-top: 10px;">${A.name} vs ${B.name}${suffix}</div>`;
     }
 
     renderTeams();
