@@ -95,6 +95,13 @@
       transform: scale(0.96);
     }
 
+    /* Vizuální stav pro zamknuté tlačítko */
+    button:disabled {
+      background-color: #2d3748;
+      color: #475569;
+      cursor: not-allowed;
+    }
+
     #result {
       margin-top: 30px;
       font-size: 1.6rem;
@@ -124,7 +131,7 @@
 
   <div id="match">Vyber dva týmy</div>
 
-  <button onclick="simulate()">Simulovat zápas</button>
+  <button id="simBtn" onclick="simulate()">Simulovat zápas</button>
 
   <div id="result"></div>
 
@@ -185,49 +192,72 @@
       }
     }
 
-    // NOVÁ REALISTICKÁ LOGIKA GÓLŮ
     function getGoals(att, def, isHome) {
-      // Základní potence týmu (kolem 2.8 gólů)
       let power = (att - def) / 10 + 2.8;
       if (isHome) power += 0.3;
-
-      // Bell curve náhoda (tlačí výsledek k průměru)
       let luck = (Math.random() + Math.random() + Math.random()) / 1.5; 
-      
       let finalGoals = Math.round(power * luck);
-      
-      // 5% šance na bonusové góly (přestřelky)
       if (Math.random() > 0.95) finalGoals += Math.floor(Math.random() * 3);
-
       return Math.max(0, finalGoals);
     }
 
     function simulate() {
       if (!selectedA || !selectedB) {
-        document.getElementById("result").innerText = "Vyber dva týmy";
+        document.getElementById("result").innerText = "Vyber dva týmy 😄";
         return;
       }
 
+      const btn = document.getElementById("simBtn");
+      const resDiv = document.getElementById("result");
       const A = teams[selectedA];
       const B = teams[selectedB];
-      let goalsA = getGoals(A.attack, B.defense, true);
-      let goalsB = getGoals(B.attack, A.defense, false);
-      let resultText = "";
 
-      if (goalsA === goalsB) {
+      // Vypočítáme finální skóre
+      let finalA = getGoals(A.attack, B.defense, true);
+      let finalB = getGoals(B.attack, A.defense, false);
+      let resultSuffix = "";
+
+      if (finalA === finalB) {
         if (Math.random() < 0.5) {
-          goalsA++;
-          resultText = " (pp)";
+          finalA++;
+          resultSuffix = " (pp)";
         } else {
-          goalsB++;
-          resultText = " (sn)";
+          finalB++;
+          resultSuffix = " (sn)";
         }
       }
 
-      // Výsledek ve stylu NHL verze
-      document.getElementById("result").innerHTML =
-        `<div style="font-size: 3rem; color: #38bdf8;">${goalsA} : ${goalsB}</div>` +
-        `<div style="font-size: 1.2rem; color: #94a3b8; margin-top: 10px;">${A.name} vs ${B.name}${resultText}</div>`;
+      // Animace
+      btn.disabled = true;
+      let currentA = 0;
+      let currentB = 0;
+      let totalGoals = finalA + finalB;
+      
+      let duration = 6500;
+      let stepTime = totalGoals > 0 ? duration / totalGoals : 2000;
+
+      let interval = setInterval(() => {
+        if (currentA < finalA && currentB < finalB) {
+          if (Math.random() < 0.5) currentA++; else currentB++;
+        } else if (currentA < finalA) {
+          currentA++;
+        } else if (currentB < finalB) {
+          currentB++;
+        }
+
+        resDiv.innerHTML =
+          `<div style="font-size: 3rem; color: #38bdf8;">${currentA} : ${currentB}</div>` +
+          `<div style="font-size: 1.2rem; color: #94a3b8; margin-top: 10px;">${A.name} vs ${B.name}</div>`;
+
+        if (currentA === finalA && currentB === finalB) {
+          clearInterval(interval);
+          btn.disabled = false;
+          resDiv.innerHTML =
+            `<div style="font-size: 3.5rem; color: #38bdf8;">${currentA} : ${currentB}</div>` +
+            `<div style="font-size: 1.2rem; color: #ffffff; margin-top: 10px; font-weight: bold;">KONEC${resultSuffix}</div>` +
+            `<div style="font-size: 1rem; color: #94a3b8;">${A.name} vs ${B.name}</div>`;
+        }
+      }, stepTime);
     }
 
     renderTeams();
