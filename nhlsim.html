@@ -72,6 +72,11 @@
       max-width: 300px;
     }
 
+    button:disabled {
+      background-color: #475569;
+      cursor: not-allowed;
+    }
+
     #result {
       margin-top: 30px;
       font-size: 1.5rem;
@@ -80,6 +85,12 @@
       padding: 20px;
       border-radius: 12px;
       display: inline-block;
+      min-width: 250px;
+    }
+
+    .animating {
+      color: #94a3b8;
+      font-style: italic;
     }
 
     @media (min-width: 600px) {
@@ -96,13 +107,12 @@
 
   <div id="match">Vyber dva týmy</div>
 
-  <button onclick="simulate()">Simulovat zápas</button>
+  <button id="simBtn" onclick="simulate()">Simulovat zápas</button>
 
   <div id="result"></div>
 
   <script>
     const teams = {
-      // ATLANTIC
       bos: { name: "Boston Bruins", attack: 88, defense: 90, logo: "https://assets.nhle.com/logos/nhl/svg/BOS_dark.svg" },
       buf: { name: "Buffalo Sabres", attack: 84, defense: 82, logo: "https://assets.nhle.com/logos/nhl/svg/BUF_dark.svg" },
       det: { name: "Detroit Red Wings", attack: 85, defense: 83, logo: "https://assets.nhle.com/logos/nhl/svg/DET_dark.svg" },
@@ -111,17 +121,14 @@
       ott: { name: "Ottawa Senators", attack: 83, defense: 82, logo: "https://assets.nhle.com/logos/nhl/svg/OTT_dark.svg" },
       tbl: { name: "Tampa Bay Lightning", attack: 89, defense: 86, logo: "https://assets.nhle.com/logos/nhl/svg/TBL_dark.svg" },
       tor: { name: "Toronto Maple Leafs", attack: 93, defense: 85, logo: "https://assets.nhle.com/logos/nhl/svg/TOR_dark.svg" },
-      // METROPOLITAN
       car: { name: "Carolina Hurricanes", attack: 87, defense: 91, logo: "https://assets.nhle.com/logos/nhl/svg/CAR_dark.svg" },
       cbj: { name: "Columbus Blue Jackets", attack: 78, defense: 77, logo: "https://assets.nhle.com/logos/nhl/svg/CBJ_dark.svg" },
       njd: { name: "New Jersey Devils", attack: 88, defense: 84, logo: "https://assets.nhle.com/logos/nhl/svg/NJD_dark.svg" },
       nyi: { name: "New York Islanders", attack: 81, defense: 86, logo: "https://assets.nhle.com/logos/nhl/svg/NYI_dark.svg" },
       nyr: { name: "New York Rangers", attack: 91, defense: 89, logo: "https://assets.nhle.com/logos/nhl/svg/NYR_dark.svg" },
       phi: { name: "Philadelphia Flyers", attack: 80, defense: 82, logo: "https://assets.nhle.com/logos/nhl/svg/PHI_dark.svg" },
-      phi: { name: "Philadelphia Flyers", attack: 80, defense: 82, logo: "https://assets.nhle.com/logos/nhl/svg/PHI_dark.svg" },
       pit: { name: "Pittsburgh Penguins", attack: 84, defense: 81, logo: "https://assets.nhle.com/logos/nhl/svg/PIT_dark.svg" },
       wsh: { name: "Washington Capitals", attack: 82, defense: 83, logo: "https://assets.nhle.com/logos/nhl/svg/WSH_dark.svg" },
-      // CENTRAL
       chi: { name: "Chicago Blackhawks", attack: 77, defense: 78, logo: "https://assets.nhle.com/logos/nhl/svg/CHI_dark.svg" },
       col: { name: "Colorado Avalanche", attack: 94, defense: 89, logo: "https://assets.nhle.com/logos/nhl/svg/COL_dark.svg" },
       dal: { name: "Dallas Stars", attack: 91, defense: 91, logo: "https://assets.nhle.com/logos/nhl/svg/DAL_dark.svg" },
@@ -130,7 +137,6 @@
       stl: { name: "St. Louis Blues", attack: 82, defense: 82, logo: "https://assets.nhle.com/logos/nhl/svg/STL_dark.svg" },
       uta: { name: "Utah Mammoth", attack: 81, defense: 80, logo: "https://assets.nhle.com/logos/nhl/svg/UTA_dark.svg" },
       wpg: { name: "Winnipeg Jets", attack: 87, defense: 89, logo: "https://assets.nhle.com/logos/nhl/svg/WPG_dark.svg" },
-      // PACIFIC
       ana: { name: "Anaheim Ducks", attack: 78, defense: 79, logo: "https://assets.nhle.com/logos/nhl/svg/ANA_dark.svg" },
       cgy: { name: "Calgary Flames", attack: 80, defense: 81, logo: "https://assets.nhle.com/logos/nhl/svg/CGY_dark.svg" },
       edm: { name: "Edmonton Oilers", attack: 95, defense: 84, logo: "https://assets.nhle.com/logos/nhl/svg/EDM_dark.svg" },
@@ -149,22 +155,17 @@
       for (let key in teams) {
         const div = document.createElement("div");
         div.classList.add("team");
-        div.innerHTML = `<img src="${teams[key].logo}" alt="${teams[key].name}" title="${teams[key].name}">`;
+        div.innerHTML = `<img src="${teams[key].logo}" alt="${teams[key].name}">`;
         div.onclick = () => selectTeam(key, div);
         container.appendChild(div);
       }
     }
 
     function selectTeam(key, element) {
-      if (!selectedA) {
-        selectedA = key;
-        element.classList.add("selected");
-      } else if (!selectedB && key !== selectedA) {
-        selectedB = key;
-        element.classList.add("selected");
-      } else {
-        selectedA = key;
-        selectedB = null;
+      if (!selectedA) { selectedA = key; element.classList.add("selected"); }
+      else if (!selectedB && key !== selectedA) { selectedB = key; element.classList.add("selected"); }
+      else {
+        selectedA = key; selectedB = null;
         document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
         element.classList.add("selected");
       }
@@ -172,57 +173,73 @@
     }
 
     function updateMatch() {
-      if (selectedA && selectedB) {
-        document.getElementById("match").innerText =
-          `${teams[selectedA].name} vs ${teams[selectedB].name}`;
-      } else if (selectedA) {
-          document.getElementById("match").innerText = "Vyber soupeře";
-      }
+      if (selectedA && selectedB) document.getElementById("match").innerText = `${teams[selectedA].name} vs ${teams[selectedB].name}`;
+      else if (selectedA) document.getElementById("match").innerText = "Vyber soupeře";
     }
 
-    // VYLEPŠENÁ LOGIKA GÓLŮ (BELL CURVE + ŠANCE NA PŘESTŘELKU)
     function getGoals(att, def, isHome) {
-      // Základní síla s průměrem kolem 2.8 gólu
       let power = (att - def) / 10 + 2.8;
       if (isHome) power += 0.3;
-
-      // Bell curve náhoda (sečtení 3 náhodných čísel)
       let luck = (Math.random() + Math.random() + Math.random()) / 1.5; 
-      
       let finalGoals = Math.round(power * luck);
-      
-      // 5% šance na bonusové góly (výjimečné přestřelky)
       if (Math.random() > 0.95) finalGoals += Math.floor(Math.random() * 3);
-
       return Math.max(0, finalGoals);
     }
 
     function simulate() {
-      if (!selectedA || !selectedB) {
-        document.getElementById("result").innerText = "Vyber dva týmy!";
-        return;
-      }
-
+      if (!selectedA || !selectedB) return;
+      
+      const btn = document.getElementById("simBtn");
+      const resDiv = document.getElementById("result");
       const A = teams[selectedA];
       const B = teams[selectedB];
-      
-      let goalsA = getGoals(A.attack, B.defense, true);
-      let goalsB = getGoals(B.attack, A.defense, false);
+
+      // Reset a zamčení tlačítka
+      btn.disabled = true;
+      resDiv.innerHTML = `<div class="animating">Zápas probíhá...</div>`;
+
+      // Výpočet finálního skóre
+      let finalA = getGoals(A.attack, B.defense, true);
+      let finalB = getGoals(B.attack, A.defense, false);
       let suffix = "";
 
-      if (goalsA === goalsB) {
-        if (Math.random() < 0.5) {
-          goalsA++;
-          suffix = " (OT)";
-        } else {
-          goalsB++;
-          suffix = " (SO)";
-        }
+      if (finalA === finalB) {
+        if (Math.random() < 0.5) { finalA++; suffix = " (OT)"; }
+        else { finalB++; suffix = " (SO)"; }
       }
 
-      document.getElementById("result").innerHTML = 
-        `<div style="font-size: 3rem; color: #38bdf8;">${goalsA} : ${goalsB}</div>` +
-        `<div style="color: #94a3b8; margin-top: 10px;">${A.name} vs ${B.name}${suffix}</div>`;
+      // Animace postupného přičítání
+      let currA = 0;
+      let currB = 0;
+      let totalSteps = finalA + finalB;
+      
+      // Pokud je 0:0 po základní době (což náš kód díky suffixu neudělá, ale pro jistotu), 
+      // tak ať to netrvá věčně nebo nespadne.
+      let duration = 6500; 
+      let stepTime = totalSteps > 0 ? duration / totalSteps : 1000;
+
+      let interval = setInterval(() => {
+        // Logika kdo dá gól jako další (náhodně, ale směřuje k cíli)
+        if (currA < finalA && currB < finalB) {
+          if (Math.random() < 0.5) currA++; else currB++;
+        } else if (currA < finalA) {
+          currA++;
+        } else if (currB < finalB) {
+          currB++;
+        }
+
+        resDiv.innerHTML = `<div style="font-size: 3rem; color: #38bdf8;">${currA} : ${currB}</div>` +
+                           `<div style="color: #94a3b8; margin-top: 10px;">${A.name} vs ${B.name}</div>`;
+
+        if (currA === finalA && currB === finalB) {
+          clearInterval(interval);
+          btn.disabled = false;
+          // Přidání suffixu na konci
+          resDiv.innerHTML = `<div style="font-size: 3.5rem; color: #38bdf8; transition: 0.3s;">${currA} : ${currB}</div>` +
+                             `<div style="color: #94a3b8; margin-top: 10px; font-weight: bold;">KONEC ${suffix}</div>` +
+                             `<div style="color: #475569; font-size: 0.9rem;">${A.name} vs ${B.name}</div>`;
+        }
+      }, stepTime);
     }
 
     renderTeams();
