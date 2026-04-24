@@ -185,18 +185,26 @@
       }
     }
 
+    // NOVÁ REALISTICKÁ LOGIKA GÓLŮ
     function getGoals(att, def, isHome) {
-      let base = att / 20;
-      let random = Math.random() * 2.5;
-      let defenseFactor = def / 25;
-      let homeBonus = isHome ? 0.5 : 0;
-      let goals = Math.round(base + random - defenseFactor + homeBonus);
-      return Math.max(0, goals);
+      // Základní potence týmu (kolem 2.8 gólů)
+      let power = (att - def) / 10 + 2.8;
+      if (isHome) power += 0.3;
+
+      // Bell curve náhoda (tlačí výsledek k průměru)
+      let luck = (Math.random() + Math.random() + Math.random()) / 1.5; 
+      
+      let finalGoals = Math.round(power * luck);
+      
+      // 5% šance na bonusové góly (přestřelky)
+      if (Math.random() > 0.95) finalGoals += Math.floor(Math.random() * 3);
+
+      return Math.max(0, finalGoals);
     }
 
     function simulate() {
       if (!selectedA || !selectedB) {
-        document.getElementById("result").innerText = "Vyber dva týmy 😄";
+        document.getElementById("result").innerText = "Vyber dva týmy";
         return;
       }
 
