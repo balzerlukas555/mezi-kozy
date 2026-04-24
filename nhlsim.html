@@ -118,6 +118,7 @@
       nyi: { name: "New York Islanders", attack: 81, defense: 86, logo: "https://assets.nhle.com/logos/nhl/svg/NYI_dark.svg" },
       nyr: { name: "New York Rangers", attack: 91, defense: 89, logo: "https://assets.nhle.com/logos/nhl/svg/NYR_dark.svg" },
       phi: { name: "Philadelphia Flyers", attack: 80, defense: 82, logo: "https://assets.nhle.com/logos/nhl/svg/PHI_dark.svg" },
+      phi: { name: "Philadelphia Flyers", attack: 80, defense: 82, logo: "https://assets.nhle.com/logos/nhl/svg/PHI_dark.svg" },
       pit: { name: "Pittsburgh Penguins", attack: 84, defense: 81, logo: "https://assets.nhle.com/logos/nhl/svg/PIT_dark.svg" },
       wsh: { name: "Washington Capitals", attack: 82, defense: 83, logo: "https://assets.nhle.com/logos/nhl/svg/WSH_dark.svg" },
       // CENTRAL
@@ -179,14 +180,21 @@
       }
     }
 
-    // Výpočet gólů na základě ratingu
+    // VYLEPŠENÁ LOGIKA GÓLŮ (BELL CURVE + ŠANCE NA PŘESTŘELKU)
     function getGoals(att, def, isHome) {
-      let base = att / 20; 
-      let random = Math.random() * 2.5; 
-      let defenseFactor = def / 25;
-      let homeBonus = isHome ? 0.4 : 0; // NHL home ice advantage je o něco menší
-      let goals = Math.round(base + random - defenseFactor + homeBonus);
-      return Math.max(0, goals);
+      // Základní síla s průměrem kolem 2.8 gólu
+      let power = (att - def) / 10 + 2.8;
+      if (isHome) power += 0.3;
+
+      // Bell curve náhoda (sečtení 3 náhodných čísel)
+      let luck = (Math.random() + Math.random() + Math.random()) / 1.5; 
+      
+      let finalGoals = Math.round(power * luck);
+      
+      // 5% šance na bonusové góly (výjimečné přestřelky)
+      if (Math.random() > 0.95) finalGoals += Math.floor(Math.random() * 3);
+
+      return Math.max(0, finalGoals);
     }
 
     function simulate() {
@@ -213,7 +221,7 @@
       }
 
       document.getElementById("result").innerHTML = 
-        `<div style="font-size: 3rem;">${goalsA} : ${goalsB}</div>` +
+        `<div style="font-size: 3rem; color: #38bdf8;">${goalsA} : ${goalsB}</div>` +
         `<div style="color: #94a3b8; margin-top: 10px;">${A.name} vs ${B.name}${suffix}</div>`;
     }
 
