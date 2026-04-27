@@ -197,7 +197,7 @@
     function updateMatch() {
       if (selectedA && selectedB) {
         document.getElementById("match").innerText =
-          `${teams[selectedA].name} vs ${teams[selectedB].name}`;
+          `${teams[selectedA].name} at ${teams[selectedB].name}`;
       } else if (selectedA) {
         document.getElementById("match").innerText = "Vyber soupeře";
       }
