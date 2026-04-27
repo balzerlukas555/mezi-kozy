@@ -144,12 +144,29 @@
       sjs: { name: "San Jose Sharks", attack: 75, defense: 76, logo: "https://assets.nhle.com/logos/nhl/svg/SJS_dark.svg" },
       sea: { name: "Seattle Kraken", attack: 81, defense: 84, logo: "https://assets.nhle.com/logos/nhl/svg/SEA_dark.svg" },
       van: { name: "Vancouver Canucks", attack: 78, defense: 80, logo: "https://assets.nhle.com/logos/nhl/svg/VAN_dark.svg" },
-      vgk: { name: "Vegas Golden Knights", attack: 89, defence: 88, logo: "https://assets.nhle.com/logos/nhl/svg/VGK_dark.svg" }
+      vgk: { name: "Vegas Golden Knights", attack: 89, defense: 88, logo: "https://assets.nhle.com/logos/nhl/svg/VGK_dark.svg" }
     };
 
     const container = document.getElementById("teams");
     let selectedA = null;
     let selectedB = null;
+
+    function getForm() {
+      let r = Math.random();
+      if (r < 0.1) return { name: "Excelentní", mod: 5 };
+      if (r < 0.4) return { name: "Dobrá", mod: 2 };
+      if (r < 0.9) return { name: "Normální", mod: 0 };
+      return { name: "Špatná", mod: -2 };
+    }
+
+    function getGoals(att, def, isHome) {
+      let power = (att - def) / 10 + 2.8;
+      if (isHome) power += 0.5;
+      let luck = (Math.random() + Math.random() + Math.random()) / 1.5; 
+      let finalGoals = Math.round(power * luck);
+      if (Math.random() > 0.95) finalGoals += Math.floor(Math.random() * 3);
+      return Math.max(0, finalGoals);
+    }
 
     function renderTeams() {
       for (let key in teams) {
@@ -162,10 +179,15 @@
     }
 
     function selectTeam(key, element) {
-      if (!selectedA) { selectedA = key; element.classList.add("selected"); }
-      else if (!selectedB && key !== selectedA) { selectedB = key; element.classList.add("selected"); }
-      else {
-        selectedA = key; selectedB = null;
+      if (!selectedA) {
+        selectedA = key;
+        element.classList.add("selected");
+      } else if (!selectedB && key !== selectedA) {
+        selectedB = key;
+        element.classList.add("selected");
+      } else {
+        selectedA = key;
+        selectedB = null;
         document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
         element.classList.add("selected");
       }
@@ -173,34 +195,29 @@
     }
 
     function updateMatch() {
-      if (selectedA && selectedB) document.getElementById("match").innerText = `${teams[selectedA].name} vs ${teams[selectedB].name}`;
-      else if (selectedA) document.getElementById("match").innerText = "Vyber soupeře";
-    }
-
-    function getGoals(att, def, isHome) {
-      let power = (att - def) / 10 + 2.8;
-      if (isHome) power += 0.3;
-      let luck = (Math.random() + Math.random() + Math.random()) / 1.5; 
-      let finalGoals = Math.round(power * luck);
-      if (Math.random() > 0.95) finalGoals += Math.floor(Math.random() * 3);
-      return Math.max(0, finalGoals);
+      if (selectedA && selectedB) {
+        document.getElementById("match").innerText =
+          `${teams[selectedA].name} vs ${teams[selectedB].name}`;
+      } else if (selectedA) {
+        document.getElementById("match").innerText = "Vyber soupeře";
+      }
     }
 
     function simulate() {
       if (!selectedA || !selectedB) return;
-      
+
       const btn = document.getElementById("simBtn");
       const resDiv = document.getElementById("result");
-      const A = teams[selectedA];
-      const B = teams[selectedB];
 
-      // Reset a zamčení tlačítka
-      btn.disabled = true;
-      resDiv.innerHTML = `<div class="animating">Zápas probíhá...</div>`;
+      const home = teams[selectedB];
+      const away = teams[selectedA];
 
-      // Výpočet finálního skóre
-      let finalA = getGoals(A.attack, B.defense, true);
-      let finalB = getGoals(B.attack, A.defense, false);
+      let formA = getForm();
+      let formB = getForm();
+
+      let finalA = getGoals(away.attack + formA.mod, home.defense + formB.mod, false);
+      let finalB = getGoals(home.attack + formB.mod, away.defense + formA.mod, true);
+
       let suffix = "";
 
       if (finalA === finalB) {
@@ -208,36 +225,32 @@
         else { finalB++; suffix = " (SO)"; }
       }
 
-      // Animace postupného přičítání
+      btn.disabled = true;
+      resDiv.innerHTML = `<div class="animating">Zápas probíhá...</div>`;
+
       let currA = 0;
       let currB = 0;
       let totalSteps = finalA + finalB;
-      
-      // Pokud je 0:0 po základní době (což náš kód díky suffixu neudělá, ale pro jistotu), 
-      // tak ať to netrvá věčně nebo nespadne.
-      let duration = 6500; 
-      let stepTime = totalSteps > 0 ? duration / totalSteps : 1000;
+      let stepTime = totalSteps > 0 ? 6500 / totalSteps : 1000;
 
       let interval = setInterval(() => {
-        // Logika kdo dá gól jako další (náhodně, ale směřuje k cíli)
         if (currA < finalA && currB < finalB) {
           if (Math.random() < 0.5) currA++; else currB++;
-        } else if (currA < finalA) {
-          currA++;
-        } else if (currB < finalB) {
-          currB++;
-        }
+        } else if (currA < finalA) currA++;
+        else if (currB < finalB) currB++;
 
-        resDiv.innerHTML = `<div style="font-size: 3rem; color: #38bdf8;">${currA} : ${currB}</div>` +
-                           `<div style="color: #94a3b8; margin-top: 10px;">${A.name} vs ${B.name}</div>`;
+        resDiv.innerHTML =
+          `<div style="font-size: 3rem;">${currA} : ${currB}</div>` +
+          `<div>${away.name} (${formA.name}) vs ${home.name} (${formB.name})</div>`;
 
         if (currA === finalA && currB === finalB) {
           clearInterval(interval);
           btn.disabled = false;
-          // Přidání suffixu na konci
-          resDiv.innerHTML = `<div style="font-size: 3.5rem; color: #38bdf8; transition: 0.3s;">${currA} : ${currB}</div>` +
-                             `<div style="color: #94a3b8; margin-top: 10px; font-weight: bold;">KONEC ${suffix}</div>` +
-                             `<div style="color: #475569; font-size: 0.9rem;">${A.name} vs ${B.name}</div>`;
+
+          resDiv.innerHTML =
+            `<div style="font-size: 3rem;">${currA} : ${currB}</div>` +
+            `<div>KONEC ${suffix}</div>` +
+            `<div>${away.name} (${formA.name}) vs ${home.name} (${formB.name})</div>`;
         }
       }, stepTime);
     }
