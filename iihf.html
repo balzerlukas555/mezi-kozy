@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IIHF World states Simulator</title>
+  <title>IIHF World Championship 2026 Simulator</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -45,9 +45,10 @@
     .team img {
       width: 100%;
       height: auto;
-      aspect-ratio: 1/1;
-      object-fit: contain;
+      aspect-ratio: 3/2;
+      object-fit: cover;
       filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+      border-radius: 2px;
     }
 
     .team:hover {
@@ -136,8 +137,9 @@
 
     .score-logo {
       width: 60px;
-      height: 60px;
-      object-fit: contain;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 4px;
     }
 
     .game-line {
@@ -178,7 +180,7 @@
 </head>
 <body>
 
-  <h1>SIMULATOR NARODAKU + MS 2026</h1>
+  <h1>SIMULATOR NARODAKU + MS</h1>
 
   <div class="teams" id="teams"></div>
 
@@ -197,22 +199,22 @@
 
   <script>
     const teams = {
-      canada: { name: "Kanada", attack: 96, defense: 93, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fkanada.png&w=120&h=120&exact=1" },
-      usa: { name: "USA", attack: 94, defense: 92, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fusa.png&w=120&h=120&exact=1" },
-      sweden: { name: "Švédsko", attack: 92, defense: 94, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fsvedsko.png&w=120&h=120&exact=1" },
-      finland: { name: "Finsko", attack: 88, defense: 95, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Ffinsko.png&w=120&h=120&exact=1" },
-      czechia: { name: "Česko", attack: 91, defense: 90, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fcesko.png&w=120&h=120&exact=1" },
-      switzerland: { name: "Švýcarsko", attack: 87, defense: 89, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fsvycarsko.png&w=120&h=120&exact=1" },
-      germany: { name: "Německo", attack: 85, defense: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fnemecko.png&w=120&h=120&exact=1" },
-      slovakia: { name: "Slovensko", attack: 84, defense: 83, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fslovensko.png&w=120&h=120&exact=1" },
-      latvia: { name: "Lotyšsko", attack: 79, defense: 86, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Flotyšsko.png&w=120&h=120&exact=1" },
-      denmark: { name: "Dánsko", attack: 78, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fdansko.png&w=120&h=120&exact=1" },
-      kazakhstan: { name: "Kazachstán", attack: 74, defense: 76, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fkazachstan.png&w=120&h=120&exact=1" },
-      norway: { name: "Norsko", attack: 76, defense: 77, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fnorsko.png&w=120&h=120&exact=1" },
-      france: { name: "Francie", attack: 75, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Ffrancie.png&w=120&h=120&exact=1" },
-      austria: { name: "Rakousko", attack: 77, defense: 75, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Frakousko.png&w=120&h=120&exact=1" },
-      hungary: { name: "Maďarsko", attack: 72, defense: 73, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fmadarsko.png&w=120&h=120&exact=1" },
-      slovenia: { name: "Slovinsko", attack: 73, defense: 74, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fslovinsko.png&w=120&h=120&exact=1" }
+      canada: { name: "Kanada", attack: 96, defense: 93, logo: "https://flagcdn.com/w160/ca.png" },
+      usa: { name: "USA", attack: 94, defense: 92, logo: "https://flagcdn.com/w160/us.png" },
+      sweden: { name: "Švédsko", attack: 92, defense: 94, logo: "https://flagcdn.com/w160/se.png" },
+      finland: { name: "Finsko", attack: 88, defense: 95, logo: "https://flagcdn.com/w160/fi.png" },
+      czechia: { name: "Česko", attack: 91, defense: 90, logo: "https://flagcdn.com/w160/cz.png" },
+      switzerland: { name: "Švýcarsko", attack: 87, defense: 89, logo: "https://flagcdn.com/w160/ch.png" },
+      germany: { name: "Německo", attack: 85, defense: 84, logo: "https://flagcdn.com/w160/de.png" },
+      slovakia: { name: "Slovensko", attack: 84, defense: 83, logo: "https://flagcdn.com/w160/sk.png" },
+      latvia: { name: "Lotyšsko", attack: 79, defense: 86, logo: "https://flagcdn.com/w160/lv.png" },
+      denmark: { name: "Dánsko", attack: 78, defense: 80, logo: "https://flagcdn.com/w160/dk.png" },
+      kazakhstan: { name: "Kazachstán", attack: 74, defense: 76, logo: "https://flagcdn.com/w160/kz.png" },
+      norway: { name: "Norsko", attack: 76, defense: 77, logo: "https://flagcdn.com/w160/no.png" },
+      france: { name: "Francie", attack: 75, defense: 78, logo: "https://flagcdn.com/w160/fr.png" },
+      austria: { name: "Rakousko", attack: 77, defense: 75, logo: "https://flagcdn.com/w160/at.png" },
+      hungary: { name: "Maďarsko", attack: 72, defense: 73, logo: "https://flagcdn.com/w160/hu.png" },
+      slovenia: { name: "Slovinsko", attack: 73, defense: 74, logo: "https://flagcdn.com/w160/si.png" }
     };
 
     const container = document.getElementById("teams");
