@@ -265,7 +265,7 @@ function getGoals(att, def, isHome) {
 }
 
 // Funkce pro 7s animaci
-async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeSide = "", winsA = 0, winsB = 0) {
+async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeSide = "", winsA = 0, winsB = 0, ot = false) {
     const res = document.getElementById("result");
     let currentA = 0;
     let currentB = 0;
@@ -299,7 +299,18 @@ async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeS
         }
     }
     
-    if (goals.length === 0) {
+    // Zobrazení KONEC na 2 sekundy i v sérii
+    if (isSeries) {
+        const homeTeamName = homeSide === "A" ? teams[selectedA].name : teams[selectedB].name;
+        res.innerHTML = `
+            <div class="status-msg">Série probíhá - Zápas ${gameNum} (doma: ${homeTeamName})...</div>
+            <div class="current-series-score">${winsA} : ${winsB}</div>
+            <div class="score-display">${finalA}:${finalB}</div>
+            <div style="text-align:center; font-weight:bold;">KONEC${ot ? " (v prodl.)" : ""}</div>
+            <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
+        `;
+        await new Promise(r => setTimeout(r, 2000));
+    } else if (goals.length === 0) {
         await new Promise(r => setTimeout(r, duration));
     }
 }
@@ -321,7 +332,7 @@ async function simulateMatch() {
     Math.random() < 0.5 ? finalA++ : finalB++;
   }
 
-  await animateScore(finalA, finalB);
+  await animateScore(finalA, finalB, false, 0, "", 0, 0, ot);
   
   const res = document.getElementById("result");
   res.innerHTML = `
@@ -365,7 +376,7 @@ async function startSeries(type) {
         Math.random() < 0.5 ? finalA++ : finalB++;
     }
 
-    await animateScore(finalA, finalB, true, gameIdx + 1, homeSide, winsA, winsB);
+    await animateScore(finalA, finalB, true, gameIdx + 1, homeSide, winsA, winsB, ot);
 
     if (finalA > finalB) winsA++; else winsB++;
     
