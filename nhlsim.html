@@ -49,49 +49,102 @@
       border-color: #38bdf8;
       background: #1e293b;
       transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
     }
 
     #match {
       margin-top: 25px;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       min-height: 1.5em;
       color: #38bdf8;
+      font-weight: bold;
+    }
+
+    .button-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .series-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
     }
 
     button {
-      margin-top: 20px;
-      padding: 15px 30px;
-      font-size: 18px;
+      padding: 12px 25px;
+      font-size: 16px;
       cursor: pointer;
       background-color: #38bdf8;
       border: none;
       border-radius: 8px;
       color: #0f172a;
       font-weight: bold;
-      width: 100%;
-      max-width: 300px;
-      margin-right: 5px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #7dd3fc;
+      transform: translateY(-2px);
     }
 
     button:disabled {
       background-color: #475569;
       cursor: not-allowed;
+      transform: none;
     }
 
     #result {
       margin-top: 30px;
-      font-size: 1.5rem;
-      font-weight: bold;
+      font-size: 1.1rem;
       background: rgba(255,255,255,0.05);
       padding: 20px;
       border-radius: 12px;
       display: inline-block;
-      min-width: 250px;
+      min-width: 320px;
+      text-align: left;
     }
 
-    .animating {
-      color: #94a3b8;
+    .score-display {
+      font-size: 3.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+      color: #38bdf8;
+    }
+
+    .game-line {
+      border-bottom: 1px solid #2d3748;
+      padding: 8px 0;
+      font-size: 0.95rem;
+    }
+
+    .winner-box {
+      margin-top: 20px;
+      font-size: 1.8rem;
+      color: #fbbf24;
+      text-align: center;
+      font-weight: bold;
+      padding: 10px;
+      border: 2px solid #fbbf24;
+      border-radius: 8px;
+    }
+
+    .status-msg {
       font-style: italic;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .current-series-score {
+      font-size: 2rem;
+      text-align: center;
+      color: #fff;
+      margin-bottom: 5px;
     }
 
     @media (min-width: 600px) {
@@ -106,14 +159,15 @@
 
   <div class="teams" id="teams"></div>
 
-  <div id="match">Vyber dva týmy</div>
+  <div id="match">Vyberte dva týmy</div>
 
-  <button id="simBtn" onclick="simulate()">Simulovat zápas</button>
-
-  <div>
-    <button onclick="startSeries('bo3')">BO3 série</button>
-    <button onclick="startSeries('bo5')">BO5 série</button>
-    <button onclick="startSeries('bo7')">BO7 série</button>
+  <div class="button-container">
+    <button id="simBtn" onclick="simulateMatch()">Simulovat zápas</button>
+    <div class="series-buttons">
+      <button id="bo3Btn" onclick="startSeries('bo3')">Série BO3</button>
+      <button id="bo5Btn" onclick="startSeries('bo5')">Série BO5</button>
+      <button id="bo7Btn" onclick="startSeries('bo7')">Série BO7</button>
+    </div>
   </div>
 
   <div id="result"></div>
@@ -157,13 +211,50 @@ const teams = {
 const container = document.getElementById("teams");
 let selectedA = null;
 let selectedB = null;
+let isAnimating = false;
 
-function getForm() {
-  let r = Math.random();
-  if (r < 0.1) return { mod: 5 };
-  if (r < 0.4) return { mod: 2 };
-  if (r < 0.9) return { mod: 0 };
-  return { mod: -2 };
+function renderTeams() {
+  for (let key in teams) {
+    const div = document.createElement("div");
+    div.classList.add("team");
+    div.setAttribute("data-id", key);
+    div.innerHTML = `<img src="${teams[key].logo}" title="${teams[key].name}">`;
+    div.onclick = () => selectTeam(key);
+    container.appendChild(div);
+  }
+}
+
+function selectTeam(key) {
+  if (isAnimating) return;
+  if (!selectedA) {
+    selectedA = key;
+  } else if (selectedA === key) {
+    selectedA = null;
+  } else if (!selectedB) {
+    selectedB = key;
+  } else if (selectedB === key) {
+    selectedB = null;
+  } else {
+    selectedA = key;
+    selectedB = null;
+  }
+  
+  document.querySelectorAll(".team").forEach(t => {
+    const id = t.getAttribute("data-id");
+    t.classList.toggle("selected", id === selectedA || id === selectedB);
+  });
+  updateMatch();
+}
+
+function updateMatch() {
+  const matchDiv = document.getElementById("match");
+  if (selectedA && selectedB) {
+    matchDiv.innerText = `${teams[selectedA].name} vs ${teams[selectedB].name}`;
+  } else if (selectedA) {
+    matchDiv.innerText = "Vyber druhý tým...";
+  } else {
+    matchDiv.innerText = "Vyberte dva týmy";
+  }
 }
 
 function getGoals(att, def, isHome) {
@@ -173,119 +264,145 @@ function getGoals(att, def, isHome) {
   return Math.max(0, Math.round(power * luck));
 }
 
-function renderTeams() {
-  for (let key in teams) {
-    const div = document.createElement("div");
-    div.classList.add("team");
-    div.innerHTML = `<img src="${teams[key].logo}">`;
-    div.onclick = () => selectTeam(key, div);
-    container.appendChild(div);
-  }
+// Funkce pro 7s animaci
+async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeSide = "", winsA = 0, winsB = 0) {
+    const res = document.getElementById("result");
+    let currentA = 0;
+    let currentB = 0;
+    const duration = 7000; 
+    
+    let goals = [];
+    for(let i=0; i<finalA; i++) goals.push("A");
+    for(let i=0; i<finalB; i++) goals.push("B");
+    goals.sort(() => Math.random() - 0.5);
+
+    const interval = goals.length > 0 ? duration / goals.length : duration;
+
+    for (let i = 0; i < goals.length; i++) {
+        await new Promise(r => setTimeout(r, interval));
+        if (goals[i] === "A") currentA++; else currentB++;
+        
+        if (isSeries) {
+            const homeTeamName = homeSide === "A" ? teams[selectedA].name : teams[selectedB].name;
+            res.innerHTML = `
+                <div class="status-msg">Série probíhá - Zápas ${gameNum} (doma: ${homeTeamName})...</div>
+                <div class="current-series-score">${winsA} : ${winsB}</div>
+                <div class="score-display">${currentA}:${currentB}</div>
+                <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
+            `;
+        } else {
+            res.innerHTML = `
+                <div class="status-msg">Zápas probíhá...</div>
+                <div class="score-display">${currentA}:${currentB}</div>
+                <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
+            `;
+        }
+    }
+    
+    if (goals.length === 0) {
+        await new Promise(r => setTimeout(r, duration));
+    }
 }
 
-function selectTeam(key, element) {
-  if (!selectedA) selectedA = key;
-  else if (!selectedB && key !== selectedA) selectedB = key;
-  else {
-    selectedA = key;
-    selectedB = null;
-    document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
-  }
-  element.classList.add("selected");
-  updateMatch();
-}
-
-function updateMatch() {
-  if (selectedA && selectedB) {
-    document.getElementById("match").innerText =
-      `${teams[selectedA].name} vs ${teams[selectedB].name}`;
-  }
-}
-
-function simulateSingleGame() {
+async function simulateMatch() {
+  if (!selectedA || !selectedB || isAnimating) return;
+  isAnimating = true;
+  toggleButtons(true);
+  
   const A = teams[selectedA];
   const B = teams[selectedB];
-
-  let a = getGoals(A.attack, B.defense, false);
-  let b = getGoals(B.attack, A.defense, true);
-
-  if (a === b) {
-    if (Math.random() < 0.5) a++;
-    else b++;
+  
+  let finalA = getGoals(A.attack, B.defense, false);
+  let finalB = getGoals(B.attack, A.defense, true);
+  
+  let ot = false;
+  if (finalA === finalB) {
+    ot = true;
+    Math.random() < 0.5 ? finalA++ : finalB++;
   }
 
-  return a > b ? "A" : "B";
-}
-
-function simulate() {
-  if (!selectedA || !selectedB) return;
-
+  await animateScore(finalA, finalB);
+  
   const res = document.getElementById("result");
-  const A = teams[selectedA];
-  const B = teams[selectedB];
-
-  let a = getGoals(A.attack, B.defense, false);
-  let b = getGoals(B.attack, A.defense, true);
-
-  if (a === b) {
-    if (Math.random() < 0.5) a++;
-    else b++;
-  }
-
   res.innerHTML = `
-    <div style="font-size:3rem">${a}:${b}</div>
-    <div>${A.name} vs ${B.name}</div>
+    <div class="score-display">${finalA}:${finalB}</div>
+    <div style="text-align:center; font-weight:bold;">${A.name} vs ${B.name}</div>
+    <div style="text-align:center; color:#94a3b8; margin-top:5px;">${ot ? "Konečný výsledek (v prodloužení)" : "Konečný výsledek"}</div>
   `;
+  
+  isAnimating = false;
+  toggleButtons(false);
 }
 
 async function startSeries(type) {
-  if (!selectedA || !selectedB) return;
-
-  const schedules = {
-    bo3: ["B","A","B"],
-    bo5: ["B","B","A","A","B"],
-    bo7: ["B","B","A","A","B","A","B"]
-  };
-
-  let winTarget = type === "bo3" ? 2 : type === "bo5" ? 3 : 4;
-  let schedule = schedules[type];
-
-  let winsA = 0, winsB = 0, game = 0;
+  if (!selectedA || !selectedB || isAnimating) return;
+  isAnimating = true;
+  toggleButtons(true);
 
   const res = document.getElementById("result");
-  const btn = document.getElementById("simBtn");
+  res.innerHTML = `<div class="status-msg">Série začíná...</div>`;
 
-  btn.disabled = true;
+  let winTarget = type === "bo3" ? 2 : type === "bo5" ? 3 : 4;
+  
+  let homeSchedule = [];
+  if (type === "bo7") homeSchedule = ["B", "B", "A", "A", "B", "A", "B"];
+  else if (type === "bo5") homeSchedule = ["B", "B", "A", "A", "B"];
+  else homeSchedule = ["B", "A", "B"];
+
+  let winsA = 0, winsB = 0, gameIdx = 0;
+  let history = [];
 
   while (winsA < winTarget && winsB < winTarget) {
+    let homeSide = homeSchedule[gameIdx];
+    let A = teams[selectedA];
+    let B = teams[selectedB];
 
-    const Ateam = teams[selectedA];
-    const Bteam = teams[selectedB];
-
-    let a = getGoals(Ateam.attack, Bteam.defense, false);
-    let b = getGoals(Bteam.attack, Ateam.defense, true);
-
-    if (a === b) {
-      if (Math.random() < 0.5) a++;
-      else b++;
+    let finalA = getGoals(A.attack, B.defense, homeSide === "A");
+    let finalB = getGoals(B.attack, A.defense, homeSide === "B");
+    let ot = false;
+    if (finalA === finalB) {
+        ot = true;
+        Math.random() < 0.5 ? finalA++ : finalB++;
     }
 
-    let winner = a > b ? "A" : "B";
+    await animateScore(finalA, finalB, true, gameIdx + 1, homeSide, winsA, winsB);
 
-    if (winner === "A") winsA++;
-    else winsB++;
-
-    game++;
-
-    res.innerHTML += `
-      <div>Game ${game}: ${Ateam.name} vs ${Bteam.name} → ${a}:${b}</div>
-      <div>Series: ${winsA}-${winsB}</div>
-    `;
+    if (finalA > finalB) winsA++; else winsB++;
+    
+    history.push({game: gameIdx+1, score: `${finalA}:${finalB}`, ot: ot, home: homeSide});
+    
+    renderSeriesProgress(winsA, winsB, history);
+    gameIdx++;
   }
 
-  btn.disabled = false;
+  const winner = winsA > winsB ? teams[selectedA].name : teams[selectedB].name;
+  res.innerHTML += `<div class="winner-box">🏆 VÍTĚZ SÉRIE: ${winner.toUpperCase()} (${winsA}:${winsB})</div>`;
 
-  res.innerHTML += `<div style="font-size:2rem">WINNER: ${winsA > winsB ? teams[selectedA].name : teams[selectedB].name}</div>`;
+  isAnimating = false;
+  toggleButtons(false);
+}
+
+function renderSeriesProgress(wA, wB, history) {
+    const res = document.getElementById("result");
+    let html = `
+        <div class="status-msg">Průběh série</div>
+        <div class="current-series-score">${wA} : ${wB}</div>
+        <div style="text-align:center; margin-bottom:15px; font-weight:bold;">Historie zápasů:</div>
+    `;
+    
+    history.forEach(h => {
+        const homeName = h.home === "A" ? teams[selectedA].name : teams[selectedB].name;
+        html += `<div class="game-line">
+            Zápas ${h.game}: <strong>${h.score}</strong> 
+            <span style="font-size:0.8rem; color:#94a3b8"> (Doma: ${homeName}${h.ot ? ", v prodloužení" : ""})</span>
+        </div>`;
+    });
+    
+    res.innerHTML = html;
+}
+
+function toggleButtons(disabled) {
+    document.querySelectorAll("button").forEach(b => b.disabled = disabled);
 }
 
 renderTeams();
