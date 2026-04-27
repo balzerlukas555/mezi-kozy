@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Extraliga simulátor (loga)</title>
   <style>
-    /* MODERNI STYL PO VZORU NHL VERZE */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center;
       margin: 0;
       padding: 20px 10px;
-      background: #0b0e14; /* Tmavší moderní pozadí */
+      background: #0b0e14;
       color: #e2e8f0;
     }
 
@@ -37,7 +36,7 @@
       transition: all 0.2s ease-in-out;
       width: 65px; 
       padding: 8px;
-      background: #1a1f29; /* Čtverečkové pozadí týmu */
+      background: #1a1f29;
       border-radius: 8px;
       border: 1px solid #2d3748;
       box-sizing: border-box;
@@ -95,7 +94,6 @@
       transform: scale(0.96);
     }
 
-    /* Vizuální stav pro zamknuté tlačítko */
     button:disabled {
       background-color: #2d3748;
       color: #475569;
@@ -114,7 +112,6 @@
       line-height: 1.4;
     }
 
-    /* Úpravy pro větší obrazovky */
     @media (min-width: 600px) {
       .team { width: 85px; padding: 10px; }
       h1 { font-size: 2.5rem; }
@@ -137,20 +134,20 @@
 
   <script>
     const teams = {
-      pardubice: { name: "HC Dynamo Pardubice", attack: 92, defense: 89, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1" },
-      sparta: { name: "HC Sparta Praha", attack: 90, defense: 88, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fwueb1-spa.png&w=120&h=120&exact=1" },
-      trinec: { name: "HC Oceláři Třinec", attack: 89, defense: 94, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fccek3-tri.png&w=120&h=120&exact=1" },
-      mountfield: { name: "Mountfield HK", attack: 88, defense: 85, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fj9qyt-hkr.png&w=120&h=120&exact=1" },
-      vitkovice: { name: "HC Vítkovice Ridera", attack: 78, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F65gcx-vit.png&w=120&h=120&exact=1" },
-      kometa: { name: "HC Kometa Brno", attack: 87, defense: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F8oo52-kom.png&w=120&h=120&exact=1" },
-      boleslav: { name: "BK Mladá Boleslav", attack: 76, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fk1yj3-mbl.png&w=120&h=120&exact=1" },
-      litvinov: { name: "HC Verva Litvínov", attack: 76, defense: 73, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fifboo-lit.png&w=120&h=120&exact=1" },
-      liberec: { name: "Bílí Tygři Liberec", attack: 87, defense: 83, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fi5lg4-lib.png&w=120&h=120&exact=1" },
-      olomouc: { name: "HC Olomouc", attack: 76, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fy4tmv-olo.png&w=120&h=120&exact=1" },
-      plzen: { name: "HC Škoda Plzeň", attack: 86, defense: 85, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fpijgb-plz.png&w=120&h=120&exact=1" },
-      karlovy_vary: { name: "HC Energie Karlovy Vary", attack: 81, defense: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F98xoj-kva.png&w=120&h=120&exact=1" },
-      kladno: { name: "Rytíři Kladno", attack: 79, defense: 85, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1" },
-      ceske_budejovice: { name: "Motor České Budějovice", attack: 81, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1" }
+      pardubice: { name: "HC Dynamo Pardubice", attack: 94, defense: 91, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1" },
+      sparta: { name: "HC Sparta Praha", attack: 85, defense: 81, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fwueb1-spa.png&w=120&h=120&exact=1" },
+      trinec: { name: "HC Oceláři Třinec", attack: 87, defense: 82, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fccek3-tri.png&w=120&h=120&exact=1" },
+      mountfield: { name: "Mountfield HK", attack: 86, defense: 88, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fj9qyt-hkr.png&w=120&h=120&exact=1" },
+      vitkovice: { name: "HC Vítkovice Ridera", attack: 77, defense: 74, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F65gcx-vit.png&w=120&h=120&exact=1" },
+      kometa: { name: "HC Kometa Brno", attack: 83, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F8oo52-kom.png&w=120&h=120&exact=1" },
+      boleslav: { name: "BK Mladá Boleslav", attack: 80, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fk1yj3-mbl.png&w=120&h=120&exact=1" },
+      litvinov: { name: "HC Verva Litvínov", attack: 76, defense: 72, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fifboo-lit.png&w=120&h=120&exact=1" },
+      liberec: { name: "Bílí Tygři Liberec", attack: 89, defense: 86, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fi5lg4-lib.png&w=120&h=120&exact=1" },
+      olomouc: { name: "HC Olomouc", attack: 78, defense: 76, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fy4tmv-olo.png&w=120&h=120&exact=1" },
+      plzen: { name: "HC Škoda Plzeň", attack: 88, defense: 93, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fpijgb-plz.png&w=120&h=120&exact=1" },
+      karlovy_vary: { name: "HC Energie Karlovy Vary", attack: 83, defense: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F98xoj-kva.png&w=120&h=120&exact=1" },
+      kladno: { name: "Rytíři Kladno", attack: 79, defense: 79, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1" },
+      ceske_budejovice: { name: "Motor České Budějovice", attack: 82, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1" }
     };
 
     const container = document.getElementById("teams");
@@ -212,44 +209,57 @@
       const A = teams[selectedA];
       const B = teams[selectedB];
 
-      // Vypočítáme finální skóre
-      let finalA = getGoals(A.attack, B.defense, true);
-      let finalB = getGoals(B.attack, A.defense, false);
+      let baseA = getGoals(A.attack, B.defense, true);
+      let baseB = getGoals(B.attack, A.defense, false);
+
+      let finalA = baseA;
+      let finalB = baseB;
       let resultSuffix = "";
 
-      if (finalA === finalB) {
+      if (baseA === baseB) {
         if (Math.random() < 0.5) {
-          finalA++;
+          finalA = baseA + 1;
+          finalB = baseB;
           resultSuffix = " (pp)";
         } else {
-          finalB++;
+          finalA = baseA;
+          finalB = baseB + 1;
           resultSuffix = " (sn)";
         }
       }
 
-      // Animace
       btn.disabled = true;
       let currentA = 0;
       let currentB = 0;
-      let totalGoals = finalA + finalB;
-      
+
+      let sequence = [];
+
+      for (let i = 0; i < baseA + baseB; i++) {
+        sequence.push(i < baseA ? "A" : "B");
+      }
+
+      sequence.sort(() => Math.random() - 0.5);
+
+      if (baseA === baseB) {
+        sequence.push(finalA > finalB ? "A" : "B");
+      }
+
+      let index = 0;
       let duration = 6500;
-      let stepTime = totalGoals > 0 ? duration / totalGoals : 2000;
+      let stepTime = sequence.length > 0 ? duration / sequence.length : 2000;
 
       let interval = setInterval(() => {
-        if (currentA < finalA && currentB < finalB) {
-          if (Math.random() < 0.5) currentA++; else currentB++;
-        } else if (currentA < finalA) {
-          currentA++;
-        } else if (currentB < finalB) {
-          currentB++;
+        if (index < sequence.length) {
+          if (sequence[index] === "A") currentA++;
+          else currentB++;
+          index++;
         }
 
         resDiv.innerHTML =
           `<div style="font-size: 3rem; color: #38bdf8;">${currentA} : ${currentB}</div>` +
           `<div style="font-size: 1.2rem; color: #94a3b8; margin-top: 10px;">${A.name} vs ${B.name}</div>`;
 
-        if (currentA === finalA && currentB === finalB) {
+        if (index === sequence.length) {
           clearInterval(interval);
           btn.disabled = false;
           resDiv.innerHTML =
