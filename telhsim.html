@@ -244,7 +244,7 @@
       return Math.max(0, Math.round(power * luck));
     }
 
-    async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeSide = "", winsA = 0, winsB = 0) {
+    async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeSide = "", winsA = 0, winsB = 0, ot = false) {
       const res = document.getElementById("result");
       let curA = 0, curB = 0;
       let goals = [];
@@ -274,20 +274,32 @@
           `;
         }
       }
-      if (goals.length === 0) await new Promise(r => setTimeout(r, duration));
+      
+      // Tahle část zajistí zobrazení KONEC na 2 sekundy i v sérii
+      if (isSeries) {
+          const homeName = homeSide === "A" ? teams[selectedA].name : teams[selectedB].name;
+          res.innerHTML = `
+            <div class="status-msg">Série: ${winsA}:${winsB} - Zápas ${gameNum} (v hale: ${homeName})</div>
+            <div class="score-display">${finalA}:${finalB}</div>
+            <div style="text-align:center; font-weight:bold;">KONEC${ot ? " (prod.)" : ""}</div>
+            <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
+          `;
+          await new Promise(r => setTimeout(r, 2000));
+      } else if (goals.length === 0) {
+          await new Promise(r => setTimeout(r, duration));
+      }
     }
 
     async function simulateMatch() {
       if (!selectedA || !selectedB || isAnimating) return;
       isAnimating = true; toggleButtons(true);
       
-      // Tým A je vlevo, tedy DOMÁCÍ
       let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, true);
       let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, false);
       let ot = false;
       if (finalA === finalB) { ot = true; Math.random() < 0.5 ? finalA++ : finalB++; }
 
-      await animateScore(finalA, finalB);
+      await animateScore(finalA, finalB, false, 0, "", 0, 0, ot);
 
       document.getElementById("result").innerHTML = `
         <div class="score-display">${finalA}:${finalB}</div>
@@ -302,9 +314,6 @@
       isAnimating = true; toggleButtons(true);
 
       let winTarget = type === "bo3" ? 2 : type === "bo5" ? 3 : 4;
-      
-      // EXTRALIGA točení (Domácí vlevo - tým A začíná doma)
-      // BO7: A, A, B, B, A, B, A (2-2-1-1-1)
       let schedule = type === "bo7" ? ["A","A","B","B","A","B","A"] : 
                      (type === "bo5" ? ["A","A","B","B","A"] : ["A","B","A"]);
 
@@ -317,7 +326,7 @@
         let ot = false;
         if (finalA === finalB) { ot = true; Math.random() < 0.5 ? finalA++ : finalB++; }
 
-        await animateScore(finalA, finalB, true, gameIdx + 1, homeSide, winsA, winsB);
+        await animateScore(finalA, finalB, true, gameIdx + 1, homeSide, winsA, winsB, ot);
 
         if (finalA > finalB) winsA++; else winsB++;
         history.push({game: gameIdx+1, score: `${finalA}:${finalB}`, ot: ot, home: homeSide});
