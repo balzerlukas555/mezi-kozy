@@ -244,38 +244,33 @@
       return Math.max(0, Math.round(power * luck));
     }
 
-    async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeSide = "", winsA = 0, winsB = 0, ot = false) {
+    async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeSide = "", winsA = 0, winsB = 0, ot = false, winnerOT = "") {
       const res = document.getElementById("result");
       let curA = 0, curB = 0;
+      
+      let baseA = ot ? (winnerOT === "A" ? finalA - 1 : finalA) : finalA;
+      let baseB = ot ? (winnerOT === "B" ? finalB - 1 : finalB) : finalB;
+
       let goals = [];
-      for(let i=0; i<finalA; i++) goals.push("A");
-      for(let i=0; i<finalB; i++) goals.push("B");
+      for(let i=0; i<baseA; i++) goals.push("A");
+      for(let i=0; i<baseB; i++) goals.push("B");
       goals.sort(() => Math.random() - 0.5);
 
       const duration = 7000;
-      const interval = goals.length > 0 ? duration / goals.length : duration;
+      const interval = duration / (goals.length + (ot ? 1 : 0));
 
       for (let i = 0; i < goals.length; i++) {
         await new Promise(r => setTimeout(r, interval));
         if (goals[i] === "A") curA++; else curB++;
-        
-        if (isSeries) {
-          const homeName = homeSide === "A" ? teams[selectedA].name : teams[selectedB].name;
-          res.innerHTML = `
-            <div class="status-msg">Série: ${winsA}:${winsB} - Zápas ${gameNum} (v hale: ${homeName})</div>
-            <div class="score-display">${curA}:${curB}</div>
-            <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
-          `;
-        } else {
-          res.innerHTML = `
-            <div class="status-msg">Zápas probíhá...</div>
-            <div class="score-display">${curA}:${curB}</div>
-            <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
-          `;
-        }
+        updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB);
+      }
+
+      if (ot) {
+        await new Promise(r => setTimeout(r, interval));
+        if (winnerOT === "A") curA++; else curB++;
+        updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB);
       }
       
-      // Tahle část zajistí zobrazení KONEC na 2 sekundy i v sérii
       if (isSeries) {
           const homeName = homeSide === "A" ? teams[selectedA].name : teams[selectedB].name;
           res.innerHTML = `
@@ -285,8 +280,25 @@
             <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
           `;
           await new Promise(r => setTimeout(r, 2000));
-      } else if (goals.length === 0) {
+      } else if (goals.length === 0 && !ot) {
           await new Promise(r => setTimeout(r, duration));
+      }
+    }
+
+    function updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB) {
+      if (isSeries) {
+          const homeName = homeSide === "A" ? teams[selectedA].name : teams[selectedB].name;
+          res.innerHTML = `
+            <div class="status-msg">Série: ${winsA}:${winsB} - Zápas ${gameNum} (v hale: ${homeName})</div>
+            <div class="score-display">${curA}:${curB}</div>
+            <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
+          `;
+      } else {
+          res.innerHTML = `
+            <div class="status-msg">Zápas probíhá...</div>
+            <div class="score-display">${curA}:${curB}</div>
+            <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
+          `;
       }
     }
 
@@ -297,9 +309,13 @@
       let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, true);
       let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, false);
       let ot = false;
-      if (finalA === finalB) { ot = true; Math.random() < 0.5 ? finalA++ : finalB++; }
+      let winnerOT = "";
+      if (finalA === finalB) { 
+        ot = true; 
+        if (Math.random() < 0.5) { finalA++; winnerOT = "A"; } else { finalB++; winnerOT = "B"; }
+      }
 
-      await animateScore(finalA, finalB, false, 0, "", 0, 0, ot);
+      await animateScore(finalA, finalB, false, 0, "", 0, 0, ot, winnerOT);
 
       document.getElementById("result").innerHTML = `
         <div class="score-display">${finalA}:${finalB}</div>
@@ -324,9 +340,13 @@
         let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, homeSide === "A");
         let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, homeSide === "B");
         let ot = false;
-        if (finalA === finalB) { ot = true; Math.random() < 0.5 ? finalA++ : finalB++; }
+        let winnerOT = "";
+        if (finalA === finalB) {
+            ot = true;
+            if (Math.random() < 0.5) { finalA++; winnerOT = "A"; } else { finalB++; winnerOT = "B"; }
+        }
 
-        await animateScore(finalA, finalB, true, gameIdx + 1, homeSide, winsA, winsB, ot);
+        await animateScore(finalA, finalB, true, gameIdx + 1, homeSide, winsA, winsB, ot, winnerOT);
 
         if (finalA > finalB) winsA++; else winsB++;
         history.push({game: gameIdx+1, score: `${finalA}:${finalB}`, ot: ot, home: homeSide});
