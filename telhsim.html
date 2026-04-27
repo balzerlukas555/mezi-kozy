@@ -299,15 +299,14 @@
 
     function updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB, ot, isDoneOT, isFinal = false) {
       // V TELH je domácí VŽDY vpravo: Hosté vs Domácí
-      // Pokud homeSide === "A", pak A je vpravo. Pokud homeSide === "B", pak B je vpravo.
       let leftTeam, rightTeam, leftScore, rightScore;
       
-      if (homeSide === "B" || (!isSeries)) { // Výchozí: A vs B (Domácí)
+      if (homeSide === "B" || (!isSeries)) { // B je domácí (vpravo)
           leftTeam = teams[selectedA];
           rightTeam = teams[selectedB];
           leftScore = curA;
           rightScore = curB;
-      } else { // Prohození: B vs A (Domácí)
+      } else { // A je domácí (vpravo)
           leftTeam = teams[selectedB];
           rightTeam = teams[selectedA];
           leftScore = curB;
@@ -334,7 +333,7 @@
       isAnimating = true; toggleButtons(true);
       
       let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, false);
-      let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, true); // B je domácí
+      let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, true); // B je domácí (vpravo)
       let ot = false;
       let winnerOT = "";
       if (finalA === finalB) { 
@@ -359,7 +358,7 @@
       let winsA = 0, winsB = 0, gameIdx = 0, history = [];
 
       while (winsA < winTarget && winsB < winTarget) {
-        let homeSide = schedule[gameIdx]; // "A" znamená že vybraný tým A je domácí (vpravo)
+        let homeSide = schedule[gameIdx]; 
         let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, homeSide === "A");
         let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, homeSide === "B");
         let ot = false;
