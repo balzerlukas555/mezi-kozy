@@ -110,7 +110,6 @@
 
   <button id="simBtn" onclick="simulate()">Simulovat zápas</button>
 
-  <!-- 🔥 SÉRIE -->
   <div>
     <button onclick="startSeries('bo3')">BO3 série</button>
     <button onclick="startSeries('bo5')">BO5 série</button>
@@ -159,8 +158,6 @@ const container = document.getElementById("teams");
 let selectedA = null;
 let selectedB = null;
 
-let series = null;
-
 function getForm() {
   let r = Math.random();
   if (r < 0.1) return { name: "Excelentní", mod: 5 };
@@ -173,8 +170,7 @@ function getGoals(att, def, isHome) {
   let power = (att - def) / 10 + 2.8;
   if (isHome) power += 0.5;
   let luck = (Math.random() + Math.random() + Math.random()) / 1.5;
-  let finalGoals = Math.round(power * luck);
-  return Math.max(0, finalGoals);
+  return Math.max(0, Math.round(power * luck));
 }
 
 function renderTeams() {
@@ -190,7 +186,11 @@ function renderTeams() {
 function selectTeam(key, element) {
   if (!selectedA) selectedA = key;
   else if (!selectedB && key !== selectedA) selectedB = key;
-  else { selectedA = key; selectedB = null; document.querySelectorAll(".team").forEach(t => t.classList.remove("selected")); element.classList.add("selected"); }
+  else {
+    selectedA = key;
+    selectedB = null;
+    document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
+  }
   element.classList.add("selected");
   updateMatch();
 }
@@ -202,38 +202,46 @@ function updateMatch() {
   }
 }
 
-function simulateSingleGame() {
-  const home = teams[selectedB];
-  const away = teams[selectedA];
+function animateGame(scoreA, scoreB, A, B) {
+  return new Promise(resolve => {
+    let currA = 0;
+    let currB = 0;
+    let steps = scoreA + scoreB;
+    let i = 0;
 
-  let fA = getForm();
-  let fB = getForm();
+    const res = document.getElementById("result");
+    let interval = setInterval(() => {
+      if (i < steps) {
+        if (Math.random() < 0.5 && currA < scoreA) currA++;
+        else if (currB < scoreB) currB++;
+        i++;
+      }
 
-  let a = getGoals(away.attack + fA.mod, home.defense + fB.mod, false);
-  let b = getGoals(home.attack + fB.mod, away.defense + fA.mod, true);
+      res.innerHTML =
+        `<div style="font-size:3rem">${currA}:${currB}</div>
+         <div>${A} vs ${B}</div>`;
 
-  if (a === b) {
-    if (Math.random() < 0.5) a++;
-    else b++;
-  }
-
-  return a > b ? "A" : "B";
+      if (i >= steps) {
+        clearInterval(interval);
+        resolve(currA > currB ? "A" : "B");
+      }
+    }, 7000 / steps);
+  });
 }
 
-function startSeries(type) {
+async function startSeries(type) {
   if (!selectedA || !selectedB) return;
 
+  const schedules = {
+    bo3: ["B","A","B"],
+    bo5: ["B","B","A","A","B"],
+    bo7: ["B","B","A","A","B","A","B"]
+  };
+
   let winTarget = type === "bo3" ? 2 : type === "bo5" ? 3 : 4;
+  let schedule = schedules[type];
 
-  let schedule =
-    type === "bo3"
-      ? ["B","A","B"]
-      : type === "bo5"
-      ? ["B","B","A","A","B"]
-      : ["B","B","A","A","B","A","B"];
-
-  let winsA = 0;
-  let winsB = 0;
+  let winsA = 0, winsB = 0;
   let game = 0;
 
   const res = document.getElementById("result");
@@ -241,43 +249,43 @@ function startSeries(type) {
 
   btn.disabled = true;
 
-  function play() {
-    if (winsA === winTarget || winsB === winTarget) {
-      res.innerHTML = `<div>Series finished ${winsA}:${winsB}</div>`;
-      btn.disabled = false;
-      return;
-    }
+  while (winsA < winTarget && winsB < winTarget) {
 
-    let winner = simulateSingleGame();
+    let home = schedule[game % schedule.length] === "B" ? selectedB : selectedA;
+    let away = home === selectedB ? selectedA : selectedB;
+
+    let formA = getForm();
+    let formB = getForm();
+
+    let scoreA = getGoals(
+      teams[selectedA].attack + formA.mod,
+      teams[selectedB].defense + formB.mod,
+      false
+    );
+
+    let scoreB = getGoals(
+      teams[selectedB].attack + formB.mod,
+      teams[selectedA].defense + formA.mod,
+      true
+    );
+
+    let winner = await animateGame(scoreA, scoreB, away, home);
 
     if (winner === "A") winsA++;
     else winsB++;
 
     game++;
 
-    let home = schedule[game - 1] === "B" ? teams[selectedB].name : teams[selectedA].name;
-
-    res.innerHTML =
-      `<div>Game ${game}</div>
-       <div>${selectedA} vs ${selectedB}</div>
-       <div>Series ${winsA} - ${winsB}</div>
-       <div>Home: ${home}</div>`;
-
-    setTimeout(play, 1200);
+    res.innerHTML += `<div>Game ${game} done | Series ${winsA}-${winsB}</div>`;
   }
 
-  play();
+  btn.disabled = false;
+  res.innerHTML += `<div style="font-size:2rem">SERIES END ${winsA}:${winsB}</div>`;
 }
 
 function simulate() {
   if (!selectedA || !selectedB) return;
-
-  const btn = document.getElementById("simBtn");
-  const resDiv = document.getElementById("result");
-
-  let winner = simulateSingleGame();
-
-  resDiv.innerHTML = `<div>${winner === "A" ? selectedA : selectedB} wins game</div>`;
+  startSeries("bo3");
 }
 
 renderTeams();
