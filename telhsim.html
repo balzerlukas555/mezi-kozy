@@ -249,9 +249,9 @@
     function updateMatch() {
       const matchDiv = document.getElementById("match");
       if (selectedA && selectedB) {
-        matchDiv.innerText = `${teams[selectedA].name} vs ${teams[selectedB].name} (Domácí)`;
+        matchDiv.innerText = `${teams[selectedA].name} (Domácí) vs ${teams[selectedB].name}`;
       } else if (selectedA) {
-        matchDiv.innerText = "Vyber domácí tým";
+        matchDiv.innerText = "Vyber hostující tým";
       } else {
         matchDiv.innerText = "Vyber dva týmy";
       }
@@ -298,22 +298,22 @@
     }
 
     function updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB, ot, isDoneOT, isFinal = false) {
-      // V TELH je domácí VŽDY vpravo: Hosté vs Domácí
+      // V TELH je domácí VŽDY vlevo: Domácí vs Hosté
       let leftTeam, rightTeam, leftScore, rightScore;
       
-      if (homeSide === "B" || (!isSeries)) { // B je domácí (vpravo)
+      if (homeSide === "A" || (!isSeries)) { // A je domácí (vlevo)
           leftTeam = teams[selectedA];
           rightTeam = teams[selectedB];
           leftScore = curA;
           rightScore = curB;
-      } else { // A je domácí (vpravo)
+      } else { // B je domácí (vlevo)
           leftTeam = teams[selectedB];
           rightTeam = teams[selectedA];
           leftScore = curB;
           rightScore = curA;
       }
 
-      const statusText = isSeries ? `Série: ${winsA}:${winsB} - Zápas ${gameNum} (v hale: ${rightTeam.name})` : (isFinal ? "KONEC" : "Zápas probíhá...");
+      const statusText = isSeries ? `Série: ${winsA}:${winsB} - Zápas ${gameNum} (doma: ${leftTeam.name})` : (isFinal ? "KONEC" : "Zápas probíhá...");
       const endMark = isFinal ? `<div style="text-align:center; font-weight:bold; color:#fbbf24;">KONEC${ot ? " (prod.)" : ""}</div>` : "";
 
       res.innerHTML = `
@@ -332,8 +332,8 @@
       if (!selectedA || !selectedB || isAnimating) return;
       isAnimating = true; toggleButtons(true);
       
-      let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, false);
-      let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, true); // B je domácí (vpravo)
+      let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, true); // A je domácí (vlevo)
+      let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, false);
       let ot = false;
       let winnerOT = "";
       if (finalA === finalB) { 
@@ -341,8 +341,8 @@
         if (Math.random() < 0.5) { finalA++; winnerOT = "A"; } else { finalB++; winnerOT = "B"; }
       }
 
-      await animateScore(finalA, finalB, false, 0, "B", 0, 0, ot, winnerOT);
-      updateDisplay(document.getElementById("result"), finalA, finalB, false, 0, "B", 0, 0, ot, true, true);
+      await animateScore(finalA, finalB, false, 0, "A", 0, 0, ot, winnerOT);
+      updateDisplay(document.getElementById("result"), finalA, finalB, false, 0, "A", 0, 0, ot, true, true);
       
       isAnimating = false; toggleButtons(false);
     }
@@ -385,10 +385,10 @@
       let html = `<div class="status-msg">Série probíhá</div><div class="score-display" style="font-size:2.5rem; text-align:center;">${wA}:${wB}</div>`;
       history.forEach(h => {
         const isAHome = h.home === "A";
-        const leftName = isAHome ? teams[selectedB].name : teams[selectedA].name;
-        const rightName = isAHome ? teams[selectedA].name : teams[selectedB].name;
-        const leftScore = isAHome ? h.scoreB : h.scoreA;
-        const rightScore = isAHome ? h.scoreA : h.scoreB;
+        const leftName = isAHome ? teams[selectedA].name : teams[selectedB].name;
+        const rightName = isAHome ? teams[selectedB].name : teams[selectedA].name;
+        const leftScore = isAHome ? h.scoreA : h.scoreB;
+        const rightScore = isAHome ? h.scoreB : h.scoreA;
 
         html += `<div class="game-line">Zápas ${h.game}: ${leftName} <strong>${leftScore}:${rightScore}</strong> ${rightName} <span style="font-size:0.8rem; color:#94a3b8">${h.ot ? "(prod.)" : ""}</span></div>`;
       });
