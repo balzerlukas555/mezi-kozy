@@ -160,10 +160,10 @@ let selectedB = null;
 
 function getForm() {
   let r = Math.random();
-  if (r < 0.1) return { name: "Excelentní", mod: 5 };
-  if (r < 0.4) return { name: "Dobrá", mod: 2 };
-  if (r < 0.9) return { name: "Normální", mod: 0 };
-  return { name: "Špatná", mod: -2 };
+  if (r < 0.1) return { mod: 5 };
+  if (r < 0.4) return { mod: 2 };
+  if (r < 0.9) return { mod: 0 };
+  return { mod: -2 };
 }
 
 function getGoals(att, def, isHome) {
@@ -198,35 +198,44 @@ function selectTeam(key, element) {
 function updateMatch() {
   if (selectedA && selectedB) {
     document.getElementById("match").innerText =
-      `${teams[selectedA].name} at ${teams[selectedB].name}`;
+      `${teams[selectedA].name} vs ${teams[selectedB].name}`;
   }
 }
 
-function animateGame(scoreA, scoreB, A, B) {
-  return new Promise(resolve => {
-    let currA = 0;
-    let currB = 0;
-    let steps = scoreA + scoreB;
-    let i = 0;
+function simulateSingleGame() {
+  const A = teams[selectedA];
+  const B = teams[selectedB];
 
-    const res = document.getElementById("result");
-    let interval = setInterval(() => {
-      if (i < steps) {
-        if (Math.random() < 0.5 && currA < scoreA) currA++;
-        else if (currB < scoreB) currB++;
-        i++;
-      }
+  let a = getGoals(A.attack, B.defense, false);
+  let b = getGoals(B.attack, A.defense, true);
 
-      res.innerHTML =
-        `<div style="font-size:3rem">${currA}:${currB}</div>
-         <div>${A} vs ${B}</div>`;
+  if (a === b) {
+    if (Math.random() < 0.5) a++;
+    else b++;
+  }
 
-      if (i >= steps) {
-        clearInterval(interval);
-        resolve(currA > currB ? "A" : "B");
-      }
-    }, 7000 / steps);
-  });
+  return a > b ? "A" : "B";
+}
+
+function simulate() {
+  if (!selectedA || !selectedB) return;
+
+  const res = document.getElementById("result");
+  const A = teams[selectedA];
+  const B = teams[selectedB];
+
+  let a = getGoals(A.attack, B.defense, false);
+  let b = getGoals(B.attack, A.defense, true);
+
+  if (a === b) {
+    if (Math.random() < 0.5) a++;
+    else b++;
+  }
+
+  res.innerHTML = `
+    <div style="font-size:3rem">${a}:${b}</div>
+    <div>${A.name} vs ${B.name}</div>
+  `;
 }
 
 async function startSeries(type) {
@@ -241,8 +250,7 @@ async function startSeries(type) {
   let winTarget = type === "bo3" ? 2 : type === "bo5" ? 3 : 4;
   let schedule = schedules[type];
 
-  let winsA = 0, winsB = 0;
-  let game = 0;
+  let winsA = 0, winsB = 0, game = 0;
 
   const res = document.getElementById("result");
   const btn = document.getElementById("simBtn");
@@ -251,41 +259,33 @@ async function startSeries(type) {
 
   while (winsA < winTarget && winsB < winTarget) {
 
-    let home = schedule[game % schedule.length] === "B" ? selectedB : selectedA;
-    let away = home === selectedB ? selectedA : selectedB;
+    const Ateam = teams[selectedA];
+    const Bteam = teams[selectedB];
 
-    let formA = getForm();
-    let formB = getForm();
+    let a = getGoals(Ateam.attack, Bteam.defense, false);
+    let b = getGoals(Bteam.attack, Ateam.defense, true);
 
-    let scoreA = getGoals(
-      teams[selectedA].attack + formA.mod,
-      teams[selectedB].defense + formB.mod,
-      false
-    );
+    if (a === b) {
+      if (Math.random() < 0.5) a++;
+      else b++;
+    }
 
-    let scoreB = getGoals(
-      teams[selectedB].attack + formB.mod,
-      teams[selectedA].defense + formA.mod,
-      true
-    );
-
-    let winner = await animateGame(scoreA, scoreB, away, home);
+    let winner = a > b ? "A" : "B";
 
     if (winner === "A") winsA++;
     else winsB++;
 
     game++;
 
-    res.innerHTML += `<div>Game ${game} done | Series ${winsA}-${winsB}</div>`;
+    res.innerHTML += `
+      <div>Game ${game}: ${Ateam.name} vs ${Bteam.name} → ${a}:${b}</div>
+      <div>Series: ${winsA}-${winsB}</div>
+    `;
   }
 
   btn.disabled = false;
-  res.innerHTML += `<div style="font-size:2rem">SERIES END ${winsA}:${winsB}</div>`;
-}
 
-function simulate() {
-  if (!selectedA || !selectedB) return;
-  startSeries("bo3");
+  res.innerHTML += `<div style="font-size:2rem">WINNER: ${winsA > winsB ? teams[selectedA].name : teams[selectedB].name}</div>`;
 }
 
 renderTeams();
