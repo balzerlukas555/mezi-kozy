@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extraliga simulátor</title>
+  <title>Extraliga simulátor (loga)</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -154,6 +154,23 @@
     let selectedA = null;
     let selectedB = null;
 
+    function getForm() {
+      let r = Math.random();
+      if (r < 0.1) return { name: "Excelentní", mod: 5 };
+      if (r < 0.4) return { name: "Dobrá", mod: 2 };
+      if (r < 0.9) return { name: "Normální", mod: 0 };
+      return { name: "Špatná", mod: -2 };
+    }
+
+    function getGoals(att, def, isHome) {
+      let power = (att - def) / 10 + 2.8;
+      if (isHome) power += 0.5;
+      let luck = (Math.random() + Math.random() + Math.random()) / 1.5; 
+      let finalGoals = Math.round(power * luck);
+      if (Math.random() > 0.95) finalGoals += Math.floor(Math.random() * 3);
+      return Math.max(0, finalGoals);
+    }
+
     function renderTeams() {
       for (let key in teams) {
         const div = document.createElement("div");
@@ -189,15 +206,6 @@
       }
     }
 
-    function getGoals(att, def, isHome) {
-      let power = (att - def) / 10 + 2.8;
-      if (isHome) power += 0.3;
-      let luck = (Math.random() + Math.random() + Math.random()) / 1.5; 
-      let finalGoals = Math.round(power * luck);
-      if (Math.random() > 0.95) finalGoals += Math.floor(Math.random() * 3);
-      return Math.max(0, finalGoals);
-    }
-
     function simulate() {
       if (!selectedA || !selectedB) {
         document.getElementById("result").innerText = "Vyber dva týmy 😄";
@@ -209,8 +217,11 @@
       const A = teams[selectedA];
       const B = teams[selectedB];
 
-      let baseA = getGoals(A.attack, B.defense, true);
-      let baseB = getGoals(B.attack, A.defense, false);
+      let formA = getForm();
+      let formB = getForm();
+
+      let baseA = getGoals(A.attack + formA.mod, B.defense + formB.mod, true);
+      let baseB = getGoals(B.attack + formB.mod, A.defense + formA.mod, false);
 
       let finalA = baseA;
       let finalB = baseB;
@@ -219,10 +230,8 @@
       if (baseA === baseB) {
         if (Math.random() < 0.5) {
           finalA = baseA + 1;
-          finalB = baseB;
           resultSuffix = " (pp)";
         } else {
-          finalA = baseA;
           finalB = baseB + 1;
           resultSuffix = " (sn)";
         }
@@ -257,7 +266,7 @@
 
         resDiv.innerHTML =
           `<div style="font-size: 3rem; color: #38bdf8;">${currentA} : ${currentB}</div>` +
-          `<div style="font-size: 1.2rem; color: #94a3b8; margin-top: 10px;">${A.name} vs ${B.name}</div>`;
+          `<div style="font-size: 1.2rem; color: #94a3b8; margin-top: 10px;">${A.name} (${formA.name}) vs ${B.name} (${formB.name})</div>`;
 
         if (index === sequence.length) {
           clearInterval(interval);
@@ -265,7 +274,7 @@
           resDiv.innerHTML =
             `<div style="font-size: 3.5rem; color: #38bdf8;">${currentA} : ${currentB}</div>` +
             `<div style="font-size: 1.2rem; color: #ffffff; margin-top: 10px; font-weight: bold;">KONEC${resultSuffix}</div>` +
-            `<div style="font-size: 1rem; color: #94a3b8;">${A.name} vs ${B.name}</div>`;
+            `<div style="font-size: 1rem; color: #94a3b8;">${A.name} (${formA.name}) vs ${B.name} (${formB.name})</div>`;
         }
       }, stepTime);
     }
