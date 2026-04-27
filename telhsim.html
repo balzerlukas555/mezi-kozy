@@ -114,16 +114,30 @@
       padding: 20px;
       border-radius: 12px;
       display: inline-block;
-      min-width: 320px;
+      min-width: 360px;
       text-align: left;
+    }
+
+    .score-display-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 10px;
     }
 
     .score-display {
       font-size: 3.5rem;
       font-weight: bold;
-      text-align: center;
-      margin-bottom: 10px;
       color: #38bdf8;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .score-logo {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
     }
 
     .game-line {
@@ -148,6 +162,12 @@
       color: #94a3b8;
       text-align: center;
       margin-bottom: 10px;
+    }
+
+    .team-names-info {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #e2e8f0;
     }
 
     @media (min-width: 600px) {
@@ -229,9 +249,9 @@
     function updateMatch() {
       const matchDiv = document.getElementById("match");
       if (selectedA && selectedB) {
-        matchDiv.innerText = `${teams[selectedA].name} (Domácí) vs ${teams[selectedB].name}`;
+        matchDiv.innerText = `${teams[selectedA].name} vs ${teams[selectedB].name} (Domácí)`;
       } else if (selectedA) {
-        matchDiv.innerText = "Vyber hostující tým";
+        matchDiv.innerText = "Vyber domácí tým";
       } else {
         matchDiv.innerText = "Vyber dva týmy";
       }
@@ -247,7 +267,8 @@
     async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeSide = "", winsA = 0, winsB = 0, ot = false, winnerOT = "") {
       const res = document.getElementById("result");
       let curA = 0, curB = 0;
-      
+      const duration = 7000;
+
       let baseA = ot ? (winnerOT === "A" ? finalA - 1 : finalA) : finalA;
       let baseB = ot ? (winnerOT === "B" ? finalB - 1 : finalB) : finalB;
 
@@ -256,58 +277,64 @@
       for(let i=0; i<baseB; i++) goals.push("B");
       goals.sort(() => Math.random() - 0.5);
 
-      const duration = 7000;
       const interval = duration / (goals.length + (ot ? 1 : 0));
 
       for (let i = 0; i < goals.length; i++) {
         await new Promise(r => setTimeout(r, interval));
         if (goals[i] === "A") curA++; else curB++;
-        updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB);
+        updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB, ot, false);
       }
 
       if (ot) {
         await new Promise(r => setTimeout(r, interval));
         if (winnerOT === "A") curA++; else curB++;
-        updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB);
+        updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB, ot, true);
       }
       
       if (isSeries) {
-          const homeName = homeSide === "A" ? teams[selectedA].name : teams[selectedB].name;
-          res.innerHTML = `
-            <div class="status-msg">Série: ${winsA}:${winsB} - Zápas ${gameNum} (v hale: ${homeName})</div>
-            <div class="score-display">${finalA}:${finalB}</div>
-            <div style="text-align:center; font-weight:bold;">KONEC${ot ? " (prod.)" : ""}</div>
-            <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
-          `;
+          updateDisplay(res, finalA, finalB, isSeries, gameNum, homeSide, winsA, winsB, ot, true, true);
           await new Promise(r => setTimeout(r, 2000));
-      } else if (goals.length === 0 && !ot) {
-          await new Promise(r => setTimeout(r, duration));
       }
     }
 
-    function updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB) {
-      if (isSeries) {
-          const homeName = homeSide === "A" ? teams[selectedA].name : teams[selectedB].name;
-          res.innerHTML = `
-            <div class="status-msg">Série: ${winsA}:${winsB} - Zápas ${gameNum} (v hale: ${homeName})</div>
-            <div class="score-display">${curA}:${curB}</div>
-            <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
-          `;
-      } else {
-          res.innerHTML = `
-            <div class="status-msg">Zápas probíhá...</div>
-            <div class="score-display">${curA}:${curB}</div>
-            <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
-          `;
+    function updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB, ot, isDoneOT, isFinal = false) {
+      // V TELH je domácí VŽDY vpravo: Hosté vs Domácí
+      // Pokud homeSide === "A", pak A je vpravo. Pokud homeSide === "B", pak B je vpravo.
+      let leftTeam, rightTeam, leftScore, rightScore;
+      
+      if (homeSide === "B" || (!isSeries)) { // Výchozí: A vs B (Domácí)
+          leftTeam = teams[selectedA];
+          rightTeam = teams[selectedB];
+          leftScore = curA;
+          rightScore = curB;
+      } else { // Prohození: B vs A (Domácí)
+          leftTeam = teams[selectedB];
+          rightTeam = teams[selectedA];
+          leftScore = curB;
+          rightScore = curA;
       }
+
+      const statusText = isSeries ? `Série: ${winsA}:${winsB} - Zápas ${gameNum} (v hale: ${rightTeam.name})` : (isFinal ? "KONEC" : "Zápas probíhá...");
+      const endMark = isFinal ? `<div style="text-align:center; font-weight:bold; color:#fbbf24;">KONEC${ot ? " (prod.)" : ""}</div>` : "";
+
+      res.innerHTML = `
+        <div class="status-msg">${statusText}</div>
+        <div class="score-display-wrapper">
+            <img src="${leftTeam.logo}" class="score-logo">
+            <div class="score-display">${leftScore}:${rightScore}</div>
+            <img src="${rightTeam.logo}" class="score-logo">
+        </div>
+        ${endMark}
+        <div class="team-names-info">${leftTeam.name} vs ${rightTeam.name}</div>
+      `;
     }
 
     async function simulateMatch() {
       if (!selectedA || !selectedB || isAnimating) return;
       isAnimating = true; toggleButtons(true);
       
-      let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, true);
-      let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, false);
+      let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, false);
+      let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, true); // B je domácí
       let ot = false;
       let winnerOT = "";
       if (finalA === finalB) { 
@@ -315,13 +342,9 @@
         if (Math.random() < 0.5) { finalA++; winnerOT = "A"; } else { finalB++; winnerOT = "B"; }
       }
 
-      await animateScore(finalA, finalB, false, 0, "", 0, 0, ot, winnerOT);
-
-      document.getElementById("result").innerHTML = `
-        <div class="score-display">${finalA}:${finalB}</div>
-        <div style="text-align:center; font-weight:bold;">KONEC${ot ? " (prod.)" : ""}</div>
-        <div style="text-align:center">${teams[selectedA].name} vs ${teams[selectedB].name}</div>
-      `;
+      await animateScore(finalA, finalB, false, 0, "B", 0, 0, ot, winnerOT);
+      updateDisplay(document.getElementById("result"), finalA, finalB, false, 0, "B", 0, 0, ot, true, true);
+      
       isAnimating = false; toggleButtons(false);
     }
 
@@ -336,7 +359,7 @@
       let winsA = 0, winsB = 0, gameIdx = 0, history = [];
 
       while (winsA < winTarget && winsB < winTarget) {
-        let homeSide = schedule[gameIdx];
+        let homeSide = schedule[gameIdx]; // "A" znamená že vybraný tým A je domácí (vpravo)
         let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, homeSide === "A");
         let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, homeSide === "B");
         let ot = false;
@@ -349,7 +372,7 @@
         await animateScore(finalA, finalB, true, gameIdx + 1, homeSide, winsA, winsB, ot, winnerOT);
 
         if (finalA > finalB) winsA++; else winsB++;
-        history.push({game: gameIdx+1, score: `${finalA}:${finalB}`, ot: ot, home: homeSide});
+        history.push({game: gameIdx+1, scoreA: finalA, scoreB: finalB, ot: ot, home: homeSide});
         renderHistory(winsA, winsB, history);
         gameIdx++;
       }
@@ -360,10 +383,15 @@
     }
 
     function renderHistory(wA, wB, history) {
-      let html = `<div class="status-msg">Série probíhá</div><div class="score-display" style="font-size:2.5rem">${wA}:${wB}</div>`;
+      let html = `<div class="status-msg">Série probíhá</div><div class="score-display" style="font-size:2.5rem; text-align:center;">${wA}:${wB}</div>`;
       history.forEach(h => {
-        const homeName = h.home === "A" ? teams[selectedA].name : teams[selectedB].name;
-        html += `<div class="game-line">Zápas ${h.game}: <strong>${h.score}</strong> <span style="font-size:0.8rem; color:#94a3b8">(Doma: ${homeName}${h.ot ? ", prod." : ""})</span></div>`;
+        const isAHome = h.home === "A";
+        const leftName = isAHome ? teams[selectedB].name : teams[selectedA].name;
+        const rightName = isAHome ? teams[selectedA].name : teams[selectedB].name;
+        const leftScore = isAHome ? h.scoreB : h.scoreA;
+        const rightScore = isAHome ? h.scoreA : h.scoreB;
+
+        html += `<div class="game-line">Zápas ${h.game}: ${leftName} <strong>${leftScore}:${rightScore}</strong> ${rightName} <span style="font-size:0.8rem; color:#94a3b8">${h.ot ? "(prod.)" : ""}</span></div>`;
       });
       document.getElementById("result").innerHTML = html;
     }
