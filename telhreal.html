@@ -107,7 +107,7 @@
 
   <div id="result">
     <div id="period">1. třetina</div>
-    <div id="timer">00:20</div>
+    <div id="timer">00:30</div>
     <div id="scoreText" class="score-display">0:0</div>
     <div id="status" style="font-style: italic; color: #94a3b8;">Vyber týmy a začni hru</div>
   </div>
@@ -137,7 +137,7 @@
     let selectedA = null, selectedB = null;
     let scoreA = 0, scoreB = 0;
     let gameRunning = false;
-    let timeLeft = 20;
+    let timeLeft = 30;
     let currentPeriod = 1;
     let timerInterval = null;
     let isOvertime = false;
@@ -145,7 +145,6 @@
 
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false, passLock: 0 };
     
-    // Rozšíření hráče o decisionTimer a currentAction
     let playerA1 = { x: 150, y: 100, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
     let playerA2 = { x: 150, y: 200, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
     let playerA3 = { x: 80,  y: 150, color: "red", radius: 12, baseSpeed: 1.0, side: 'A', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
@@ -211,9 +210,13 @@
         if (currentPeriod === 2 && !isOvertime) {
             document.getElementById("homeLogoContainer").innerHTML = `<img src="${teams[selectedB].logo}">`;
             document.getElementById("awayLogoContainer").innerHTML = `<img src="${teams[selectedA].logo}">`;
+            goalieA.x = 575;
+            goalieB.x = 25;
         } else {
             document.getElementById("homeLogoContainer").innerHTML = `<img src="${teams[selectedA].logo}">`;
             document.getElementById("awayLogoContainer").innerHTML = `<img src="${teams[selectedB].logo}">`;
+            goalieA.x = 25;
+            goalieB.x = 575;
         }
     }
 
@@ -238,7 +241,6 @@
           let speed = (puck.owner === p) ? p.baseSpeed : p.baseSpeed * 1.25;
           let attackRight = (p.side === 'A' && (currentPeriod !== 2 || isOvertime)) || (p.side === 'B' && currentPeriod === 2 && !isOvertime);
 
-          // ANTI-CLUMPING
           teammates.forEach(tm => {
               let d = getDistance(p, tm);
               if (d < 50) {
@@ -250,12 +252,10 @@
 
           if (puck.owner === p) {
               let targetGoalX = attackRight ? 600 : 0;
-              
-              // ROZHODOVACÍ LOGIKA S COOLDOWNEM
               if (p.decisionTimer <= 0) {
                   let passChance = (p.role === 'defender' && Math.abs(p.x - (attackRight?0:600)) < 250) ? 0.6 : 0.3;
                   p.currentAction = (Math.random() < passChance) ? 'pass' : 'move';
-                  p.decisionTimer = 60 + Math.random() * 40; // Rozhodne se jednou za cca 1-1.5 sekundy
+                  p.decisionTimer = 60 + Math.random() * 40;
               }
               p.decisionTimer--;
 
@@ -266,7 +266,7 @@
                       return dCurr < dPrev ? curr : prev;
                   });
                   passPuck(p, bestTarget, opponents);
-                  p.currentAction = 'move'; // Po nahrávce se resetuje
+                  p.currentAction = 'move';
               } else {
                   if (p.role === 'defender') {
                       let maxAdvance = attackRight ? 420 : 180;
@@ -275,14 +275,12 @@
                   }
                   moveWithPuckComplex(p, targetGoalX, 150, getClosest(p, opponents), speed);
               }
-              
               puck.x = attackRight ? p.x + 12 : p.x - 12;
               puck.y = p.y;
           } 
           else if (p.role === 'defender') {
               let defensiveBaseX = attackRight ? 120 : 480;
               let isPuckInZone = attackRight ? (puck.x < 300) : (puck.x > 300);
-
               if (!puck.owner && isPuckInZone) {
                   movePlayerToPoint(p, puck.x, puck.y, speed);
               } else if (puck.owner && puck.owner.side !== p.side) {
@@ -340,12 +338,10 @@
         let angle = Math.atan2(to.y - from.y, to.x - from.x);
         puck.vx = Math.cos(angle) * 7.5;
         puck.vy = Math.sin(angle) * 7.5;
-        
-        // LOGIKA PROTUNELOVÁNÍ: Pokud je soupeř příliš blízko, puk ho "podjede"
         let closestOpp = getClosest(from, opponents);
         if (getDistance(from, closestOpp) < 30) {
             if (Math.random() < 0.8) {
-                puck.passLock = 15; // Puk nelze sebrat po dobu 15 snímků
+                puck.passLock = 15;
                 document.getElementById("status").innerText = "Pod hokejkou!";
             }
         } else {
@@ -376,8 +372,7 @@
     }
 
     function checkInteraction(p, others) {
-      if (puck.passLock > 0) return; // Puk je v "letu" pod hokejkou
-
+      if (puck.passLock > 0) return;
       if (!puck.owner && !puck.isShot) {
         if (getDistance(p, puck) < p.radius + 6 && Math.random() > 0.1) puck.owner = p;
       }
@@ -421,13 +416,22 @@
 
     function handleBouncesAndGoals() {
       if (puck.y < 5 || puck.y > 295) puck.vy *= -1;
+      
+      // Detekce branky vlevo (x < 0)
       if (puck.x < 0) {
-        if (puck.y > 105 && puck.y < 195) { scoreB++; goalScored(); } 
-        else { puck.x = 5; puck.vx *= -1; }
+        if (puck.y > 105 && puck.y < 195) { 
+            // Ve 2. třetině je vlevo branka týmu A, skóruje B
+            if (currentPeriod === 2 && !isOvertime) scoreB++; else scoreB++; 
+            goalScored(); 
+        } else { puck.x = 5; puck.vx *= -1; }
       }
+      // Detekce branky vpravo (x > 600)
       if (puck.x > 600) {
-        if (puck.y > 105 && puck.y < 195) { scoreA++; goalScored(); } 
-        else { puck.x = 595; puck.vx *= -1; }
+        if (puck.y > 105 && puck.y < 195) { 
+            // Ve 2. třetině je vpravo branka týmu B, skóruje A
+            if (currentPeriod === 2 && !isOvertime) scoreA++; else scoreA++;
+            goalScored(); 
+        } else { puck.x = 595; puck.vx *= -1; }
       }
     }
 
@@ -499,7 +503,7 @@
           gameRunning = false;
           if (currentPeriod < 3) {
               currentPeriod++;
-              timeLeft = 20;
+              timeLeft = 30;
               document.getElementById("period").innerText = currentPeriod + ". třetina";
               updateSidesDisplay();
               document.getElementById("status").innerText = "Buly " + currentPeriod + ". třetiny!";
@@ -536,7 +540,7 @@
       playerA1.baseSpeed = playerA2.baseSpeed = s1; playerA3.baseSpeed = s1 * 0.85;
       playerB1.baseSpeed = playerB2.baseSpeed = s2; playerB3.baseSpeed = s2 * 0.85;
       
-      scoreA = 0; scoreB = 0; timeLeft = 20;
+      scoreA = 0; scoreB = 0; timeLeft = 30;
       document.getElementById("scoreText").innerText = "0:0";
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(updateTimer, 1000);
