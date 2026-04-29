@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extraliga simulátor - 2D Engine PRO v4</title>
+  <title>Extraliga simulátor - 2D Engine PRO v5 (2vs2)</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -112,22 +112,22 @@
 
   <script>
     const teams = {
-      pardubice: { name: "HC Dynamo Pardubice", attack: 94, dribling: 92, defense: 91, goalkeeper: 93, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1", homeColor: "#ce0000", awayColor: "#ffffff" },
-      sparta: { name: "HC Sparta Praha", attack: 85, dribling: 88, defense: 81, goalkeeper: 86, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fwueb1-spa.png&w=120&h=120&exact=1", homeColor: "#800000", awayColor: "#ffcc00" },
-      trinec: { name: "HC Oceláři Třinec", attack: 87, dribling: 85, defense: 82, goalkeeper: 90, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fccek3-tri.png&w=120&h=120&exact=1", homeColor: "#ff0000", awayColor: "#ffffff" },
-      mountfield: { name: "Mountfield HK", attack: 86, dribling: 84, defense: 88, goalkeeper: 85, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fj9qyt-hkr.png&w=120&h=120&exact=1", homeColor: "#000000", awayColor: "#ff0000" },
-      vitkovice: { name: "HC Vítkovice Ridera", attack: 77, dribling: 79, defense: 74, goalkeeper: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F65gcx-vit.png&w=120&h=120&exact=1", homeColor: "#0056a0", awayColor: "#ffffff" },
-      kometa: { name: "HC Kometa Brno", attack: 83, dribling: 82, defense: 80, goalkeeper: 81, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F8oo52-kom.png&w=120&h=120&exact=1", homeColor: "#003399", awayColor: "#ffffff" },
-      boleslav: { name: "BK Mladá Boleslav", attack: 80, dribling: 78, defense: 78, goalkeeper: 79, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fk1yj3-mbl.png&w=120&h=120&exact=1", homeColor: "#008000", awayColor: "#ffffff" },
-      litvinov: { name: "HC Verva Litvínov", attack: 76, dribling: 81, defense: 72, goalkeeper: 75, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fifboo-lit.png&w=120&h=120&exact=1", homeColor: "#ffcc00", awayColor: "#000000" },
-      liberec: { name: "Bílí Tygři Liberec", attack: 89, dribling: 87, defense: 86, goalkeeper: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fi5lg4-lib.png&w=120&h=120&exact=1", homeColor: "#005aab", awayColor: "#ffffff" },
-      olomouc: { name: "HC Olomouc", attack: 78, dribling: 75, defense: 76, goalkeeper: 88, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fy4tmv-olo.png&w=120&h=120&exact=1", homeColor: "#ff0000", awayColor: "#ffffff" },
-      plzen: { name: "HC Škoda Plzeň", attack: 88, dribling: 84, defense: 93, goalkeeper: 82, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fpijgb-plz.png&w=120&h=120&exact=1", homeColor: "#0056a0", awayColor: "#ffffff" },
-      karlovy_vary: { name: "HC Energie Karlovy Vary", attack: 83, dribling: 85, defense: 84, goalkeeper: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F98xoj-kva.png&w=120&h=120&exact=1", homeColor: "#000000", awayColor: "#ffffff" },
-      kladno: { name: "Rytíři Kladno", attack: 79, dribling: 80, defense: 80, goalkeeper: 77, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1", homeColor: "#004a8d", awayColor: "#ffffff" },
-      ceske_budejovice: { name: "Motor České Budějovice", attack: 82, dribling: 83, defense: 78, goalkeeper: 81, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1", homeColor: "#ffff00", awayColor: "#cc0000" },
-      jihlava: { name: "HC Dukla Jihlava", attack: 72, dribling: 70, defense: 69, goalkeeper: 70, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FJIH-2x.png&w=120&h=120&exact=1", homeColor: "#800000", awayColor: "#ffcc00" },
-      zlin: { name: "Rl Okna Berani Zlín", attack: 67, dribling: 65, defense: 70, goalkeeper: 68, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FZLN-2x.png&w=120&h=120&exact=1", homeColor: "#003399", awayColor: "#ffff00" }
+      pardubice: { name: "HC Dynamo Pardubice", attack: 94, dribling: 92, defense: 91, goalkeeper: 97, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1", homeColor: "#ce0000", awayColor: "#ffffff" },
+      sparta: { name: "HC Sparta Praha", attack: 85, dribling: 88, defense: 81, goalkeeper: 90, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fwueb1-spa.png&w=120&h=120&exact=1", homeColor: "#800000", awayColor: "#ffcc00" },
+      trinec: { name: "HC Oceláři Třinec", attack: 87, dribling: 85, defense: 82, goalkeeper: 94, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fccek3-tri.png&w=120&h=120&exact=1", homeColor: "#ff0000", awayColor: "#ffffff" },
+      mountfield: { name: "Mountfield HK", attack: 86, dribling: 84, defense: 88, goalkeeper: 89, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fj9qyt-hkr.png&w=120&h=120&exact=1", homeColor: "#000000", awayColor: "#ff0000" },
+      vitkovice: { name: "HC Vítkovice Ridera", attack: 77, dribling: 79, defense: 74, goalkeeper: 82, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F65gcx-vit.png&w=120&h=120&exact=1", homeColor: "#0056a0", awayColor: "#ffffff" },
+      kometa: { name: "HC Kometa Brno", attack: 83, dribling: 82, defense: 80, goalkeeper: 85, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F8oo52-kom.png&w=120&h=120&exact=1", homeColor: "#003399", awayColor: "#ffffff" },
+      boleslav: { name: "BK Mladá Boleslav", attack: 80, dribling: 78, defense: 78, goalkeeper: 83, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fk1yj3-mbl.png&w=120&h=120&exact=1", homeColor: "#008000", awayColor: "#ffffff" },
+      litvinov: { name: "HC Verva Litvínov", attack: 76, dribling: 81, defense: 72, goalkeeper: 79, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fifboo-lit.png&w=120&h=120&exact=1", homeColor: "#ffcc00", awayColor: "#000000" },
+      liberec: { name: "Bílí Tygři Liberec", attack: 89, dribling: 87, defense: 86, goalkeeper: 88, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fi5lg4-lib.png&w=120&h=120&exact=1", homeColor: "#005aab", awayColor: "#ffffff" },
+      olomouc: { name: "HC Olomouc", attack: 78, dribling: 75, defense: 76, goalkeeper: 92, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fy4tmv-olo.png&w=120&h=120&exact=1", homeColor: "#ff0000", awayColor: "#ffffff" },
+      plzen: { name: "HC Škoda Plzeň", attack: 88, dribling: 84, defense: 93, goalkeeper: 86, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fpijgb-plz.png&w=120&h=120&exact=1", homeColor: "#0056a0", awayColor: "#ffffff" },
+      karlovy_vary: { name: "HC Energie Karlovy Vary", attack: 83, dribling: 85, defense: 84, goalkeeper: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F98xoj-kva.png&w=120&h=120&exact=1", homeColor: "#000000", awayColor: "#ffffff" },
+      kladno: { name: "Rytíři Kladno", attack: 79, dribling: 80, defense: 80, goalkeeper: 81, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1", homeColor: "#004a8d", awayColor: "#ffffff" },
+      ceske_budejovice: { name: "Motor České Budějovice", attack: 82, dribling: 83, defense: 78, goalkeeper: 85, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1", homeColor: "#ffff00", awayColor: "#cc0000" },
+      jihlava: { name: "HC Dukla Jihlava", attack: 72, dribling: 70, defense: 69, goalkeeper: 74, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FJIH-2x.png&w=120&h=120&exact=1", homeColor: "#800000", awayColor: "#ffcc00" },
+      zlin: { name: "Rl Okna Berani Zlín", attack: 67, dribling: 65, defense: 70, goalkeeper: 72, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FZLN-2x.png&w=120&h=120&exact=1", homeColor: "#003399", awayColor: "#ffff00" }
     };
 
     const canvas = document.getElementById("hockeyRink");
@@ -139,8 +139,14 @@
     let timerInterval = null;
 
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false };
-    let playerA = { x: 100, y: 150, color: "red", radius: 12, baseSpeed: 1.8, side: 'A' };
-    let playerB = { x: 500, y: 150, color: "blue", radius: 12, baseSpeed: 1.8, side: 'B' };
+    
+    // Hráči týmu A
+    let playerA1 = { x: 100, y: 100, color: "red", radius: 12, baseSpeed: 1.8, side: 'A', id: 1 };
+    let playerA2 = { x: 100, y: 200, color: "red", radius: 12, baseSpeed: 1.8, side: 'A', id: 2 };
+    // Hráči týmu B
+    let playerB1 = { x: 500, y: 100, color: "blue", radius: 12, baseSpeed: 1.8, side: 'B', id: 3 };
+    let playerB2 = { x: 500, y: 200, color: "blue", radius: 12, baseSpeed: 1.8, side: 'B', id: 4 };
+
     let goalieA = { x: 25, y: 150, radius: 14, color: "red", side: 'A' };
     let goalieB = { x: 575, y: 150, radius: 14, color: "blue", side: 'B' };
 
@@ -172,8 +178,10 @@
       puck.vx = (Math.random() - 0.5) * 4; 
       puck.vy = (Math.random() - 0.5) * 4;
       puck.owner = null; puck.isShot = false;
-      playerA.x = 100; playerA.y = 150;
-      playerB.x = 500; playerB.y = 150;
+      playerA1.x = 150; playerA1.y = 100;
+      playerA2.x = 150; playerA2.y = 200;
+      playerB1.x = 450; playerB1.y = 100;
+      playerB2.x = 450; playerB2.y = 200;
       stuckTimer = 0;
     }
 
@@ -185,45 +193,82 @@
     function update() {
       if (!gameRunning) return;
 
-      // Kontrola zaseknutí (pokud se puk 3 vteřiny skoro nehne)
       if (Math.abs(puck.x - lastPuckX) < 0.5 && Math.abs(puck.y - lastPuckY) < 0.5) {
           stuckTimer++;
-          if (stuckTimer > 180) buly(); // 60 FPS * 3s
-      } else {
-          stuckTimer = 0;
-      }
+          if (stuckTimer > 180) buly(); 
+      } else { stuckTimer = 0; }
       lastPuckX = puck.x; lastPuckY = puck.y;
 
-      // Dynamická rychlost (bez puku rychlejší)
-      let speedA = (puck.owner === playerA) ? playerA.baseSpeed : playerA.baseSpeed * 1.25;
-      let speedB = (puck.owner === playerB) ? playerB.baseSpeed : playerB.baseSpeed * 1.25;
+      const teamA = [playerA1, playerA2];
+      const teamB = [playerB1, playerB2];
+      const allPlayers = [...teamA, ...teamB];
 
-      // Pohyb hráčů
-      if (puck.owner === playerA) {
-        moveWithPuckComplex(playerA, 600, 150, playerB, speedA);
-        movePlayerToOpponent(playerB, playerA, speedB); 
-        puck.x = playerA.x + 12; puck.y = playerA.y;
-      } else if (puck.owner === playerB) {
-        moveWithPuckComplex(playerB, 0, 150, playerA, speedB);
-        movePlayerToOpponent(playerA, playerB, speedA); 
-        puck.x = playerB.x - 12; puck.y = playerB.y;
-      } else {
-        movePlayerToPuck(playerA, puck, speedA);
-        movePlayerToPuck(playerB, puck, speedB);
-        puck.x += puck.vx; puck.y += puck.vy;
-        puck.vx *= 0.985; puck.vy *= 0.985;
+      // Rozhodnutí AI pro každého hráče
+      allPlayers.forEach(p => {
+          let teammate = (p.side === 'A') ? (p === playerA1 ? playerA2 : playerA1) : (p === playerB1 ? playerB2 : playerB1);
+          let opponents = (p.side === 'A') ? teamB : teamA;
+          let speed = (puck.owner === p) ? p.baseSpeed : p.baseSpeed * 1.25;
+
+          if (puck.owner === p) {
+              // 1. HRÁČ MÁ PUK
+              let targetGoalX = (p.side === 'A') ? 600 : 0;
+              
+              // Šance na přihrávku
+              let distToGoal = Math.abs(p.x - targetGoalX);
+              let teammateDistToGoal = Math.abs(teammate.x - targetGoalX);
+              
+              if (teammateDistToGoal < distToGoal - 50 && Math.random() < 0.02) {
+                  passPuck(p, teammate);
+              } else {
+                  moveWithPuckComplex(p, targetGoalX, 150, getClosest(p, opponents), speed);
+              }
+              puck.x = (p.side === 'A') ? p.x + 12 : p.x - 12;
+              puck.y = p.y;
+
+          } else if (puck.owner === teammate) {
+              // 2. SPOLUHRÁČ MÁ PUK (Najíždění)
+              let targetGoalX = (p.side === 'A') ? 500 : 100;
+              let targetY = 150 + (p.id % 2 === 0 ? 60 : -60);
+              movePlayerToPoint(p, targetGoalX, targetY, speed);
+
+          } else if (puck.owner && puck.owner.side !== p.side) {
+              // 3. SOUPEŘ MÁ PUK (Obrana)
+              let puckOwner = puck.owner;
+              let otherOpponent = (puckOwner === opponents[0]) ? opponents[1] : opponents[0];
+              
+              // Rozdělení úkolů: jeden na puk, jeden hlídá volného
+              if (getDistance(p, puckOwner) < getDistance(teammate, puckOwner)) {
+                  movePlayerToPoint(p, puckOwner.x, puckOwner.y, speed); // Jdu po puku
+              } else {
+                  // Hlídám volného hráče (osobka)
+                  let defenseX = (p.side === 'A') ? otherOpponent.x - 30 : otherOpponent.x + 30;
+                  movePlayerToPoint(p, defenseX, otherOpponent.y, speed);
+              }
+
+          } else {
+              // PUK JE VOLNÝ
+              movePlayerToPoint(p, puck.x, puck.y, speed);
+          }
+      });
+
+      // Pohyb puku pokud je volný
+      if (!puck.owner) {
+          puck.x += puck.vx; puck.y += puck.vy;
+          puck.vx *= 0.985; puck.vy *= 0.985;
       }
 
       goalieA.y = 150 + (puck.y - 150) * 0.35;
       goalieB.y = 150 + (puck.y - 150) * 0.35;
 
       handleBouncesAndGoals();
+      
+      // Střelba
       if (puck.owner) {
-        if (puck.owner === playerA && puck.x > 380) checkShot(playerA, 600, 150);
-        if (puck.owner === playerB && puck.x < 220) checkShot(playerB, 0, 150);
+        if (puck.owner.side === 'A' && puck.owner.x > 380) checkShot(puck.owner, 600, 150);
+        if (puck.owner.side === 'B' && puck.owner.x < 220) checkShot(puck.owner, 0, 150);
       }
 
-      checkInteraction(playerA, playerB);
+      allPlayers.forEach(p => checkInteraction(p, allPlayers));
       checkGoalieCollision(goalieA);
       checkGoalieCollision(goalieB);
 
@@ -231,67 +276,67 @@
       requestAnimationFrame(update);
     }
 
-    function movePlayerToPuck(p, target, speed) {
-      let dx = target.x - p.x; let dy = target.y - p.y;
+    function getDistance(p1, p2) { return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)); }
+    
+    function getClosest(p, list) {
+        return list.reduce((prev, curr) => getDistance(p, curr) < getDistance(p, prev) ? curr : prev);
+    }
+
+    function passPuck(from, to) {
+        puck.owner = null;
+        let angle = Math.atan2(to.y - from.y, to.x - from.x);
+        puck.vx = Math.cos(angle) * 8;
+        puck.vy = Math.sin(angle) * 8;
+        document.getElementById("status").innerText = "Přihrávka!";
+    }
+
+    function movePlayerToPoint(p, tx, ty, speed) {
+      let dx = tx - p.x; let dy = ty - p.y;
       let dist = Math.sqrt(dx*dx + dy*dy);
       if (dist > 5) { p.x += (dx/dist) * speed; p.y += (dy/dist) * speed; }
       keepInRink(p);
     }
 
-    function movePlayerToOpponent(p, opponent, speed) {
-      let dx = opponent.x - p.x; let dy = opponent.y - p.y;
-      let dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > 10) { p.x += (dx/dist) * speed; p.y += (dy/dist) * speed; }
-      keepInRink(p);
-    }
-
-    function moveWithPuckComplex(p, targetX, targetY, opponent, speed) {
+    function moveWithPuckComplex(p, targetX, targetY, closestOpp, speed) {
       let dx = targetX - p.x; let dy = targetY - p.y;
-      let distToOpp = Math.sqrt(Math.pow(p.x - opponent.x, 2) + Math.pow(p.y - opponent.y, 2));
+      let distToOpp = getDistance(p, closestOpp);
       let dribbleMod = (p.side === 'A' ? teams[selectedA].dribling : teams[selectedB].dribling) / 100;
       
-      if (distToOpp < 70) {
-        let angleToOpp = Math.atan2(opponent.y - p.y, opponent.x - p.x);
-        p.x -= Math.cos(angleToOpp) * (1.5 * dribbleMod);
-        p.y += (p.y > opponent.y ? 1 : -1) * (2 * dribbleMod);
+      if (distToOpp < 60) {
+        let angleToOpp = Math.atan2(closestOpp.y - p.y, closestOpp.x - p.x);
+        p.x -= Math.cos(angleToOpp) * (1.2 * dribbleMod);
+        p.y += (p.y > closestOpp.y ? 1 : -1) * (1.8 * dribbleMod);
       }
-
       let dist = Math.sqrt(dx*dx + dy*dy);
       p.x += (dx/dist) * (speed * 0.85);
       p.y += (dy/dist) * (speed * 0.85);
       keepInRink(p);
     }
 
-    function checkInteraction(pa, pb) {
-      let dist = Math.sqrt(Math.pow(pa.x - pb.x, 2) + Math.pow(pa.y - pb.y, 2));
+    function checkInteraction(p, others) {
       if (!puck.owner && !puck.isShot) {
-        let distA = Math.sqrt(Math.pow(pa.x - puck.x, 2) + Math.pow(pa.y - puck.y, 2));
-        let distB = Math.sqrt(Math.pow(pb.x - puck.x, 2) + Math.pow(pb.y - puck.y, 2));
-        if (distA < pa.radius + 5 && Math.random() > 0.1) puck.owner = pa;
-        else if (distB < pb.radius + 5 && Math.random() > 0.1) puck.owner = pb;
+        if (getDistance(p, puck) < p.radius + 5 && Math.random() > 0.1) puck.owner = p;
       }
-
-      if (dist < pa.radius + pb.radius + 15) {
-        let sideA = teams[selectedA]; let sideB = teams[selectedB];
-        if (puck.owner === pa) {
-          let stealChance = (sideB.defense * 0.5) - (sideA.dribling * 0.3) + 10;
-          if (Math.random() * 100 < stealChance) { puck.owner = null; puck.vx = (Math.random()-0.5)*6; }
-        } else if (puck.owner === pb) {
-          let stealChance = (sideA.defense * 0.5) - (sideB.dribling * 0.3) + 10;
-          if (Math.random() * 100 < stealChance) { puck.owner = null; puck.vx = (Math.random()-0.5)*6; }
+      if (puck.owner && puck.owner.side !== p.side) {
+        if (getDistance(p, puck.owner) < p.radius * 2 + 5) {
+            let sideStats = (p.side === 'A' ? teams[selectedA] : teams[selectedB]);
+            let ownerStats = (puck.owner.side === 'A' ? teams[selectedA] : teams[selectedB]);
+            let stealChance = (sideStats.defense * 0.45) - (ownerStats.dribling * 0.25) + 5;
+            if (Math.random() * 100 < stealChance) { 
+                puck.owner = null; puck.vx = (Math.random()-0.5)*6; 
+                document.getElementById("status").innerText = "Odebrání puku!";
+            }
         }
       }
     }
 
     function checkGoalieCollision(g) {
-      let dist = Math.sqrt(Math.pow(g.x - puck.x, 2) + Math.pow(g.y - puck.y, 2));
-      if (dist < g.radius + puck.radius) {
-        // Použití nového statu GOALKEEPER
+      if (getDistance(g, puck) < g.radius + puck.radius) {
         let gkStat = (g.side === 'A' ? teams[selectedA].goalkeeper : teams[selectedB].goalkeeper);
         if (Math.random() * 115 < gkStat) {
           puck.isShot = false; puck.owner = null;
           puck.vx *= -0.7; puck.vy += (Math.random() - 0.5) * 10;
-          document.getElementById("status").innerText = "Semafóóór!";
+          document.getElementById("status").innerText = "Zákrok!";
           puck.x += (g.side === 'A' ? 15 : -15);
         }
       }
@@ -342,26 +387,24 @@
       ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2;
       ctx.strokeRect(0, 105, 25, 90); ctx.strokeRect(575, 105, 25, 90); 
 
-      ctx.fillStyle = "rgba(0,0,0,0.2)";
-      ctx.beginPath(); ctx.arc(puck.x+2, puck.y+2, puck.radius, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "#111";
       ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI*2); ctx.fill();
       
-      drawPlayer(playerA); drawPlayer(playerB);
+      drawPlayer(playerA1); drawPlayer(playerA2);
+      drawPlayer(playerB1); drawPlayer(playerB2);
       drawGoalie(goalieA); drawGoalie(goalieB);
     }
 
     function drawPlayer(p) {
-      ctx.fillStyle = "rgba(0,0,0,0.15)";
-      ctx.beginPath(); ctx.arc(p.x+4, p.y+4, p.radius, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = p.color;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = puck.owner === p ? "gold" : "#333"; ctx.lineWidth = 3; ctx.stroke();
+      ctx.strokeStyle = puck.owner === p ? "gold" : "rgba(0,0,0,0.3)"; 
+      ctx.lineWidth = puck.owner === p ? 4 : 2; ctx.stroke();
+      // Číslo hráče
+      ctx.fillStyle = "white"; ctx.font = "10px Arial"; ctx.fillText(p.side + (p.id > 2 ? p.id-2 : p.id), p.x-5, p.y+4);
     }
 
     function drawGoalie(g) {
-      ctx.fillStyle = "rgba(0,0,0,0.15)";
-      ctx.beginPath(); ctx.arc(g.x+3, g.y+3, g.radius, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = g.color;
       ctx.fillRect(g.x - 8, g.y - 15, 16, 30);
       ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(g.x - 8, g.y - 15, 16, 30);
@@ -382,12 +425,13 @@
       document.getElementById("homeLogoContainer").innerHTML = `<img src="${teams[selectedA].logo}">`;
       document.getElementById("awayLogoContainer").innerHTML = `<img src="${teams[selectedB].logo}">`;
       
-      playerA.color = goalieA.color = teams[selectedA].homeColor;
-      playerB.color = goalieB.color = teams[selectedB].awayColor;
+      playerA1.color = playerA2.color = goalieA.color = teams[selectedA].homeColor;
+      playerB1.color = playerB2.color = goalieB.color = teams[selectedB].awayColor;
       
-      // Snížená základní rychlost pro realističtější pohyb
-      playerA.baseSpeed = 1.2 + (teams[selectedA].attack / 100);
-      playerB.baseSpeed = 1.2 + (teams[selectedB].attack / 100);
+      const s1 = 1.1 + (teams[selectedA].attack / 100);
+      const s2 = 1.1 + (teams[selectedB].attack / 100);
+      playerA1.baseSpeed = playerA2.baseSpeed = s1;
+      playerB1.baseSpeed = playerB2.baseSpeed = s2;
 
       scoreA = 0; scoreB = 0; timeLeft = 60;
       document.getElementById("scoreText").innerText = "0:0";
