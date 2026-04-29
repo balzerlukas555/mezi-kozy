@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extraliga simulátor - 2D Engine PRO v8.0</title>
+  <title>Extraliga Sim 9.0</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -145,13 +145,13 @@
 
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false };
     
-    let playerA1 = { x: 150, y: 100, color: "red", radius: 12, baseSpeed: 1.8, side: 'A', id: 1, role: 'forward' };
-    let playerA2 = { x: 150, y: 200, color: "red", radius: 12, baseSpeed: 1.8, side: 'A', id: 2, role: 'forward' };
-    let playerA3 = { x: 80,  y: 150, color: "red", radius: 12, baseSpeed: 1.6, side: 'A', id: 3, role: 'defender' };
+    let playerA1 = { x: 150, y: 100, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 1, role: 'forward' };
+    let playerA2 = { x: 150, y: 200, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 2, role: 'forward' };
+    let playerA3 = { x: 80,  y: 150, color: "red", radius: 12, baseSpeed: 1.0, side: 'A', id: 3, role: 'defender' };
 
-    let playerB1 = { x: 450, y: 100, color: "blue", radius: 12, baseSpeed: 1.8, side: 'B', id: 1, role: 'forward' };
-    let playerB2 = { x: 450, y: 200, color: "blue", radius: 12, baseSpeed: 1.8, side: 'B', id: 2, role: 'forward' };
-    let playerB3 = { x: 520, y: 150, color: "blue", radius: 12, baseSpeed: 1.6, side: 'B', id: 3, role: 'defender' };
+    let playerB1 = { x: 450, y: 100, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 1, role: 'forward' };
+    let playerB2 = { x: 450, y: 200, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 2, role: 'forward' };
+    let playerB3 = { x: 520, y: 150, color: "blue", radius: 12, baseSpeed: 1.0, side: 'B', id: 3, role: 'defender' };
 
     let goalieA = { x: 25, y: 150, radius: 14, color: "red", side: 'A' };
     let goalieB = { x: 575, y: 150, radius: 14, color: "blue", side: 'B' };
@@ -235,8 +235,8 @@
               let d = getDistance(p, tm);
               if (d < 50) {
                   let angle = Math.atan2(p.y - tm.y, p.x - tm.x);
-                  p.x += Math.cos(angle) * 1.5;
-                  p.y += Math.sin(angle) * 1.5;
+                  p.x += Math.cos(angle) * 1.0;
+                  p.y += Math.sin(angle) * 1.0;
               }
           });
 
@@ -254,8 +254,7 @@
                   return dCurr < dPrev ? curr : prev;
               });
 
-              // Zakládání útoků obráncem: Pokud má obránce puk a útočníci jsou blízko, nahraje jim dopředu
-              let passChance = (p.role === 'defender' && Math.abs(p.x - (attackRight?0:600)) < 250) ? 0.15 : 0.06;
+              let passChance = (p.role === 'defender' && Math.abs(p.x - (attackRight?0:600)) < 250) ? 0.12 : 0.05;
 
               if (Math.random() < passChance) {
                   passPuck(p, bestTarget);
@@ -270,25 +269,20 @@
               let isPuckInZone = attackRight ? (puck.x < 300) : (puck.x > 300);
 
               if (!puck.owner && isPuckInZone) {
-                  // Priorita pro obránce sebrat volný puk ve své zóně
                   movePlayerToPoint(p, puck.x, puck.y, speed);
               } else if (puck.owner && puck.owner.side !== p.side) {
                   let targetX = puck.x + (attackRight ? -50 : 50);
                   movePlayerToPoint(p, targetX, puck.y, speed);
               } else {
-                  // Nabíhá si pro přihrávku, ale zůstává vzadu
                   let targetX = attackRight ? Math.min(puck.x - 80, defensiveBaseX) : Math.max(puck.x + 80, defensiveBaseX);
                   movePlayerToPoint(p, targetX, 150, speed * 0.8);
               }
           }
           else {
-              // BULY LOGIKA: Jen A1 jdou po puku, pokud nikdo puk nemá
               if (!puck.owner && puck.x === 300 && puck.y === 150) {
                   if (p.id === 1) movePlayerToPoint(p, puck.x, puck.y, speed);
-                  else { /* stojí a čeká na buly */ }
               } else {
                   if (puck.owner && puck.owner.side === p.side) {
-                      // Útočník si najíždí dopředu, když má tým (třeba obránce) puk
                       let targetGoalX = attackRight ? 480 : 120;
                       movePlayerToPoint(p, targetGoalX, 150 + (p.id === 1 ? -80 : 80), speed);
                   } else {
@@ -300,7 +294,7 @@
 
       if (!puck.owner) {
           puck.x += puck.vx; puck.y += puck.vy;
-          puck.vx *= 0.985; puck.vy *= 0.985;
+          puck.vx *= 0.98; puck.vy *= 0.98; // Mírně vyšší tření pro pomalejší puk
       }
 
       goalieA.y = 150 + (puck.y - 150) * 0.35;
@@ -329,8 +323,8 @@
     function passPuck(from, to) {
         puck.owner = null;
         let angle = Math.atan2(to.y - from.y, to.x - from.x);
-        puck.vx = Math.cos(angle) * 10;
-        puck.vy = Math.sin(angle) * 10;
+        puck.vx = Math.cos(angle) * 7.5; // Zpomalená nahrávka
+        puck.vy = Math.sin(angle) * 7.5;
         document.getElementById("status").innerText = "Přihrávka!";
     }
 
@@ -347,8 +341,8 @@
       let dribbleMod = (p.side === 'A' ? teams[selectedA].dribling : teams[selectedB].dribling) / 100;
       if (distToOpp < 65) {
         let angleToOpp = Math.atan2(closestOpp.y - p.y, closestOpp.x - p.x);
-        p.x -= Math.cos(angleToOpp) * (1.2 * dribbleMod);
-        p.y += (p.y > closestOpp.y ? 1 : -1) * (1.8 * dribbleMod);
+        p.x -= Math.cos(angleToOpp) * (0.8 * dribbleMod);
+        p.y += (p.y > closestOpp.y ? 1 : -1) * (1.2 * dribbleMod);
       }
       let dist = Math.sqrt(dx*dx + dy*dy);
       p.x += (dx/dist) * (speed * 0.85);
@@ -366,7 +360,7 @@
             let ownerStats = (puck.owner.side === 'A' ? teams[selectedA] : teams[selectedB]);
             let stealChance = (sideStats.defense * 0.45) - (ownerStats.dribling * 0.25) + 5;
             if (Math.random() * 100 < stealChance) { 
-                puck.owner = null; puck.vx = (Math.random()-0.5)*6; 
+                puck.owner = null; puck.vx = (Math.random()-0.5)*4; 
                 document.getElementById("status").innerText = "Odebrání!";
             }
         }
@@ -378,7 +372,7 @@
         let gkStat = (g.side === 'A' ? teams[selectedA].goalkeeper : teams[selectedB].goalkeeper);
         if (Math.random() * 115 < gkStat) {
           puck.isShot = false; puck.owner = null;
-          puck.vx *= -0.8; puck.vy += (Math.random() - 0.5) * 10;
+          puck.vx *= -0.8; puck.vy += (Math.random() - 0.5) * 8;
           document.getElementById("status").innerText = "Zákrok!";
           puck.x += (g.x < 300 ? 15 : -15);
         }
@@ -392,7 +386,8 @@
         puck.isShot = true; puck.owner = null;
         let targetY = 150 + (Math.random() - 0.5) * 90; 
         let angle = Math.atan2(targetY - p.y, goalX - p.x);
-        puck.vx = Math.cos(angle) * 13; puck.vy = Math.sin(angle) * 13;
+        puck.vx = Math.cos(angle) * 10; // Zpomalená střela
+        puck.vy = Math.sin(angle) * 10;
         document.getElementById("status").innerText = "Střela!";
       }
     }
@@ -508,10 +503,13 @@
       updateSidesDisplay();
       [playerA1, playerA2, playerA3, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
       [playerB1, playerB2, playerB3, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
-      const s1 = 1.1 + (teams[selectedA].attack / 100);
-      const s2 = 1.1 + (teams[selectedB].attack / 100);
-      playerA1.baseSpeed = playerA2.baseSpeed = s1; playerA3.baseSpeed = s1 * 0.9;
-      playerB1.baseSpeed = playerB2.baseSpeed = s2; playerB3.baseSpeed = s2 * 0.9;
+      
+      // Upravený výpočet rychlosti (snížené koeficienty)
+      const s1 = 0.8 + (teams[selectedA].attack / 150);
+      const s2 = 0.8 + (teams[selectedB].attack / 150);
+      playerA1.baseSpeed = playerA2.baseSpeed = s1; playerA3.baseSpeed = s1 * 0.85;
+      playerB1.baseSpeed = playerB2.baseSpeed = s2; playerB3.baseSpeed = s2 * 0.85;
+      
       scoreA = 0; scoreB = 0; timeLeft = 20;
       document.getElementById("scoreText").innerText = "0:0";
       if (timerInterval) clearInterval(timerInterval);
