@@ -149,7 +149,7 @@
     let lastPuckPos = { x: 0, y: 0 };
     let stuckCounter = 0;
 
-    let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null };
+    let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false };
     let playerA = { x: 100, y: 150, color: "red", radius: 12, speed: 2.5, side: 'A' };
     let playerB = { x: 500, y: 150, color: "blue", radius: 12, speed: 2.5, side: 'B' };
 
@@ -177,6 +177,7 @@
     function resetPositions() {
       puck.x = 300; puck.y = 150; puck.vx = (Math.random() - 0.5) * 5; puck.vy = (Math.random() - 0.5) * 5;
       puck.owner = null;
+      puck.isShot = false;
       playerA.x = 100; playerA.y = 150;
       playerB.x = 500; playerB.y = 150;
       stuckCounter = 0;
@@ -188,32 +189,37 @@
       // Logika pohybu
       if (puck.owner === playerA) {
         moveWithPuck(playerA, 600, 150, playerB);
-        puck.x = playerA.x + 15; puck.y = playerA.y;
+        movePlayerToOpponent(playerB, playerA); // Obránce napadá
+        puck.x = playerA.x + 12; puck.y = playerA.y;
       } else if (puck.owner === playerB) {
         moveWithPuck(playerB, 0, 150, playerA);
-        puck.x = playerB.x - 15; puck.y = playerB.y;
+        movePlayerToOpponent(playerA, playerB); // Obránce napadá
+        puck.x = playerB.x - 12; puck.y = playerB.y;
       } else {
         movePlayerToPuck(playerA, puck);
         movePlayerToPuck(playerB, puck);
         puck.x += puck.vx;
         puck.y += puck.vy;
         puck.vx *= 0.985; puck.vy *= 0.985;
+        if (Math.abs(puck.vx) < 0.1 && Math.abs(puck.vy) < 0.1) puck.isShot = false;
       }
 
       // Detekce záseku
       let distMoved = Math.sqrt(Math.pow(puck.x - lastPuckPos.x, 2) + Math.pow(puck.y - lastPuckPos.y, 2));
-      if (distMoved < 0.5) stuckCounter++; else stuckCounter = 0;
+      if (distMoved < 0.3) stuckCounter++; else stuckCounter = 0;
       lastPuckPos = { x: puck.x, y: puck.y };
       if (stuckCounter > 150) { resetPositions(); }
 
-      // Mantinely
-      handleBounces();
+      // Mantinely a góly
+      handleBouncesAndGoals();
       
-      // Střelba a góly
-      checkShot(playerA, 600, 150);
-      checkShot(playerB, 0, 150);
+      // Střelba (především od modré)
+      if (puck.owner) {
+        if (puck.owner === playerA && puck.x > 400) checkShot(playerA, 600, 150);
+        if (puck.owner === playerB && puck.x < 200) checkShot(playerB, 0, 150);
+      }
 
-      // Kolize a přetahovaná
+      // Kolize a napadání
       checkInteraction(playerA, playerB);
 
       draw();
@@ -231,20 +237,29 @@
       keepInRink(p);
     }
 
+    function movePlayerToOpponent(p, opponent) {
+      let dx = opponent.x - p.x;
+      let dy = opponent.y - p.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > 10) {
+        p.x += (dx/dist) * p.speed;
+        p.y += (dy/dist) * p.speed;
+      }
+      keepInRink(p);
+    }
+
     function moveWithPuck(p, targetX, targetY, opponent) {
-      // Dribling k brance s vyhýbáním
       let dx = targetX - p.x;
       let dy = targetY - p.y;
       
-      // Pokud je soupeř blízko, zkus kličkovat
       let distToOpp = Math.sqrt(Math.pow(p.x - opponent.x, 2) + Math.pow(p.y - opponent.y, 2));
-      if (distToOpp < 60) {
-        dy += (p.y > opponent.y) ? 40 : -40; // Úhybný manévr
+      if (distToOpp < 70) {
+        dy += (p.y > opponent.y) ? 35 : -35; // Dribling - úhyb
       }
 
       let dist = Math.sqrt(dx*dx + dy*dy);
-      p.x += (dx/dist) * (p.speed * 0.8);
-      p.y += (dy/dist) * (p.speed * 0.8);
+      p.x += (dx/dist) * (p.speed * 0.85);
+      p.y += (dy/dist) * (p.speed * 0.85);
       keepInRink(p);
     }
 
@@ -253,48 +268,61 @@
       let distPuckA = Math.sqrt(Math.pow(pa.x - puck.x, 2) + Math.pow(pa.y - puck.y, 2));
       let distPuckB = Math.sqrt(Math.pow(pb.x - puck.x, 2) + Math.pow(pb.y - puck.y, 2));
 
-      // Sebrání volného puku
-      if (!puck.owner) {
+      if (!puck.owner && !puck.isShot) {
         if (distPuckA < pa.radius + puck.radius) puck.owner = pa;
         else if (distPuckB < pb.radius + puck.radius) puck.owner = pb;
       }
 
-      // Boj o puk (Defense vs Dribling)
-      if (dist < pa.radius + pb.radius + 10) {
+      // Defense vs Dribling souboj
+      if (dist < pa.radius + pb.radius + 15) {
         if (puck.owner === pa) {
-            let stealChance = teams[selectedB].defense - teams[selectedA].dribling + 20;
-            if (Math.random() * 100 < stealChance * 0.1) { puck.owner = pb; document.getElementById("status").innerText = "Vypíchnutí!"; }
+            let stealChance = teams[selectedB].defense - teams[selectedA].dribling + 15;
+            if (Math.random() * 100 < stealChance * 0.15) { 
+                puck.owner = null; puck.vx = (Math.random()-0.5)*5; puck.vy = (Math.random()-0.5)*5;
+                document.getElementById("status").innerText = "Vypíchnutí!"; 
+            }
         } else if (puck.owner === pb) {
-            let stealChance = teams[selectedA].defense - teams[selectedB].dribling + 20;
-            if (Math.random() * 100 < stealChance * 0.1) { puck.owner = pa; document.getElementById("status").innerText = "Vypíchnutí!"; }
+            let stealChance = teams[selectedA].defense - teams[selectedB].dribling + 15;
+            if (Math.random() * 100 < stealChance * 0.15) { 
+                puck.owner = null; puck.vx = (Math.random()-0.5)*5; puck.vy = (Math.random()-0.5)*5;
+                document.getElementById("status").innerText = "Vypíchnutí!"; 
+            }
         }
       }
     }
 
     function checkShot(p, goalX, goalY) {
-        if (puck.owner !== p) return;
-        let distToGoal = Math.sqrt(Math.pow(p.x - goalX, 2) + Math.pow(p.y - goalY, 2));
+        if (!puck.owner || puck.isShot) return;
         
-        if (distToGoal < 120) {
-            let accuracy = (p.side === 'A' ? teams[selectedA].attack : teams[selectedB].attack);
-            if (Math.random() * 1000 < accuracy * 0.2) { // Pokus o střelu
-                if (Math.random() * 100 < accuracy * 0.5) { // Úspěšná střela
-                    if (p.side === 'A') { scoreA++; } else { scoreB++; }
-                    goalScored();
-                } else { // Brankář chytil / Vedle
-                    puck.owner = null;
-                    puck.vx = (p.side === 'A' ? -8 : 8);
-                    puck.vy = (Math.random() - 0.5) * 10;
-                    document.getElementById("status").innerText = "Zákrok brankáře!";
-                }
-            }
+        let stats = (p.side === 'A' ? teams[selectedA] : teams[selectedB]);
+        // Šance na střelu roste s blízkostí k bráně
+        if (Math.random() * 100 < stats.attack * 0.05) {
+            puck.isShot = true;
+            puck.owner = null;
+            
+            // Výpočet míření střely
+            let targetY = 150 + (Math.random() - 0.5) * (140 - stats.attack / 2); 
+            let angle = Math.atan2(targetY - p.y, goalX - p.x);
+            let speed = 12;
+            
+            puck.vx = Math.cos(angle) * speed;
+            puck.vy = Math.sin(angle) * speed;
+            document.getElementById("status").innerText = "Střela!";
         }
     }
 
-    function handleBounces() {
+    function handleBouncesAndGoals() {
+      // Mantinely
       if (puck.y - puck.radius < 0 || puck.y + puck.radius > 300) { puck.vy *= -1; }
-      if (puck.x - puck.radius < 0 || puck.x + puck.radius > 600) { 
-        if (puck.y < 100 || puck.y > 200) { puck.vx *= -1; }
+      
+      // Branková čára
+      if (puck.x - puck.radius < 0) {
+        if (puck.y > 105 && puck.y < 195) { scoreB++; goalScored(); } 
+        else { puck.x = puck.radius; puck.vx *= -1; puck.isShot = false; }
+      }
+      if (puck.x + puck.radius > 600) {
+        if (puck.y > 105 && puck.y < 195) { scoreA++; goalScored(); }
+        else { puck.x = 600 - puck.radius; puck.vx *= -1; puck.isShot = false; }
       }
     }
 
@@ -312,20 +340,37 @@
 
     function draw() {
       ctx.clearRect(0, 0, 600, 300);
-      ctx.strokeStyle = "rgba(255, 0, 0, 0.3)"; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 300); ctx.stroke(); 
+      
+      // Čáry
+      ctx.strokeStyle = "rgba(255, 0, 0, 0.4)"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 300); ctx.stroke(); // Střed
+      
+      ctx.strokeStyle = "rgba(0, 0, 255, 0.3)"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(200, 0); ctx.lineTo(200, 300); ctx.stroke(); // Modrá A
+      ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 300); ctx.stroke(); // Modrá B
+
       ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2;
       ctx.strokeRect(0, 100, 30, 100); ctx.strokeRect(570, 100, 30, 100); 
-      ctx.fillStyle = puck.owner ? "gold" : "#111"; // Puk svítí, když ho někdo drží
+
+      // Puk
+      ctx.fillStyle = "#111";
       ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI*2); ctx.fill();
+      
       drawPlayer(playerA);
       drawPlayer(playerB);
     }
 
     function drawPlayer(p) {
+      // Stín
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.beginPath(); ctx.arc(p.x + 3, p.y + 3, p.radius, 0, Math.PI*2); ctx.fill();
+      
+      // Hráč
       ctx.fillStyle = p.color;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = puck.owner === p ? "gold" : "white"; ctx.lineWidth = 3; ctx.stroke();
+      ctx.strokeStyle = puck.owner === p ? "gold" : "#333"; 
+      ctx.lineWidth = puck.owner === p ? 4 : 2; 
+      ctx.stroke();
     }
 
     function updateTimer() {
@@ -352,8 +397,8 @@
       
       playerA.color = teams[selectedA].homeColor;
       playerB.color = teams[selectedB].awayColor;
-      playerA.speed = (teams[selectedA].attack / 100) * 3.5;
-      playerB.speed = (teams[selectedB].attack / 100) * 3.5;
+      playerA.speed = (teams[selectedA].attack / 100) * 3.4;
+      playerB.speed = (teams[selectedB].attack / 100) * 3.4;
 
       scoreA = 0; scoreB = 0; timeLeft = 60;
       document.getElementById("scoreText").innerText = "0:0";
