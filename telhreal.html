@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extraliga simulátor - 2D Engine PRO v6.2</title>
+  <title>Extraliga simulátor - 2D Engine PRO v7.0</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -141,13 +141,18 @@
     let currentPeriod = 1;
     let timerInterval = null;
     let isOvertime = false;
+    const rinkLogo = new Image();
 
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false };
     
-    let playerA1 = { x: 100, y: 100, color: "red", radius: 12, baseSpeed: 1.8, side: 'A', id: 1 };
-    let playerA2 = { x: 100, y: 200, color: "red", radius: 12, baseSpeed: 1.8, side: 'A', id: 2 };
-    let playerB1 = { x: 500, y: 100, color: "blue", radius: 12, baseSpeed: 1.8, side: 'B', id: 3 };
-    let playerB2 = { x: 500, y: 200, color: "blue", radius: 12, baseSpeed: 1.8, side: 'B', id: 4 };
+    // Rozšíření týmu o obránce (id 3)
+    let playerA1 = { x: 150, y: 100, color: "red", radius: 12, baseSpeed: 1.8, side: 'A', id: 1, role: 'forward' };
+    let playerA2 = { x: 150, y: 200, color: "red", radius: 12, baseSpeed: 1.8, side: 'A', id: 2, role: 'forward' };
+    let playerA3 = { x: 80,  y: 150, color: "red", radius: 12, baseSpeed: 1.6, side: 'A', id: 3, role: 'defender' };
+
+    let playerB1 = { x: 450, y: 100, color: "blue", radius: 12, baseSpeed: 1.8, side: 'B', id: 1, role: 'forward' };
+    let playerB2 = { x: 450, y: 200, color: "blue", radius: 12, baseSpeed: 1.8, side: 'B', id: 2, role: 'forward' };
+    let playerB3 = { x: 520, y: 150, color: "blue", radius: 12, baseSpeed: 1.6, side: 'B', id: 3, role: 'defender' };
 
     let goalieA = { x: 25, y: 150, radius: 14, color: "red", side: 'A' };
     let goalieB = { x: 575, y: 150, radius: 14, color: "blue", side: 'B' };
@@ -162,12 +167,13 @@
         div.innerHTML = `<img src="${teams[key].logo}" alt="${teams[key].name}">`;
         div.onclick = () => {
             if (gameRunning) return;
-            if (!selectedA) { selectedA = key; div.classList.add("selected"); }
+            if (!selectedA) { selectedA = key; div.classList.add("selected"); rinkLogo.src = teams[key].logo; }
             else if (!selectedB && key !== selectedA) { selectedB = key; div.classList.add("selected"); }
             else { 
                 selectedA = key; selectedB = null; 
                 document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
                 div.classList.add("selected");
+                rinkLogo.src = teams[key].logo;
             }
             document.getElementById("match").innerText = selectedB ? `${teams[selectedA].name} vs ${teams[selectedB].name}` : "Vyber soupeře";
         };
@@ -181,13 +187,19 @@
       puck.vy = (Math.random() - 0.5) * 4;
       puck.owner = null; puck.isShot = false;
       
-      let sideAMod = (currentPeriod === 2 && !isOvertime) ? 450 : 150;
-      let sideBMod = (currentPeriod === 2 && !isOvertime) ? 150 : 450;
+      let homeSide = (currentPeriod === 2 && !isOvertime) ? 450 : 150;
+      let awaySide = (currentPeriod === 2 && !isOvertime) ? 150 : 450;
+      let homeDef  = (currentPeriod === 2 && !isOvertime) ? 520 : 80;
+      let awayDef  = (currentPeriod === 2 && !isOvertime) ? 80 : 520;
 
-      playerA1.x = sideAMod; playerA1.y = 100;
-      playerA2.x = sideAMod; playerA2.y = 200;
-      playerB1.x = sideBMod; playerB1.y = 100;
-      playerB2.x = sideBMod; playerB2.y = 200;
+      playerA1.x = homeSide; playerA1.y = 100;
+      playerA2.x = homeSide; playerA2.y = 200;
+      playerA3.x = homeDef;  playerA3.y = 150;
+
+      playerB1.x = awaySide; playerB1.y = 100;
+      playerB2.x = awaySide; playerB2.y = 200;
+      playerB3.x = awayDef;  playerB3.y = 150;
+
       globalStuckTimer = 0;
     }
 
@@ -204,55 +216,67 @@
     function update() {
       if (!gameRunning) return;
 
-      // Pojistka proti celkovému záseku (puk se nehne)
       if (Math.abs(puck.x - lastPuckX) < 0.2 && Math.abs(puck.y - lastPuckY) < 0.2) {
           globalStuckTimer++;
-          if (globalStuckTimer > 180) { // 3 vteřiny ticha = nové buly
-             resetPositions();
-             document.getElementById("status").innerText = "Nové buly!";
-          }
+          if (globalStuckTimer > 180) { resetPositions(); document.getElementById("status").innerText = "Nové buly!"; }
       } else { globalStuckTimer = 0; }
       lastPuckX = puck.x; lastPuckY = puck.y;
 
-      const teamA = [playerA1, playerA2];
-      const teamB = [playerB1, playerB2];
+      const teamA = [playerA1, playerA2, playerA3];
+      const teamB = [playerB1, playerB2, playerB3];
       const allPlayers = [...teamA, ...teamB];
 
       allPlayers.forEach(p => {
-          let teammate = (p.side === 'A') ? (p === playerA1 ? playerA2 : playerA1) : (p === playerB1 ? playerB2 : playerB1);
+          let teammates = (p.side === 'A') ? teamA.filter(x => x !== p) : teamB.filter(x => x !== p);
           let opponents = (p.side === 'A') ? teamB : teamA;
           let speed = (puck.owner === p) ? p.baseSpeed : p.baseSpeed * 1.25;
-
           let attackRight = (p.side === 'A' && (currentPeriod !== 2 || isOvertime)) || (p.side === 'B' && currentPeriod === 2 && !isOvertime);
 
           if (puck.owner === p) {
               let targetGoalX = attackRight ? 600 : 0;
-              let distToGoal = Math.abs(p.x - targetGoalX);
-              let teammateDistToGoal = Math.abs(teammate.x - targetGoalX);
-              
-              // Zvýšená šance na přihrávku (z 0.02 na 0.08)
-              if (teammateDistToGoal < distToGoal - 40 && Math.random() < 0.08) {
-                  passPuck(p, teammate);
+              // Obránce (role defender) se nepouští tak hluboko do útoku
+              if (p.role === 'defender') {
+                  let maxAdvance = attackRight ? 400 : 200;
+                  if (attackRight && p.x > maxAdvance) targetGoalX = maxAdvance;
+                  if (!attackRight && p.x < maxAdvance) targetGoalX = maxAdvance;
+              }
+
+              // Hledání nejlepšího spoluhráče pro přihrávku
+              let bestTarget = teammates.reduce((prev, curr) => {
+                  let dPrev = Math.abs(prev.x - (attackRight ? 600 : 0));
+                  let dCurr = Math.abs(curr.x - (attackRight ? 600 : 0));
+                  return dCurr < dPrev ? curr : prev;
+              });
+
+              if (Math.random() < 0.08) {
+                  passPuck(p, bestTarget);
               } else {
                   moveWithPuckComplex(p, targetGoalX, 150, getClosest(p, opponents), speed);
               }
               puck.x = attackRight ? p.x + 12 : p.x - 12;
               puck.y = p.y;
-          } else if (puck.owner === teammate) {
-              let targetGoalX = attackRight ? 500 : 100;
-              let targetY = 150 + (p.id % 2 === 0 ? 70 : -70);
-              movePlayerToPoint(p, targetGoalX, targetY, speed);
-          } else if (puck.owner && puck.owner.side !== p.side) {
-              let puckOwner = puck.owner;
-              if (getDistance(p, puckOwner) < getDistance(teammate, puckOwner)) {
-                  movePlayerToPoint(p, puckOwner.x, puckOwner.y, speed);
+          } 
+          else if (p.role === 'defender') {
+              // Logika OBRÁNCE bez puku
+              let defensiveBaseX = attackRight ? 150 : 450;
+              if (puck.owner && puck.owner.side !== p.side) {
+                  // Napadání: Jde po puku ale zůstává víc vzadu než útočníci
+                  let targetX = puck.x + (attackRight ? -60 : 60);
+                  movePlayerToPoint(p, targetX, puck.y, speed);
               } else {
-                  let otherOpp = (puckOwner === opponents[0]) ? opponents[1] : opponents[0];
-                  let defenseX = attackRight ? otherOpp.x - 35 : otherOpp.x + 35;
-                  movePlayerToPoint(p, defenseX, otherOpp.y, speed);
+                  // Tvorba hry: Nabíhá si dozadu pro přihrávku
+                  let targetX = attackRight ? Math.min(puck.x - 70, defensiveBaseX) : Math.max(puck.x + 70, defensiveBaseX);
+                  movePlayerToPoint(p, targetX, 150, speed * 0.8);
               }
-          } else {
-              movePlayerToPoint(p, puck.x, puck.y, speed);
+          }
+          else {
+              // Logika ÚTOČNÍKA bez puku
+              if (puck.owner && puck.owner.side === p.side) {
+                  let targetGoalX = attackRight ? 500 : 100;
+                  movePlayerToPoint(p, targetGoalX, 150 + (p.id === 1 ? -70 : 70), speed);
+              } else {
+                  movePlayerToPoint(p, puck.x, puck.y, speed);
+              }
           }
       });
 
@@ -303,7 +327,6 @@
       let dx = targetX - p.x; let dy = targetY - p.y;
       let distToOpp = getDistance(p, closestOpp);
       let dribbleMod = (p.side === 'A' ? teams[selectedA].dribling : teams[selectedB].dribling) / 100;
-      
       if (distToOpp < 65) {
         let angleToOpp = Math.atan2(closestOpp.y - p.y, closestOpp.x - p.x);
         p.x -= Math.cos(angleToOpp) * (1.2 * dribbleMod);
@@ -383,17 +406,19 @@
           document.getElementById("simBtn").disabled = false;
           return;
       }
-      setTimeout(() => { 
-        if (timeLeft > 0) { 
-            resetPositions();
-            gameRunning = true; 
-            update(); // Restart smyčky
-        } 
-      }, 1200);
+      setTimeout(() => { if (timeLeft > 0) { resetPositions(); gameRunning = true; update(); } }, 1200);
     }
 
     function draw() {
       ctx.clearRect(0, 0, 600, 300);
+
+      // Logo na ledě
+      if (rinkLogo.complete) {
+        ctx.globalAlpha = 0.15;
+        ctx.drawImage(rinkLogo, 225, 75, 150, 150);
+        ctx.globalAlpha = 1.0;
+      }
+
       ctx.strokeStyle = "rgba(255, 0, 0, 0.4)"; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 300); ctx.stroke();
       ctx.strokeStyle = "rgba(0, 0, 255, 0.3)"; ctx.lineWidth = 4;
@@ -404,22 +429,36 @@
       ctx.fillStyle = "#111";
       ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI*2); ctx.fill();
       
-      drawPlayer(playerA1); drawPlayer(playerA2);
-      drawPlayer(playerB1); drawPlayer(playerB2);
+      [playerA1, playerA2, playerA3, playerB1, playerB2, playerB3].forEach(drawPlayer);
       drawGoalie(goalieA); drawGoalie(goalieB);
     }
 
     function drawPlayer(p) {
+      // Stín pro viditelnost
+      ctx.shadowColor = "black";
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+
       ctx.fillStyle = p.color;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
+      
+      // Reset stínu pro ostatní prvky
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+
       ctx.strokeStyle = puck.owner === p ? "gold" : "rgba(0,0,0,0.3)"; 
       ctx.lineWidth = puck.owner === p ? 4 : 2; ctx.stroke();
-      ctx.fillStyle = "white"; ctx.font = "bold 10px Arial"; ctx.fillText(p.side + (p.id > 2 ? p.id-2 : p.id), p.x-6, p.y+4);
+      ctx.fillStyle = "white"; ctx.font = "bold 10px Arial"; ctx.fillText(p.side + p.id, p.x-6, p.y+4);
     }
 
     function drawGoalie(g) {
+      ctx.shadowColor = "black";
+      ctx.shadowBlur = 4;
       ctx.fillStyle = g.color;
       ctx.fillRect(g.x - 8, g.y - 15, 16, 30);
+      ctx.shadowBlur = 0;
       ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(g.x - 8, g.y - 15, 16, 30);
     }
 
@@ -432,28 +471,16 @@
               document.getElementById("period").innerText = currentPeriod + ". třetina";
               updateSidesDisplay();
               document.getElementById("status").innerText = "Buly " + currentPeriod + ". třetiny!";
-              setTimeout(() => { 
-                resetPositions(); 
-                gameRunning = true; 
-                update();
-              }, 1500);
+              setTimeout(() => { resetPositions(); gameRunning = true; update(); }, 1500);
+          } else if (scoreA === scoreB) {
+              isOvertime = true; timeLeft = 999;
+              document.getElementById("period").innerText = "PRODLOUŽENÍ";
+              updateSidesDisplay();
+              setTimeout(() => { resetPositions(); gameRunning = true; update(); }, 1500);
           } else {
-              if (scoreA === scoreB) {
-                  isOvertime = true;
-                  timeLeft = 999;
-                  document.getElementById("period").innerText = "PRODLOUŽENÍ";
-                  updateSidesDisplay();
-                  document.getElementById("status").innerText = "Buly v prodloužení!";
-                  setTimeout(() => { 
-                    resetPositions(); 
-                    gameRunning = true; 
-                    update();
-                  }, 1500);
-              } else {
-                  clearInterval(timerInterval);
-                  document.getElementById("status").innerText = "KONEC ZÁPASU!";
-                  document.getElementById("simBtn").disabled = false;
-              }
+              clearInterval(timerInterval);
+              document.getElementById("status").innerText = "KONEC ZÁPASU!";
+              document.getElementById("simBtn").disabled = false;
           }
           return;
       }
@@ -468,21 +495,21 @@
       document.getElementById("gameWrapper").style.display = "flex";
       document.getElementById("rink-container").style.display = "block";
       
-      currentPeriod = 1;
-      isOvertime = false;
+      currentPeriod = 1; isOvertime = false;
       updateSidesDisplay();
       
-      playerA1.color = playerA2.color = goalieA.color = teams[selectedA].homeColor;
-      playerB1.color = playerB2.color = goalieB.color = teams[selectedB].awayColor;
+      [playerA1, playerA2, playerA3, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
+      [playerB1, playerB2, playerB3, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
       
       const s1 = 1.1 + (teams[selectedA].attack / 100);
       const s2 = 1.1 + (teams[selectedB].attack / 100);
       playerA1.baseSpeed = playerA2.baseSpeed = s1;
+      playerA3.baseSpeed = s1 * 0.9;
       playerB1.baseSpeed = playerB2.baseSpeed = s2;
+      playerB3.baseSpeed = s2 * 0.9;
 
       scoreA = 0; scoreB = 0; timeLeft = 20;
       document.getElementById("scoreText").innerText = "0:0";
-      document.getElementById("period").innerText = "1. třetina";
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(updateTimer, 1000);
       gameRunning = true; resetPositions(); update();
