@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extraliga simulátor - 2D Engine PRO v6</title>
+  <title>Extraliga simulátor - 2D Engine PRO v6.1</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -181,7 +181,6 @@
       puck.vy = (Math.random() - 0.5) * 4;
       puck.owner = null; puck.isShot = false;
       
-      // Pozice podle toho, kdo útočí kam (prohazování ve 2. třetině)
       let sideAMod = (currentPeriod === 2 && !isOvertime) ? 450 : 150;
       let sideBMod = (currentPeriod === 2 && !isOvertime) ? 150 : 450;
 
@@ -207,7 +206,7 @@
 
       if (Math.abs(puck.x - lastPuckX) < 0.5 && Math.abs(puck.y - lastPuckY) < 0.5) {
           stuckTimer++;
-          if (stuckTimer > 120) { // Pokud se 2 sekundy nehne (skrumáž), odraz ho
+          if (stuckTimer > 120) {
              puck.vx = (Math.random() - 0.5) * 10;
              puck.vy = (Math.random() - 0.5) * 10;
              puck.owner = null; puck.isShot = false;
@@ -225,7 +224,6 @@
           let opponents = (p.side === 'A') ? teamB : teamA;
           let speed = (puck.owner === p) ? p.baseSpeed : p.baseSpeed * 1.25;
 
-          // Směr útoku podle třetiny
           let attackRight = (p.side === 'A' && (currentPeriod !== 2 || isOvertime)) || (p.side === 'B' && currentPeriod === 2 && !isOvertime);
 
           if (puck.owner === p) {
@@ -385,7 +383,7 @@
           document.getElementById("simBtn").disabled = false;
           return;
       }
-      setTimeout(() => { if (timeLeft > 0) { gameRunning = true; resetPositions(); update(); } }, 1200);
+      setTimeout(() => { if (timeLeft > 0) { gameRunning = true; resetPositions(); } }, 1200);
     }
 
     function draw() {
@@ -427,16 +425,22 @@
               timeLeft = 20;
               document.getElementById("period").innerText = currentPeriod + ". třetina";
               updateSidesDisplay();
-              document.getElementById("status").innerText = "Konec třetiny...";
-              setTimeout(() => { gameRunning = true; resetPositions(); }, 1500);
+              document.getElementById("status").innerText = "Buly " + currentPeriod + ". třetiny!";
+              setTimeout(() => { 
+                resetPositions(); 
+                gameRunning = true; 
+              }, 1500);
           } else {
               if (scoreA === scoreB) {
                   isOvertime = true;
                   timeLeft = 999;
                   document.getElementById("period").innerText = "PRODLOUŽENÍ";
-                  updateSidesDisplay(); // Vrátí na Home:Away
-                  document.getElementById("status").innerText = "Následuje náhlá smrt!";
-                  setTimeout(() => { gameRunning = true; resetPositions(); }, 1500);
+                  updateSidesDisplay();
+                  document.getElementById("status").innerText = "Buly v prodloužení!";
+                  setTimeout(() => { 
+                    resetPositions(); 
+                    gameRunning = true; 
+                  }, 1500);
               } else {
                   clearInterval(timerInterval);
                   document.getElementById("status").innerText = "KONEC ZÁPASU!";
