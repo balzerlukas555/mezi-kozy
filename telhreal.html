@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extraliga simulátor - 2D Engine</title>
+  <title>Extraliga simulátor - 2D Engine PRO</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -31,7 +31,6 @@
 
     #match { margin-top: 25px; font-size: 1.2rem; min-height: 1.6em; font-weight: 500; color: #38bdf8; }
 
-    /* HERNÍ PLOCHA A LOGA */
     .game-wrapper {
       display: flex;
       align-items: center;
@@ -52,11 +51,7 @@
       border: 1px solid #2d3748;
     }
 
-    .side-logo img {
-      max-width: 80%;
-      max-height: 80%;
-      object-fit: contain;
-    }
+    .side-logo img { max-width: 80%; max-height: 80%; object-fit: contain; }
 
     #rink-container {
       background: #ffffff;
@@ -80,13 +75,10 @@
     }
 
     button:hover { background-color: #38bdf8; color: white; }
-
     button:disabled { background-color: #2d3748; color: #475569; cursor: not-allowed; }
 
     #result { margin-top: 30px; font-size: 1.1rem; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; display: inline-block; min-width: 360px; }
-
     .score-display { font-size: 3.5rem; font-weight: bold; color: #38bdf8; text-align: center; }
-
     #timer { font-size: 1.5rem; color: #fbbf24; font-weight: bold; margin-bottom: 5px; }
 
     @media (min-width: 600px) { .team { width: 85px; padding: 10px; } h1 { font-size: 2.5rem; } }
@@ -146,12 +138,11 @@
     let timeLeft = 60;
     let timerInterval = null;
 
-    let lastPuckPos = { x: 0, y: 0 };
-    let stuckCounter = 0;
-
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false };
     let playerA = { x: 100, y: 150, color: "red", radius: 12, speed: 2.5, side: 'A' };
     let playerB = { x: 500, y: 150, color: "blue", radius: 12, speed: 2.5, side: 'B' };
+    let goalieA = { x: 25, y: 150, radius: 14, color: "red", side: 'A' };
+    let goalieB = { x: 575, y: 150, radius: 14, color: "blue", side: 'B' };
 
     function renderTeams() {
       const container = document.getElementById("teams");
@@ -176,153 +167,144 @@
 
     function resetPositions() {
       puck.x = 300; puck.y = 150; puck.vx = (Math.random() - 0.5) * 5; puck.vy = (Math.random() - 0.5) * 5;
-      puck.owner = null;
-      puck.isShot = false;
+      puck.owner = null; puck.isShot = false;
       playerA.x = 100; playerA.y = 150;
       playerB.x = 500; playerB.y = 150;
-      stuckCounter = 0;
     }
 
     function update() {
       if (!gameRunning) return;
 
-      // Logika pohybu
+      // Pohyb hráčů
       if (puck.owner === playerA) {
-        moveWithPuck(playerA, 600, 150, playerB);
-        movePlayerToOpponent(playerB, playerA); // Obránce napadá
+        moveWithPuckComplex(playerA, 600, 150, playerB);
+        movePlayerToOpponent(playerB, playerA); 
         puck.x = playerA.x + 12; puck.y = playerA.y;
       } else if (puck.owner === playerB) {
-        moveWithPuck(playerB, 0, 150, playerA);
-        movePlayerToOpponent(playerA, playerB); // Obránce napadá
+        moveWithPuckComplex(playerB, 0, 150, playerA);
+        movePlayerToOpponent(playerA, playerB); 
         puck.x = playerB.x - 12; puck.y = playerB.y;
       } else {
         movePlayerToPuck(playerA, puck);
         movePlayerToPuck(playerB, puck);
-        puck.x += puck.vx;
-        puck.y += puck.vy;
+        puck.x += puck.vx; puck.y += puck.vy;
         puck.vx *= 0.985; puck.vy *= 0.985;
-        if (Math.abs(puck.vx) < 0.1 && Math.abs(puck.vy) < 0.1) puck.isShot = false;
       }
 
-      // Detekce záseku
-      let distMoved = Math.sqrt(Math.pow(puck.x - lastPuckPos.x, 2) + Math.pow(puck.y - lastPuckPos.y, 2));
-      if (distMoved < 0.3) stuckCounter++; else stuckCounter = 0;
-      lastPuckPos = { x: puck.x, y: puck.y };
-      if (stuckCounter > 150) { resetPositions(); }
+      // Pohyb brankářů (stínují puk v brankovišti)
+      goalieA.y = 150 + (puck.y - 150) * 0.3;
+      goalieB.y = 150 + (puck.y - 150) * 0.3;
 
-      // Mantinely a góly
       handleBouncesAndGoals();
-      
-      // Střelba (především od modré)
       if (puck.owner) {
-        if (puck.owner === playerA && puck.x > 400) checkShot(playerA, 600, 150);
-        if (puck.owner === playerB && puck.x < 200) checkShot(playerB, 0, 150);
+        if (puck.owner === playerA && puck.x > 380) checkShot(playerA, 600, 150);
+        if (puck.owner === playerB && puck.x < 220) checkShot(playerB, 0, 150);
       }
 
-      // Kolize a napadání
       checkInteraction(playerA, playerB);
+      checkGoalieCollision(goalieA);
+      checkGoalieCollision(goalieB);
 
       draw();
       requestAnimationFrame(update);
     }
 
     function movePlayerToPuck(p, target) {
-      let dx = target.x - p.x;
-      let dy = target.y - p.y;
+      let dx = target.x - p.x; let dy = target.y - p.y;
       let dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > 5) {
-        p.x += (dx/dist) * p.speed;
-        p.y += (dy/dist) * p.speed;
-      }
+      if (dist > 5) { p.x += (dx/dist) * p.speed; p.y += (dy/dist) * p.speed; }
       keepInRink(p);
     }
 
     function movePlayerToOpponent(p, opponent) {
-      let dx = opponent.x - p.x;
-      let dy = opponent.y - p.y;
+      let dx = opponent.x - p.x; let dy = opponent.y - p.y;
       let dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > 10) {
-        p.x += (dx/dist) * p.speed;
-        p.y += (dy/dist) * p.speed;
-      }
+      if (dist > 10) { p.x += (dx/dist) * p.speed; p.y += (dy/dist) * p.speed; }
       keepInRink(p);
     }
 
-    function moveWithPuck(p, targetX, targetY, opponent) {
-      let dx = targetX - p.x;
-      let dy = targetY - p.y;
-      
+    function moveWithPuckComplex(p, targetX, targetY, opponent) {
+      let dx = targetX - p.x; let dy = targetY - p.y;
       let distToOpp = Math.sqrt(Math.pow(p.x - opponent.x, 2) + Math.pow(p.y - opponent.y, 2));
-      if (distToOpp < 70) {
-        dy += (p.y > opponent.y) ? 35 : -35; // Dribling - úhyb
+      
+      let dribbleMod = (p.side === 'A' ? teams[selectedA].dribling : teams[selectedB].dribling) / 100;
+      
+      if (distToOpp < 80) {
+        // Dribling: únik do boku nebo mírné couvání
+        let angleToOpp = Math.atan2(opponent.y - p.y, opponent.x - p.x);
+        p.x -= Math.cos(angleToOpp) * (2 * dribbleMod);
+        p.y += (p.y > opponent.y ? 1 : -1) * (2.5 * dribbleMod);
       }
 
       let dist = Math.sqrt(dx*dx + dy*dy);
-      p.x += (dx/dist) * (p.speed * 0.85);
-      p.y += (dy/dist) * (p.speed * 0.85);
+      p.x += (dx/dist) * (p.speed * 0.8);
+      p.y += (dy/dist) * (p.speed * 0.8);
       keepInRink(p);
     }
 
     function checkInteraction(pa, pb) {
       let dist = Math.sqrt(Math.pow(pa.x - pb.x, 2) + Math.pow(pa.y - pb.y, 2));
-      let distPuckA = Math.sqrt(Math.pow(pa.x - puck.x, 2) + Math.pow(pa.y - puck.y, 2));
-      let distPuckB = Math.sqrt(Math.pow(pb.x - puck.x, 2) + Math.pow(pb.y - puck.y, 2));
-
+      
+      // Sebrání puku s náhodou
       if (!puck.owner && !puck.isShot) {
-        if (distPuckA < pa.radius + puck.radius) puck.owner = pa;
-        else if (distPuckB < pb.radius + puck.radius) puck.owner = pb;
+        let distA = Math.sqrt(Math.pow(pa.x - puck.x, 2) + Math.pow(pa.y - puck.y, 2));
+        let distB = Math.sqrt(Math.pow(pb.x - puck.x, 2) + Math.pow(pb.y - puck.y, 2));
+        if (distA < pa.radius + 5 && Math.random() > 0.1) puck.owner = pa;
+        else if (distB < pb.radius + 5 && Math.random() > 0.1) puck.owner = pb;
       }
 
-      // Defense vs Dribling souboj
+      // Souboj o puk
       if (dist < pa.radius + pb.radius + 15) {
+        let sideA = teams[selectedA]; let sideB = teams[selectedB];
         if (puck.owner === pa) {
-            let stealChance = teams[selectedB].defense - teams[selectedA].dribling + 15;
-            if (Math.random() * 100 < stealChance * 0.15) { 
-                puck.owner = null; puck.vx = (Math.random()-0.5)*5; puck.vy = (Math.random()-0.5)*5;
-                document.getElementById("status").innerText = "Vypíchnutí!"; 
-            }
+          let stealChance = (sideB.defense * 0.6) - (sideA.dribling * 0.4) + 10;
+          if (Math.random() * 120 < stealChance) { puck.owner = null; puck.vx = (Math.random()-0.5)*7; document.getElementById("status").innerText = "Obranný zákrok!"; }
         } else if (puck.owner === pb) {
-            let stealChance = teams[selectedA].defense - teams[selectedB].dribling + 15;
-            if (Math.random() * 100 < stealChance * 0.15) { 
-                puck.owner = null; puck.vx = (Math.random()-0.5)*5; puck.vy = (Math.random()-0.5)*5;
-                document.getElementById("status").innerText = "Vypíchnutí!"; 
-            }
+          let stealChance = (sideA.defense * 0.6) - (sideB.dribling * 0.4) + 10;
+          if (Math.random() * 120 < stealChance) { puck.owner = null; puck.vx = (Math.random()-0.5)*7; document.getElementById("status").innerText = "Obranný zákrok!"; }
+        }
+      }
+    }
+
+    function checkGoalieCollision(g) {
+      let dist = Math.sqrt(Math.pow(g.x - puck.x, 2) + Math.pow(g.y - puck.y, 2));
+      if (dist < g.radius + puck.radius) {
+        let sideStat = (g.side === 'A' ? teams[selectedA] : teams[selectedB]);
+        if (Math.random() * 110 < sideStat.defense) {
+          // Fyzikální odraz
+          puck.isShot = false;
+          puck.owner = null;
+          puck.vx *= -0.8; // Odraz zpět
+          puck.vy += (Math.random() - 0.5) * 8; // Rozptyl
+          document.getElementById("status").innerText = "Zákrok brankáře!";
+          
+          // Posunout puk z brankáře aby neuvízl
+          puck.x += (g.side === 'A' ? 15 : -15);
         }
       }
     }
 
     function checkShot(p, goalX, goalY) {
-        if (!puck.owner || puck.isShot) return;
-        
-        let stats = (p.side === 'A' ? teams[selectedA] : teams[selectedB]);
-        // Šance na střelu roste s blízkostí k bráně
-        if (Math.random() * 100 < stats.attack * 0.05) {
-            puck.isShot = true;
-            puck.owner = null;
-            
-            // Výpočet míření střely
-            let targetY = 150 + (Math.random() - 0.5) * (140 - stats.attack / 2); 
-            let angle = Math.atan2(targetY - p.y, goalX - p.x);
-            let speed = 12;
-            
-            puck.vx = Math.cos(angle) * speed;
-            puck.vy = Math.sin(angle) * speed;
-            document.getElementById("status").innerText = "Střela!";
-        }
+      if (!puck.owner || puck.isShot) return;
+      let stats = (p.side === 'A' ? teams[selectedA] : teams[selectedB]);
+      if (Math.random() * 100 < stats.attack * 0.06) {
+        puck.isShot = true; puck.owner = null;
+        let targetY = 150 + (Math.random() - 0.5) * 100; 
+        let angle = Math.atan2(targetY - p.y, goalX - p.x);
+        puck.vx = Math.cos(angle) * 14; puck.vy = Math.sin(angle) * 14;
+        document.getElementById("status").innerText = "Tvrdá střela!";
+      }
     }
 
     function handleBouncesAndGoals() {
-      // Mantinely
-      if (puck.y - puck.radius < 0 || puck.y + puck.radius > 300) { puck.vy *= -1; }
-      
-      // Branková čára
-      if (puck.x - puck.radius < 0) {
+      if (puck.y < 5 || puck.y > 295) puck.vy *= -1;
+      if (puck.x < 0) {
         if (puck.y > 105 && puck.y < 195) { scoreB++; goalScored(); } 
-        else { puck.x = puck.radius; puck.vx *= -1; puck.isShot = false; }
+        else { puck.x = 5; puck.vx *= -1; }
       }
-      if (puck.x + puck.radius > 600) {
-        if (puck.y > 105 && puck.y < 195) { scoreA++; goalScored(); }
-        else { puck.x = 600 - puck.radius; puck.vx *= -1; puck.isShot = false; }
+      if (puck.x > 600) {
+        if (puck.y > 105 && puck.y < 195) { scoreA++; goalScored(); } 
+        else { puck.x = 595; puck.vx *= -1; }
       }
     }
 
@@ -341,49 +323,44 @@
     function draw() {
       ctx.clearRect(0, 0, 600, 300);
       
-      // Čáry
+      // Ledová plocha
       ctx.strokeStyle = "rgba(255, 0, 0, 0.4)"; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 300); ctx.stroke(); // Střed
-      
+      ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 300); ctx.stroke();
       ctx.strokeStyle = "rgba(0, 0, 255, 0.3)"; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(200, 0); ctx.lineTo(200, 300); ctx.stroke(); // Modrá A
-      ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 300); ctx.stroke(); // Modrá B
-
+      ctx.strokeRect(200, 0, 0.1, 300); ctx.strokeRect(400, 0, 0.1, 300);
       ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2;
-      ctx.strokeRect(0, 100, 30, 100); ctx.strokeRect(570, 100, 30, 100); 
+      ctx.strokeRect(0, 105, 25, 90); ctx.strokeRect(575, 105, 25, 90); 
 
-      // Puk
+      // Puk stín a tělo
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.beginPath(); ctx.arc(puck.x+2, puck.y+2, puck.radius, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "#111";
       ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI*2); ctx.fill();
       
-      drawPlayer(playerA);
-      drawPlayer(playerB);
+      drawPlayer(playerA); drawPlayer(playerB);
+      drawGoalie(goalieA); drawGoalie(goalieB);
     }
 
     function drawPlayer(p) {
-      // Stín
-      ctx.fillStyle = "rgba(0,0,0,0.2)";
-      ctx.beginPath(); ctx.arc(p.x + 3, p.y + 3, p.radius, 0, Math.PI*2); ctx.fill();
-      
-      // Hráč
+      ctx.fillStyle = "rgba(0,0,0,0.15)";
+      ctx.beginPath(); ctx.arc(p.x+4, p.y+4, p.radius, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = p.color;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = puck.owner === p ? "gold" : "#333"; 
-      ctx.lineWidth = puck.owner === p ? 4 : 2; 
-      ctx.stroke();
+      ctx.strokeStyle = puck.owner === p ? "gold" : "#333"; ctx.lineWidth = 3; ctx.stroke();
+    }
+
+    function drawGoalie(g) {
+      ctx.fillStyle = "rgba(0,0,0,0.15)";
+      ctx.beginPath(); ctx.arc(g.x+3, g.y+3, g.radius, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = g.color;
+      ctx.fillRect(g.x - 8, g.y - 15, 16, 30);
+      ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(g.x - 8, g.y - 15, 16, 30);
     }
 
     function updateTimer() {
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        gameRunning = false;
-        document.getElementById("status").innerText = "KONEC ZÁPASU!";
-        document.getElementById("simBtn").disabled = false;
-        return;
-      }
+      if (timeLeft <= 0) { clearInterval(timerInterval); gameRunning = false; document.getElementById("status").innerText = "KONEC!"; document.getElementById("simBtn").disabled = false; return; }
       timeLeft--;
-      let m = Math.floor(timeLeft / 60);
-      let s = timeLeft % 60;
+      let m = Math.floor(timeLeft / 60); let s = timeLeft % 60;
       document.getElementById("timer").innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
@@ -392,22 +369,19 @@
       document.getElementById("simBtn").disabled = true;
       document.getElementById("gameWrapper").style.display = "flex";
       document.getElementById("rink-container").style.display = "block";
-      document.getElementById("homeLogoContainer").innerHTML = `<img src="${teams[selectedA].logo}" alt="Home">`;
-      document.getElementById("awayLogoContainer").innerHTML = `<img src="${teams[selectedB].logo}" alt="Away">`;
+      document.getElementById("homeLogoContainer").innerHTML = `<img src="${teams[selectedA].logo}">`;
+      document.getElementById("awayLogoContainer").innerHTML = `<img src="${teams[selectedB].logo}">`;
       
-      playerA.color = teams[selectedA].homeColor;
-      playerB.color = teams[selectedB].awayColor;
-      playerA.speed = (teams[selectedA].attack / 100) * 3.4;
-      playerB.speed = (teams[selectedB].attack / 100) * 3.4;
+      playerA.color = goalieA.color = teams[selectedA].homeColor;
+      playerB.color = goalieB.color = teams[selectedB].awayColor;
+      playerA.speed = 2 + (teams[selectedA].attack / 60);
+      playerB.speed = 2 + (teams[selectedB].attack / 60);
 
       scoreA = 0; scoreB = 0; timeLeft = 60;
       document.getElementById("scoreText").innerText = "0:0";
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(updateTimer, 1000);
-
-      gameRunning = true;
-      resetPositions();
-      update();
+      gameRunning = true; resetPositions(); update();
     }
 
     renderTeams();
