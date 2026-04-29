@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extraliga simulátor - 2D Engine PRO v6.1</title>
+  <title>Extraliga simulátor - 2D Engine PRO v6.2</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -152,7 +152,7 @@
     let goalieA = { x: 25, y: 150, radius: 14, color: "red", side: 'A' };
     let goalieB = { x: 575, y: 150, radius: 14, color: "blue", side: 'B' };
 
-    let lastPuckX = 0, lastPuckY = 0, stuckTimer = 0;
+    let lastPuckX = 0, lastPuckY = 0, globalStuckTimer = 0;
 
     function renderTeams() {
       const container = document.getElementById("teams");
@@ -188,7 +188,7 @@
       playerA2.x = sideAMod; playerA2.y = 200;
       playerB1.x = sideBMod; playerB1.y = 100;
       playerB2.x = sideBMod; playerB2.y = 200;
-      stuckTimer = 0;
+      globalStuckTimer = 0;
     }
 
     function updateSidesDisplay() {
@@ -204,15 +204,14 @@
     function update() {
       if (!gameRunning) return;
 
-      if (Math.abs(puck.x - lastPuckX) < 0.5 && Math.abs(puck.y - lastPuckY) < 0.5) {
-          stuckTimer++;
-          if (stuckTimer > 120) {
-             puck.vx = (Math.random() - 0.5) * 10;
-             puck.vy = (Math.random() - 0.5) * 10;
-             puck.owner = null; puck.isShot = false;
-             stuckTimer = 0;
+      // Pojistka proti celkovému záseku (puk se nehne)
+      if (Math.abs(puck.x - lastPuckX) < 0.2 && Math.abs(puck.y - lastPuckY) < 0.2) {
+          globalStuckTimer++;
+          if (globalStuckTimer > 180) { // 3 vteřiny ticha = nové buly
+             resetPositions();
+             document.getElementById("status").innerText = "Nové buly!";
           }
-      } else { stuckTimer = 0; }
+      } else { globalStuckTimer = 0; }
       lastPuckX = puck.x; lastPuckY = puck.y;
 
       const teamA = [playerA1, playerA2];
@@ -231,7 +230,8 @@
               let distToGoal = Math.abs(p.x - targetGoalX);
               let teammateDistToGoal = Math.abs(teammate.x - targetGoalX);
               
-              if (teammateDistToGoal < distToGoal - 60 && Math.random() < 0.02) {
+              // Zvýšená šance na přihrávku (z 0.02 na 0.08)
+              if (teammateDistToGoal < distToGoal - 40 && Math.random() < 0.08) {
                   passPuck(p, teammate);
               } else {
                   moveWithPuckComplex(p, targetGoalX, 150, getClosest(p, opponents), speed);
@@ -383,7 +383,13 @@
           document.getElementById("simBtn").disabled = false;
           return;
       }
-      setTimeout(() => { if (timeLeft > 0) { gameRunning = true; resetPositions(); } }, 1200);
+      setTimeout(() => { 
+        if (timeLeft > 0) { 
+            resetPositions();
+            gameRunning = true; 
+            update(); // Restart smyčky
+        } 
+      }, 1200);
     }
 
     function draw() {
@@ -429,6 +435,7 @@
               setTimeout(() => { 
                 resetPositions(); 
                 gameRunning = true; 
+                update();
               }, 1500);
           } else {
               if (scoreA === scoreB) {
@@ -440,6 +447,7 @@
                   setTimeout(() => { 
                     resetPositions(); 
                     gameRunning = true; 
+                    update();
                   }, 1500);
               } else {
                   clearInterval(timerInterval);
