@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extraliga simulátor</title>
+  <title>Extraliga simulátor - 2D Engine</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,391 +14,232 @@
       color: #e2e8f0;
     }
 
-    h1 {
-      margin-bottom: 20px;
-      font-size: 1.8rem;
-      color: #ffffff;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
+    h1 { margin-bottom: 20px; font-size: 1.8rem; color: #ffffff; text-transform: uppercase; letter-spacing: 2px; }
 
-    .teams {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      max-width: 1000px;
-      margin: auto;
-    }
+    .teams { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 1000px; margin: auto; }
 
     .team {
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      width: 65px; 
-      padding: 8px;
-      background: #1a1f29;
-      border-radius: 8px;
-      border: 1px solid #2d3748;
-      box-sizing: border-box;
+      cursor: pointer; transition: all 0.2s ease-in-out; width: 65px; padding: 8px;
+      background: #1a1f29; border-radius: 8px; border: 1px solid #2d3748; box-sizing: border-box;
     }
 
-    .team img {
-      width: 100%;
-      height: auto;
-      aspect-ratio: 1/1;
-      object-fit: contain;
-      filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+    .team img { width: 100%; height: auto; aspect-ratio: 1/1; object-fit: contain; }
+
+    .team:hover { background: #2d3748; transform: translateY(-3px); }
+
+    .selected { border-color: #38bdf8; background: #1e293b; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); transform: scale(1.05); }
+
+    #match { margin-top: 25px; font-size: 1.2rem; min-height: 1.6em; font-weight: 500; color: #38bdf8; }
+
+    /* HERNÍ PLOCHA */
+    #rink-container {
+      margin: 20px auto;
+      background: #eee;
+      border: 5px solid #2d3748;
+      border-radius: 40px;
+      width: 600px;
+      height: 300px;
+      position: relative;
+      overflow: hidden;
+      display: none; /* Ukáže se až při hře */
     }
 
-    .team:hover {
-      background: #2d3748;
-      transform: translateY(-3px);
-    }
+    canvas { background: #ffffff; display: block; }
 
-    .selected {
-      border-color: #38bdf8;
-      background: #1e293b;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-      transform: scale(1.05);
-    }
-
-    #match {
-      margin-top: 25px;
-      font-size: 1.2rem;
-      min-height: 1.6em;
-      font-weight: 500;
-      color: #38bdf8;
-    }
-
-    .button-container {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .series-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
+    .button-container { margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 
     button {
-      padding: 12px 25px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #f1f5f9;
-      border: none;
-      border-radius: 8px;
-      color: #0b0e14;
-      font-weight: bold;
-      transition: 0.3s;
+      padding: 12px 25px; font-size: 16px; cursor: pointer; background-color: #f1f5f9;
+      border: none; border-radius: 8px; color: #0b0e14; font-weight: bold; transition: 0.3s;
     }
 
-    button:hover {
-      background-color: #38bdf8;
-      color: white;
-    }
+    button:hover { background-color: #38bdf8; color: white; }
 
-    button:disabled {
-      background-color: #2d3748;
-      color: #475569;
-      cursor: not-allowed;
-    }
+    button:disabled { background-color: #2d3748; color: #475569; cursor: not-allowed; }
 
-    #result {
-      margin-top: 30px;
-      font-size: 1.1rem;
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 12px;
-      display: inline-block;
-      min-width: 360px;
-      text-align: left;
-    }
+    #result { margin-top: 30px; font-size: 1.1rem; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; display: inline-block; min-width: 360px; }
 
-    .score-display-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      margin-bottom: 10px;
-    }
+    .score-display { font-size: 3.5rem; font-weight: bold; color: #38bdf8; text-align: center; }
 
-    .score-display {
-      font-size: 3.5rem;
-      font-weight: bold;
-      color: #38bdf8;
-      min-width: 120px;
-      text-align: center;
-    }
-
-    .score-logo {
-      width: 60px;
-      height: 60px;
-      object-fit: contain;
-    }
-
-    .game-line {
-      border-bottom: 1px solid #2d3748;
-      padding: 8px 0;
-      font-size: 0.95rem;
-    }
-
-    .winner-box {
-      margin-top: 20px;
-      font-size: 1.8rem;
-      color: #fbbf24;
-      text-align: center;
-      font-weight: bold;
-      padding: 10px;
-      border: 2px solid #fbbf24;
-      border-radius: 8px;
-    }
-
-    .status-msg {
-      font-style: italic;
-      color: #94a3b8;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    .team-names-info {
-        text-align: center;
-        font-size: 0.9rem;
-        color: #e2e8f0;
-    }
-
-    @media (min-width: 600px) {
-      .team { width: 85px; padding: 10px; }
-      h1 { font-size: 2.5rem; }
-    }
+    @media (min-width: 600px) { .team { width: 85px; padding: 10px; } h1 { font-size: 2.5rem; } }
   </style>
 </head>
 <body>
 
-  <h1>🏒 Simulátor Extraligy</h1>
+  <h1>🏒 Simulátor Extraligy 2D</h1>
 
   <div class="teams" id="teams"></div>
 
   <div id="match">Vyber dva týmy</div>
 
   <div class="button-container">
-    <button id="simBtn" onclick="simulateMatch()">Simulovat zápas</button>
-    <div class="series-buttons">
-      <button id="bo3Btn" onclick="startSeries('bo3')">Série BO3</button>
-      <button id="bo5Btn" onclick="startSeries('bo5')">Série BO5</button>
-      <button id="bo7Btn" onclick="startSeries('bo7')">Série BO7</button>
-    </div>
+    <button id="simBtn" onclick="startSimulatedMatch()">Simulovat grafický zápas</button>
   </div>
 
-  <div id="result"></div>
+  <div id="rink-container">
+    <canvas id="hockeyRink" width="600" height="300"></canvas>
+  </div>
+
+  <div id="result">
+    <div id="scoreText" class="score-display">0:0</div>
+    <div id="status" style="font-style: italic; color: #94a3b8;">Vyber týmy a začni hru</div>
+  </div>
 
   <script>
     const teams = {
-      pardubice: { name: "HC Dynamo Pardubice", attack: 94, defense: 91, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1" },
-      sparta: { name: "HC Sparta Praha", attack: 85, defense: 81, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fwueb1-spa.png&w=120&h=120&exact=1" },
-      trinec: { name: "HC Oceláři Třinec", attack: 87, defense: 82, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fccek3-tri.png&w=120&h=120&exact=1" },
-      mountfield: { name: "Mountfield HK", attack: 86, defense: 88, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fj9qyt-hkr.png&w=120&h=120&exact=1" },
-      vitkovice: { name: "HC Vítkovice Ridera", attack: 77, defense: 74, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F65gcx-vit.png&w=120&h=120&exact=1" },
-      kometa: { name: "HC Kometa Brno", attack: 83, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F8oo52-kom.png&w=120&h=120&exact=1" },
-      boleslav: { name: "BK Mladá Boleslav", attack: 80, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fk1yj3-mbl.png&w=120&h=120&exact=1" },
-      litvinov: { name: "HC Verva Litvínov", attack: 76, defense: 72, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fifboo-lit.png&w=120&h=120&exact=1" },
-      liberec: { name: "Bílí Tygři Liberec", attack: 89, defense: 86, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fi5lg4-lib.png&w=120&h=120&exact=1" },
-      olomouc: { name: "HC Olomouc", attack: 78, defense: 76, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fy4tmv-olo.png&w=120&h=120&exact=1" },
-      plzen: { name: "HC Škoda Plzeň", attack: 88, defense: 93, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fpijgb-plz.png&w=120&h=120&exact=1" },
-      karlovy_vary: { name: "HC Energie Karlovy Vary", attack: 83, defense: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F98xoj-kva.png&w=120&h=120&exact=1" },
-      kladno: { name: "Rytíři Kladno", attack: 79, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1" },
-      ceske_budejovice: { name: "Motor České Budějovice", attack: 82, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1" },
-      jihlava: { name: "HC Dukla Jihlava", attack: 72, defense: 69, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FJIH-2x.png&w=120&h=120&exact=1" },
-      zlin: { name: "Rl Okna Berani Zlín", attack: 67, defense: 70, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FZLN-2x.png&w=120&h=120&exact=1" }
+      pardubice: { name: "HC Dynamo Pardubice", attack: 94, defense: 91, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1", color: "#ce0000" },
+      sparta: { name: "HC Sparta Praha", attack: 85, defense: 81, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fwueb1-spa.png&w=120&h=120&exact=1", color: "#800000" },
+      trinec: { name: "HC Oceláři Třinec", attack: 87, defense: 82, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fccek3-tri.png&w=120&h=120&exact=1", color: "#ff0000" },
+      mountfield: { name: "Mountfield HK", attack: 86, defense: 88, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fj9qyt-hkr.png&w=120&h=120&exact=1", color: "#000" },
+      vitkovice: { name: "HC Vítkovice Ridera", attack: 77, defense: 74, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F65gcx-vit.png&w=120&h=120&exact=1", color: "#0056a0" },
+      kometa: { name: "HC Kometa Brno", attack: 83, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F8oo52-kom.png&w=120&h=120&exact=1", color: "#003399" },
+      boleslav: { name: "BK Mladá Boleslav", attack: 80, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fk1yj3-mbl.png&w=120&h=120&exact=1", color: "#008000" },
+      litvinov: { name: "HC Verva Litvínov", attack: 76, defense: 72, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fifboo-lit.png&w=120&h=120&exact=1", color: "#ffcc00" },
+      liberec: { name: "Bílí Tygři Liberec", attack: 89, defense: 86, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fi5lg4-lib.png&w=120&h=120&exact=1", color: "#005aab" },
+      olomouc: { name: "HC Olomouc", attack: 78, defense: 76, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fy4tmv-olo.png&w=120&h=120&exact=1", color: "#ff0000" },
+      plzen: { name: "HC Škoda Plzeň", attack: 88, defense: 93, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fpijgb-plz.png&w=120&h=120&exact=1", color: "#0056a0" },
+      karlovy_vary: { name: "HC Energie Karlovy Vary", attack: 83, defense: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F98xoj-kva.png&w=120&h=120&exact=1", color: "#000" },
+      kladno: { name: "Rytíři Kladno", attack: 79, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1", color: "#004a8d" },
+      ceske_budejovice: { name: "Motor České Budějovice", attack: 82, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1", color: "#ffff00" },
+      jihlava: { name: "HC Dukla Jihlava", attack: 72, defense: 69, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FJIH-2x.png&w=120&h=120&exact=1", color: "#800000" },
+      zlin: { name: "Rl Okna Berani Zlín", attack: 67, defense: 70, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FZLN-2x.png&w=120&h=120&exact=1", color: "#003399" }
     };
 
-    const container = document.getElementById("teams");
-    let selectedA = null;
-    let selectedB = null;
-    let isAnimating = false;
+    const canvas = document.getElementById("hockeyRink");
+    const ctx = canvas.getContext("2d");
+    let selectedA = null, selectedB = null;
+    let scoreA = 0, scoreB = 0;
+    let gameRunning = false;
+
+    // Fyzika a objekty
+    let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5 };
+    let playerA = { x: 100, y: 150, color: "red", radius: 12, speed: 2.5 };
+    let playerB = { x: 500, y: 150, color: "blue", radius: 12, speed: 2.5 };
 
     function renderTeams() {
+      const container = document.getElementById("teams");
       for (let key in teams) {
         const div = document.createElement("div");
         div.classList.add("team");
-        div.setAttribute("data-id", key);
-        div.innerHTML = `<img src="${teams[key].logo}" alt="${teams[key].name}" title="${teams[key].name}">`;
-        div.onclick = () => selectTeam(key, div);
+        div.innerHTML = `<img src="${teams[key].logo}" alt="${teams[key].name}">`;
+        div.onclick = () => {
+            if (!selectedA) { selectedA = key; div.classList.add("selected"); }
+            else if (!selectedB && key !== selectedA) { selectedB = key; div.classList.add("selected"); }
+            else { 
+                selectedA = key; selectedB = null; 
+                document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
+                div.classList.add("selected");
+            }
+            document.getElementById("match").innerText = selectedB ? `${teams[selectedA].name} vs ${teams[selectedB].name}` : "Vyber soupeře";
+        };
         container.appendChild(div);
       }
     }
 
-    function selectTeam(key, element) {
-      if (isAnimating) return;
-      if (!selectedA) {
-        selectedA = key;
-        element.classList.add("selected");
-      } else if (!selectedB && key !== selectedA) {
-        selectedB = key;
-        element.classList.add("selected");
-      } else {
-        selectedA = key;
-        selectedB = null;
-        document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
-        element.classList.add("selected");
-      }
-      updateMatch();
+    function resetPositions() {
+      puck.x = 300; puck.y = 150; puck.vx = (Math.random() - 0.5) * 4; puck.vy = (Math.random() - 0.5) * 4;
+      playerA.x = 100; playerA.y = 150;
+      playerB.x = 500; playerB.y = 150;
     }
 
-    function updateMatch() {
-      const matchDiv = document.getElementById("match");
-      if (selectedA && selectedB) {
-        matchDiv.innerText = `${teams[selectedA].name} (Domácí) vs ${teams[selectedB].name}`;
-      } else if (selectedA) {
-        matchDiv.innerText = "Vyber hostující tým";
-      } else {
-        matchDiv.innerText = "Vyber dva týmy";
-      }
-    }
+    function update() {
+      if (!gameRunning) return;
 
-    function getGoals(att, def, isHome) {
-      let power = (att - def) / 10 + 2.8;
-      if (isHome) power += 0.5;
-      let luck = (Math.random() + Math.random() + Math.random()) / 1.5;
-      return Math.max(0, Math.round(power * luck));
-    }
+      // Jednoduché AI pro kuličky - běží k puku
+      movePlayer(playerA, puck);
+      movePlayer(playerB, puck);
 
-    async function animateScore(finalA, finalB, isSeries = false, gameNum = 0, homeSide = "", winsA = 0, winsB = 0, ot = false, winnerOT = "") {
-      const res = document.getElementById("result");
-      let curA = 0, curB = 0;
-      const duration = 7000;
+      // Pohyb puku
+      puck.x += puck.vx;
+      puck.y += puck.vy;
+      puck.vx *= 0.99; puck.vy *= 0.99; // Tření na ledě
 
-      let baseA = ot ? (winnerOT === "A" ? finalA - 1 : finalA) : finalA;
-      let baseB = ot ? (winnerOT === "B" ? finalB - 1 : finalB) : finalB;
-
-      let goals = [];
-      for(let i=0; i<baseA; i++) goals.push("A");
-      for(let i=0; i<baseB; i++) goals.push("B");
-      goals.sort(() => Math.random() - 0.5);
-
-      const interval = duration / (goals.length + (ot ? 1 : 0));
-
-      for (let i = 0; i < goals.length; i++) {
-        await new Promise(r => setTimeout(r, interval));
-        if (goals[i] === "A") curA++; else curB++;
-        updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB, ot, false);
-      }
-
-      if (ot) {
-        await new Promise(r => setTimeout(r, interval));
-        if (winnerOT === "A") curA++; else curB++;
-        updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB, ot, true);
-      }
+      // Odrazy od stěn
+      if (puck.y < 5 || puck.y > 295) puck.vy *= -1;
       
-      if (isSeries) {
-          updateDisplay(res, finalA, finalB, isSeries, gameNum, homeSide, winsA, winsB, ot, true, true);
-          await new Promise(r => setTimeout(r, 2000));
+      // Branky a góly
+      if (puck.x < 0) {
+        if (puck.y > 100 && puck.y < 200) { scoreB++; goalScored(); } 
+        else { puck.vx *= -1; puck.x = 5; }
+      }
+      if (puck.x > 600) {
+        if (puck.y > 100 && puck.y < 200) { scoreA++; goalScored(); }
+        else { puck.vx *= -1; puck.x = 595; }
+      }
+
+      // Kolize hráč vs puk
+      checkCollision(playerA);
+      checkCollision(playerB);
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function movePlayer(p, target) {
+      let dx = target.x - p.x;
+      let dy = target.y - p.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > 5) {
+        p.x += (dx/dist) * p.speed;
+        p.y += (dy/dist) * p.speed;
       }
     }
 
-    function updateDisplay(res, curA, curB, isSeries, gameNum, homeSide, winsA, winsB, ot, isDoneOT, isFinal = false) {
-      // V TELH je domácí VŽDY vlevo: Domácí vs Hosté
-      let leftTeam, rightTeam, leftScore, rightScore;
+    function checkCollision(p) {
+      let dx = puck.x - p.x;
+      let dy = puck.y - p.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < p.radius + puck.radius) {
+        puck.vx = dx * 0.5;
+        puck.vy = dy * 0.5;
+      }
+    }
+
+    function goalScored() {
+      document.getElementById("scoreText").innerText = `${scoreA}:${scoreB}`;
+      gameRunning = false;
+      setTimeout(() => { gameRunning = true; resetPositions(); update(); }, 1000);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, 600, 300);
       
-      if (homeSide === "A" || (!isSeries)) { // A je domácí (vlevo)
-          leftTeam = teams[selectedA];
-          rightTeam = teams[selectedB];
-          leftScore = curA;
-          rightScore = curB;
-      } else { // B je domácí (vlevo)
-          leftTeam = teams[selectedB];
-          rightTeam = teams[selectedA];
-          leftScore = curB;
-          rightScore = curA;
-      }
+      // Led a čáry
+      ctx.strokeStyle = "red"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 300); ctx.stroke(); // Střed
+      ctx.strokeRect(0, 100, 20, 100); ctx.strokeRect(580, 100, 20, 100); // Brankoviště
 
-      const statusText = isSeries ? `Série: ${winsA}:${winsB} - Zápas ${gameNum} (doma: ${leftTeam.name})` : (isFinal ? "KONEC" : "Zápas probíhá...");
-      const endMark = isFinal ? `<div style="text-align:center; font-weight:bold; color:#fbbf24;">KONEC${ot ? " (prod.)" : ""}</div>` : "";
+      // Puk
+      ctx.fillStyle = "black";
+      ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI*2); ctx.fill();
 
-      res.innerHTML = `
-        <div class="status-msg">${statusText}</div>
-        <div class="score-display-wrapper">
-            <img src="${leftTeam.logo}" class="score-logo">
-            <div class="score-display">${leftScore}:${rightScore}</div>
-            <img src="${rightTeam.logo}" class="score-logo">
-        </div>
-        ${endMark}
-        <div class="team-names-info">${leftTeam.name} vs ${rightTeam.name}</div>
-      `;
+      // Hráči
+      drawPlayer(playerA);
+      drawPlayer(playerB);
     }
 
-    async function simulateMatch() {
-      if (!selectedA || !selectedB || isAnimating) return;
-      isAnimating = true; toggleButtons(true);
+    function drawPlayer(p) {
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = "white"; ctx.stroke();
+    }
+
+    function startSimulatedMatch() {
+      if (!selectedA || !selectedB) return;
+      document.getElementById("rink-container").style.display = "block";
+      playerA.color = teams[selectedA].color || "red";
+      playerB.color = teams[selectedB].color || "blue";
       
-      let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, true); // A je domácí (vlevo)
-      let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, false);
-      let ot = false;
-      let winnerOT = "";
-      if (finalA === finalB) { 
-        ot = true; 
-        if (Math.random() < 0.5) { finalA++; winnerOT = "A"; } else { finalB++; winnerOT = "B"; }
-      }
+      // Upravíme rychlost podle Attack ratingu
+      playerA.speed = (teams[selectedA].attack / 100) * 3;
+      playerB.speed = (teams[selectedB].attack / 100) * 3;
 
-      await animateScore(finalA, finalB, false, 0, "A", 0, 0, ot, winnerOT);
-      updateDisplay(document.getElementById("result"), finalA, finalB, false, 0, "A", 0, 0, ot, true, true);
-      
-      isAnimating = false; toggleButtons(false);
-    }
-
-    async function startSeries(type) {
-      if (!selectedA || !selectedB || isAnimating) return;
-      isAnimating = true; toggleButtons(true);
-
-      let winTarget = type === "bo3" ? 2 : type === "bo5" ? 3 : 4;
-      let schedule = type === "bo7" ? ["A","A","B","B","A","B","A"] : 
-                     (type === "bo5" ? ["A","A","B","B","A"] : ["A","B","A"]);
-
-      let winsA = 0, winsB = 0, gameIdx = 0, history = [];
-
-      while (winsA < winTarget && winsB < winTarget) {
-        let homeSide = schedule[gameIdx]; 
-        let finalA = getGoals(teams[selectedA].attack, teams[selectedB].defense, homeSide === "A");
-        let finalB = getGoals(teams[selectedB].attack, teams[selectedA].defense, homeSide === "B");
-        let ot = false;
-        let winnerOT = "";
-        if (finalA === finalB) {
-            ot = true;
-            if (Math.random() < 0.5) { finalA++; winnerOT = "A"; } else { finalB++; winnerOT = "B"; }
-        }
-
-        await animateScore(finalA, finalB, true, gameIdx + 1, homeSide, winsA, winsB, ot, winnerOT);
-
-        if (finalA > finalB) winsA++; else winsB++;
-        history.push({game: gameIdx+1, scoreA: finalA, scoreB: finalB, ot: ot, home: homeSide});
-        renderHistory(winsA, winsB, history);
-        gameIdx++;
-      }
-
-      const winner = winsA > winsB ? teams[selectedA].name : teams[selectedB].name;
-      document.getElementById("result").innerHTML += `<div class="winner-box">🏆 VÍTĚZ SÉRIE: ${winner.toUpperCase()} (${winsA}:${winsB})</div>`;
-      isAnimating = false; toggleButtons(false);
-    }
-
-    function renderHistory(wA, wB, history) {
-      let html = `<div class="status-msg">Série probíhá</div><div class="score-display" style="font-size:2.5rem; text-align:center;">${wA}:${wB}</div>`;
-      history.forEach(h => {
-        const isAHome = h.home === "A";
-        const leftName = isAHome ? teams[selectedA].name : teams[selectedB].name;
-        const rightName = isAHome ? teams[selectedB].name : teams[selectedA].name;
-        const leftScore = isAHome ? h.scoreA : h.scoreB;
-        const rightScore = isAHome ? h.scoreB : h.scoreA;
-
-        html += `<div class="game-line">Zápas ${h.game}: ${leftName} <strong>${leftScore}:${rightScore}</strong> ${rightName} <span style="font-size:0.8rem; color:#94a3b8">${h.ot ? "(prod.)" : ""}</span></div>`;
-      });
-      document.getElementById("result").innerHTML = html;
-    }
-
-    function toggleButtons(disabled) {
-      document.querySelectorAll("button").forEach(b => b.disabled = disabled);
+      scoreA = 0; scoreB = 0;
+      document.getElementById("scoreText").innerText = "0:0";
+      document.getElementById("status").innerText = "Zápas v plném proudu!";
+      gameRunning = true;
+      resetPositions();
+      update();
     }
 
     renderTeams();
