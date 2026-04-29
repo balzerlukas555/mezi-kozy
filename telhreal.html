@@ -87,6 +87,8 @@
 
     .score-display { font-size: 3.5rem; font-weight: bold; color: #38bdf8; text-align: center; }
 
+    #timer { font-size: 1.5rem; color: #fbbf24; font-weight: bold; margin-bottom: 5px; }
+
     @media (min-width: 600px) { .team { width: 85px; padding: 10px; } h1 { font-size: 2.5rem; } }
   </style>
 </head>
@@ -111,28 +113,29 @@
   </div>
 
   <div id="result">
+    <div id="timer">01:00</div>
     <div id="scoreText" class="score-display">0:0</div>
     <div id="status" style="font-style: italic; color: #94a3b8;">Vyber týmy a začni hru</div>
   </div>
 
   <script>
     const teams = {
-      pardubice: { name: "HC Dynamo Pardubice", attack: 94, defense: 91, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1", color: "#ce0000" },
-      sparta: { name: "HC Sparta Praha", attack: 85, defense: 81, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fwueb1-spa.png&w=120&h=120&exact=1", color: "#800000" },
-      trinec: { name: "HC Oceláři Třinec", attack: 87, defense: 82, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fccek3-tri.png&w=120&h=120&exact=1", color: "#ff0000" },
-      mountfield: { name: "Mountfield HK", attack: 86, defense: 88, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fj9qyt-hkr.png&w=120&h=120&exact=1", color: "#000" },
-      vitkovice: { name: "HC Vítkovice Ridera", attack: 77, defense: 74, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F65gcx-vit.png&w=120&h=120&exact=1", color: "#0056a0" },
-      kometa: { name: "HC Kometa Brno", attack: 83, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F8oo52-kom.png&w=120&h=120&exact=1", color: "#003399" },
-      boleslav: { name: "BK Mladá Boleslav", attack: 80, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fk1yj3-mbl.png&w=120&h=120&exact=1", color: "#008000" },
-      litvinov: { name: "HC Verva Litvínov", attack: 76, defense: 72, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fifboo-lit.png&w=120&h=120&exact=1", color: "#ffcc00" },
-      liberec: { name: "Bílí Tygři Liberec", attack: 89, defense: 86, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fi5lg4-lib.png&w=120&h=120&exact=1", color: "#005aab" },
-      olomouc: { name: "HC Olomouc", attack: 78, defense: 76, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fy4tmv-olo.png&w=120&h=120&exact=1", color: "#ff0000" },
-      plzen: { name: "HC Škoda Plzeň", attack: 88, defense: 93, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fpijgb-plz.png&w=120&h=120&exact=1", color: "#0056a0" },
-      karlovy_vary: { name: "HC Energie Karlovy Vary", attack: 83, defense: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F98xoj-kva.png&w=120&h=120&exact=1", color: "#000" },
-      kladno: { name: "Rytíři Kladno", attack: 79, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1", color: "#004a8d" },
-      ceske_budejovice: { name: "Motor České Budějovice", attack: 82, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1", color: "#ffff00" },
-      jihlava: { name: "HC Dukla Jihlava", attack: 72, defense: 69, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FJIH-2x.png&w=120&h=120&exact=1", color: "#800000" },
-      zlin: { name: "Rl Okna Berani Zlín", attack: 67, defense: 70, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FZLN-2x.png&w=120&h=120&exact=1", color: "#003399" }
+      pardubice: { name: "HC Dynamo Pardubice", attack: 94, defense: 91, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1", homeColor: "#ce0000", awayColor: "#ffffff" },
+      sparta: { name: "HC Sparta Praha", attack: 85, defense: 81, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fwueb1-spa.png&w=120&h=120&exact=1", homeColor: "#800000", awayColor: "#ffcc00" },
+      trinec: { name: "HC Oceláři Třinec", attack: 87, defense: 82, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fccek3-tri.png&w=120&h=120&exact=1", homeColor: "#ff0000", awayColor: "#ffffff" },
+      mountfield: { name: "Mountfield HK", attack: 86, defense: 88, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fj9qyt-hkr.png&w=120&h=120&exact=1", homeColor: "#000000", awayColor: "#ff0000" },
+      vitkovice: { name: "HC Vítkovice Ridera", attack: 77, defense: 74, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F65gcx-vit.png&w=120&h=120&exact=1", homeColor: "#0056a0", awayColor: "#ffffff" },
+      kometa: { name: "HC Kometa Brno", attack: 83, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F8oo52-kom.png&w=120&h=120&exact=1", homeColor: "#003399", awayColor: "#ffffff" },
+      boleslav: { name: "BK Mladá Boleslav", attack: 80, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fk1yj3-mbl.png&w=120&h=120&exact=1", homeColor: "#008000", awayColor: "#ffffff" },
+      litvinov: { name: "HC Verva Litvínov", attack: 76, defense: 72, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fifboo-lit.png&w=120&h=120&exact=1", homeColor: "#ffcc00", awayColor: "#000000" },
+      liberec: { name: "Bílí Tygři Liberec", attack: 89, defense: 86, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fi5lg4-lib.png&w=120&h=120&exact=1", homeColor: "#005aab", awayColor: "#ffffff" },
+      olomouc: { name: "HC Olomouc", attack: 78, defense: 76, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fy4tmv-olo.png&w=120&h=120&exact=1", homeColor: "#ff0000", awayColor: "#ffffff" },
+      plzen: { name: "HC Škoda Plzeň", attack: 88, defense: 93, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2Fpijgb-plz.png&w=120&h=120&exact=1", homeColor: "#0056a0", awayColor: "#ffffff" },
+      karlovy_vary: { name: "HC Energie Karlovy Vary", attack: 83, defense: 84, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F98xoj-kva.png&w=120&h=120&exact=1", homeColor: "#000000", awayColor: "#ffffff" },
+      kladno: { name: "Rytíři Kladno", attack: 79, defense: 80, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1", homeColor: "#004a8d", awayColor: "#ffffff" },
+      ceske_budejovice: { name: "Motor České Budějovice", attack: 82, defense: 78, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1", homeColor: "#ffff00", awayColor: "#cc0000" },
+      jihlava: { name: "HC Dukla Jihlava", attack: 72, defense: 69, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FJIH-2x.png&w=120&h=120&exact=1", homeColor: "#800000", awayColor: "#ffcc00" },
+      zlin: { name: "Rl Okna Berani Zlín", attack: 67, defense: 70, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FZLN-2x.png&w=120&h=120&exact=1", homeColor: "#003399", awayColor: "#ffff00" }
     };
 
     const canvas = document.getElementById("hockeyRink");
@@ -140,8 +143,13 @@
     let selectedA = null, selectedB = null;
     let scoreA = 0, scoreB = 0;
     let gameRunning = false;
+    let timeLeft = 60;
+    let timerInterval = null;
 
-    // Fyzika a objekty
+    // Pro detekci záseku
+    let lastPuckPos = { x: 0, y: 0 };
+    let stuckCounter = 0;
+
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5 };
     let playerA = { x: 100, y: 150, color: "red", radius: 12, speed: 2.5 };
     let playerB = { x: 500, y: 150, color: "blue", radius: 12, speed: 2.5 };
@@ -153,6 +161,7 @@
         div.classList.add("team");
         div.innerHTML = `<img src="${teams[key].logo}" alt="${teams[key].name}">`;
         div.onclick = () => {
+            if (gameRunning) return;
             if (!selectedA) { selectedA = key; div.classList.add("selected"); }
             else if (!selectedB && key !== selectedA) { selectedB = key; div.classList.add("selected"); }
             else { 
@@ -170,6 +179,7 @@
       puck.x = 300; puck.y = 150; puck.vx = (Math.random() - 0.5) * 5; puck.vy = (Math.random() - 0.5) * 5;
       playerA.x = 100; playerA.y = 150;
       playerB.x = 500; playerB.y = 150;
+      stuckCounter = 0;
     }
 
     function update() {
@@ -180,13 +190,21 @@
 
       puck.x += puck.vx;
       puck.y += puck.vy;
-      puck.vx *= 0.985; puck.vy *= 0.985; // Tření
+      puck.vx *= 0.985; puck.vy *= 0.985; 
 
-      // Mantinely - horní a dolní
+      // Detekce záseku (pokud se puk skoro nehýbe)
+      let distMoved = Math.sqrt(Math.pow(puck.x - lastPuckPos.x, 2) + Math.pow(puck.y - lastPuckPos.y, 2));
+      if (distMoved < 0.5) stuckCounter++; else stuckCounter = 0;
+      lastPuckPos = { x: puck.x, y: puck.y };
+
+      if (stuckCounter > 150) { // Cca 2.5 sekundy při 60fps
+        document.getElementById("status").innerText = "Buly!";
+        resetPositions();
+      }
+
       if (puck.y - puck.radius < 0) { puck.y = puck.radius; puck.vy *= -1; }
       if (puck.y + puck.radius > 300) { puck.y = 300 - puck.radius; puck.vy *= -1; }
       
-      // Mantinely - boční a góly
       if (puck.x - puck.radius < 0) {
         if (puck.y > 100 && puck.y < 200) { scoreB++; goalScored(); } 
         else { puck.x = puck.radius; puck.vx *= -1; }
@@ -211,7 +229,6 @@
         p.x += (dx/dist) * p.speed;
         p.y += (dy/dist) * p.speed;
       }
-      // Hráč nesmí vyjet z hřiště
       p.x = Math.max(p.radius, Math.min(600 - p.radius, p.x));
       p.y = Math.max(p.radius, Math.min(300 - p.radius, p.y));
     }
@@ -230,27 +247,28 @@
 
     function goalScored() {
       document.getElementById("scoreText").innerText = `${scoreA}:${scoreB}`;
+      document.getElementById("status").innerText = "GÓÓÓL!";
       gameRunning = false;
-      setTimeout(() => { gameRunning = true; resetPositions(); update(); }, 1200);
+      if (timeLeft > 0) {
+        setTimeout(() => { 
+          if (timeLeft > 0) {
+            gameRunning = true; 
+            document.getElementById("status").innerText = "Zápas v plném proudu!";
+            resetPositions(); 
+            update(); 
+          }
+        }, 1200);
+      }
     }
 
     function draw() {
       ctx.clearRect(0, 0, 600, 300);
-      
-      // Led a čáry
       ctx.strokeStyle = "rgba(255, 0, 0, 0.3)"; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 300); ctx.stroke(); // Střed
-      
+      ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 300); ctx.stroke(); 
       ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2;
-      ctx.strokeRect(0, 100, 30, 100); ctx.strokeRect(570, 100, 30, 100); // Brankoviště
-
-      // Puk
-      ctx.shadowBlur = 5; ctx.shadowColor = "black";
+      ctx.strokeRect(0, 100, 30, 100); ctx.strokeRect(570, 100, 30, 100); 
       ctx.fillStyle = "#111";
       ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI*2); ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // Hráči
       drawPlayer(playerA);
       drawPlayer(playerB);
     }
@@ -261,24 +279,42 @@
       ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
     }
 
+    function updateTimer() {
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        gameRunning = false;
+        document.getElementById("status").innerText = "KONEC ZÁPASU!";
+        document.getElementById("simBtn").disabled = false;
+        return;
+      }
+      timeLeft--;
+      let m = Math.floor(timeLeft / 60);
+      let s = timeLeft % 60;
+      document.getElementById("timer").innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
     function startSimulatedMatch() {
       if (!selectedA || !selectedB) return;
-      
-      // Zobrazení wrapperu a log
+      document.getElementById("simBtn").disabled = true;
       document.getElementById("gameWrapper").style.display = "flex";
       document.getElementById("rink-container").style.display = "block";
       document.getElementById("homeLogoContainer").innerHTML = `<img src="${teams[selectedA].logo}" alt="Home">`;
       document.getElementById("awayLogoContainer").innerHTML = `<img src="${teams[selectedB].logo}" alt="Away">`;
       
-      playerA.color = teams[selectedA].color || "red";
-      playerB.color = teams[selectedB].color || "blue";
+      playerA.color = teams[selectedA].homeColor; // Domácí barva
+      playerB.color = teams[selectedB].awayColor; // Hostující barva
       
       playerA.speed = (teams[selectedA].attack / 100) * 3.2;
       playerB.speed = (teams[selectedB].attack / 100) * 3.2;
 
-      scoreA = 0; scoreB = 0;
+      scoreA = 0; scoreB = 0; timeLeft = 60;
       document.getElementById("scoreText").innerText = "0:0";
+      document.getElementById("timer").innerText = "01:00";
       document.getElementById("status").innerText = "Zápas v plném proudu!";
+      
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+
       gameRunning = true;
       resetPositions();
       update();
