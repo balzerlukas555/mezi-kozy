@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extraliga Sim 9.0</title>
+  <title>Extraliga simulátor - 2D Engine PRO v8.2 (Smooth Edition)</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -143,15 +143,16 @@
     let isOvertime = false;
     const rinkLogo = new Image();
 
-    let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false };
+    let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false, passLock: 0 };
     
-    let playerA1 = { x: 150, y: 100, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 1, role: 'forward' };
-    let playerA2 = { x: 150, y: 200, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 2, role: 'forward' };
-    let playerA3 = { x: 80,  y: 150, color: "red", radius: 12, baseSpeed: 1.0, side: 'A', id: 3, role: 'defender' };
+    // Rozšíření hráče o decisionTimer a currentAction
+    let playerA1 = { x: 150, y: 100, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerA2 = { x: 150, y: 200, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerA3 = { x: 80,  y: 150, color: "red", radius: 12, baseSpeed: 1.0, side: 'A', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
 
-    let playerB1 = { x: 450, y: 100, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 1, role: 'forward' };
-    let playerB2 = { x: 450, y: 200, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 2, role: 'forward' };
-    let playerB3 = { x: 520, y: 150, color: "blue", radius: 12, baseSpeed: 1.0, side: 'B', id: 3, role: 'defender' };
+    let playerB1 = { x: 450, y: 100, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerB2 = { x: 450, y: 200, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerB3 = { x: 520, y: 150, color: "blue", radius: 12, baseSpeed: 1.0, side: 'B', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
 
     let goalieA = { x: 25, y: 150, radius: 14, color: "red", side: 'A' };
     let goalieB = { x: 575, y: 150, radius: 14, color: "blue", side: 'B' };
@@ -183,12 +184,17 @@
     function resetPositions() {
       puck.x = 300; puck.y = 150; 
       puck.vx = 0; puck.vy = 0;
-      puck.owner = null; puck.isShot = false;
+      puck.owner = null; puck.isShot = false; puck.passLock = 0;
       
       let homeSide = (currentPeriod === 2 && !isOvertime) ? 450 : 150;
       let awaySide = (currentPeriod === 2 && !isOvertime) ? 150 : 450;
       let homeDef  = (currentPeriod === 2 && !isOvertime) ? 520 : 80;
       let awayDef  = (currentPeriod === 2 && !isOvertime) ? 80 : 520;
+
+      [playerA1, playerA2, playerA3, playerB1, playerB2, playerB3].forEach(p => {
+          p.decisionTimer = 0;
+          p.currentAction = 'move';
+      });
 
       playerA1.x = 280; playerA1.y = 150;
       playerA2.x = homeSide; playerA2.y = 220;
@@ -214,6 +220,8 @@
     function update() {
       if (!gameRunning) return;
 
+      if (puck.passLock > 0) puck.passLock--;
+
       if (Math.abs(puck.x - lastPuckX) < 0.2 && Math.abs(puck.y - lastPuckY) < 0.2) {
           globalStuckTimer++;
           if (globalStuckTimer > 180) { resetPositions(); document.getElementById("status").innerText = "Nové buly!"; }
@@ -230,7 +238,7 @@
           let speed = (puck.owner === p) ? p.baseSpeed : p.baseSpeed * 1.25;
           let attackRight = (p.side === 'A' && (currentPeriod !== 2 || isOvertime)) || (p.side === 'B' && currentPeriod === 2 && !isOvertime);
 
-          // ANTI-CLUMPING: Odpuzování od spoluhráčů
+          // ANTI-CLUMPING
           teammates.forEach(tm => {
               let d = getDistance(p, tm);
               if (d < 50) {
@@ -242,25 +250,32 @@
 
           if (puck.owner === p) {
               let targetGoalX = attackRight ? 600 : 0;
-              if (p.role === 'defender') {
-                  let maxAdvance = attackRight ? 420 : 180;
-                  if (attackRight && p.x > maxAdvance) targetGoalX = maxAdvance;
-                  if (!attackRight && p.x < maxAdvance) targetGoalX = maxAdvance;
+              
+              // ROZHODOVACÍ LOGIKA S COOLDOWNEM
+              if (p.decisionTimer <= 0) {
+                  let passChance = (p.role === 'defender' && Math.abs(p.x - (attackRight?0:600)) < 250) ? 0.6 : 0.3;
+                  p.currentAction = (Math.random() < passChance) ? 'pass' : 'move';
+                  p.decisionTimer = 60 + Math.random() * 40; // Rozhodne se jednou za cca 1-1.5 sekundy
               }
+              p.decisionTimer--;
 
-              let bestTarget = teammates.reduce((prev, curr) => {
-                  let dPrev = Math.abs(prev.x - (attackRight ? 600 : 0));
-                  let dCurr = Math.abs(curr.x - (attackRight ? 600 : 0));
-                  return dCurr < dPrev ? curr : prev;
-              });
-
-              let passChance = (p.role === 'defender' && Math.abs(p.x - (attackRight?0:600)) < 250) ? 0.12 : 0.05;
-
-              if (Math.random() < passChance) {
-                  passPuck(p, bestTarget);
+              if (p.currentAction === 'pass') {
+                  let bestTarget = teammates.reduce((prev, curr) => {
+                      let dPrev = Math.abs(prev.x - (attackRight ? 600 : 0));
+                      let dCurr = Math.abs(curr.x - (attackRight ? 600 : 0));
+                      return dCurr < dPrev ? curr : prev;
+                  });
+                  passPuck(p, bestTarget, opponents);
+                  p.currentAction = 'move'; // Po nahrávce se resetuje
               } else {
+                  if (p.role === 'defender') {
+                      let maxAdvance = attackRight ? 420 : 180;
+                      if (attackRight && p.x > maxAdvance) targetGoalX = maxAdvance;
+                      if (!attackRight && p.x < maxAdvance) targetGoalX = maxAdvance;
+                  }
                   moveWithPuckComplex(p, targetGoalX, 150, getClosest(p, opponents), speed);
               }
+              
               puck.x = attackRight ? p.x + 12 : p.x - 12;
               puck.y = p.y;
           } 
@@ -294,7 +309,7 @@
 
       if (!puck.owner) {
           puck.x += puck.vx; puck.y += puck.vy;
-          puck.vx *= 0.98; puck.vy *= 0.98; // Mírně vyšší tření pro pomalejší puk
+          puck.vx *= 0.98; puck.vy *= 0.98;
       }
 
       goalieA.y = 150 + (puck.y - 150) * 0.35;
@@ -320,12 +335,22 @@
     function getDistance(p1, p2) { return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)); }
     function getClosest(p, list) { return list.reduce((prev, curr) => getDistance(p, curr) < getDistance(p, prev) ? curr : prev); }
 
-    function passPuck(from, to) {
+    function passPuck(from, to, opponents) {
         puck.owner = null;
         let angle = Math.atan2(to.y - from.y, to.x - from.x);
-        puck.vx = Math.cos(angle) * 7.5; // Zpomalená nahrávka
+        puck.vx = Math.cos(angle) * 7.5;
         puck.vy = Math.sin(angle) * 7.5;
-        document.getElementById("status").innerText = "Přihrávka!";
+        
+        // LOGIKA PROTUNELOVÁNÍ: Pokud je soupeř příliš blízko, puk ho "podjede"
+        let closestOpp = getClosest(from, opponents);
+        if (getDistance(from, closestOpp) < 30) {
+            if (Math.random() < 0.8) {
+                puck.passLock = 15; // Puk nelze sebrat po dobu 15 snímků
+                document.getElementById("status").innerText = "Pod hokejkou!";
+            }
+        } else {
+            document.getElementById("status").innerText = "Přihrávka!";
+        }
     }
 
     function movePlayerToPoint(p, tx, ty, speed) {
@@ -351,6 +376,8 @@
     }
 
     function checkInteraction(p, others) {
+      if (puck.passLock > 0) return; // Puk je v "letu" pod hokejkou
+
       if (!puck.owner && !puck.isShot) {
         if (getDistance(p, puck) < p.radius + 6 && Math.random() > 0.1) puck.owner = p;
       }
@@ -371,7 +398,7 @@
       if (getDistance(g, puck) < g.radius + puck.radius) {
         let gkStat = (g.side === 'A' ? teams[selectedA].goalkeeper : teams[selectedB].goalkeeper);
         if (Math.random() * 115 < gkStat) {
-          puck.isShot = false; puck.owner = null;
+          puck.isShot = false; puck.owner = null; puck.passLock = 0;
           puck.vx *= -0.8; puck.vy += (Math.random() - 0.5) * 8;
           document.getElementById("status").innerText = "Zákrok!";
           puck.x += (g.x < 300 ? 15 : -15);
@@ -383,10 +410,10 @@
       if (!puck.owner || puck.isShot) return;
       let stats = (p.side === 'A' ? teams[selectedA] : teams[selectedB]);
       if (Math.random() * 100 < stats.attack * 0.065) {
-        puck.isShot = true; puck.owner = null;
+        puck.isShot = true; puck.owner = null; puck.passLock = 0;
         let targetY = 150 + (Math.random() - 0.5) * 90; 
         let angle = Math.atan2(targetY - p.y, goalX - p.x);
-        puck.vx = Math.cos(angle) * 10; // Zpomalená střela
+        puck.vx = Math.cos(angle) * 10;
         puck.vy = Math.sin(angle) * 10;
         document.getElementById("status").innerText = "Střela!";
       }
@@ -504,7 +531,6 @@
       [playerA1, playerA2, playerA3, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
       [playerB1, playerB2, playerB3, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
       
-      // Upravený výpočet rychlosti (snížené koeficienty)
       const s1 = 0.8 + (teams[selectedA].attack / 150);
       const s2 = 0.8 + (teams[selectedB].attack / 150);
       playerA1.baseSpeed = playerA2.baseSpeed = s1; playerA3.baseSpeed = s1 * 0.85;
