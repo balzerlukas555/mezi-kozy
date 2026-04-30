@@ -306,10 +306,21 @@
 
     function updateScoreDisplay() {
         let sideInversion = (currentPeriod === 2 && !isOvertime);
-        if (!sideInversion) {
-            document.getElementById("scoreText").innerText = `${scoreA}:${scoreB}`;
+        
+        // ZRCADLENÍ SKÓRE PRO UI: Pokud je domácím týmem B, zobrazujeme skóre zrcadlově
+        if (currentHomeSide === "A") {
+            if (!sideInversion) {
+                document.getElementById("scoreText").innerText = `${scoreA}:${scoreB}`;
+            } else {
+                document.getElementById("scoreText").innerText = `${scoreB}:${scoreA}`;
+            }
         } else {
-            document.getElementById("scoreText").innerText = `${scoreB}:${scoreA}`;
+            // Domácí je B -> pro uživatele je skóre "vyměněné" vůči grafice enginu
+            if (!sideInversion) {
+                document.getElementById("scoreText").innerText = `${scoreB}:${scoreA}`;
+            } else {
+                document.getElementById("scoreText").innerText = `${scoreA}:${scoreB}`;
+            }
         }
     }
 
@@ -671,6 +682,7 @@
     function startSimulatedMatch() {
       currentGameInSeries++;
       
+      // URČENÍ DOMÁCÍHO TÝMU (Kdo má barvy a logo na ledě)
       if (targetWins === 2) { 
           currentHomeSide = (currentGameInSeries === 2) ? "B" : "A";
       } else if (targetWins === 3) { 
@@ -718,19 +730,25 @@
     }
 
     function finishMatch() {
-        let finalScore = `${scoreA}:${scoreB}`;
-        
-        // DETEKCE VÍTĚZE: Body se nyní přičítají týmu A nebo B podle toho, kdo dal v zápase více gólů
-        if (scoreA > scoreB) {
-            winsA++; 
-        } else if (scoreB > scoreA) {
-            winsB++;
+        // ZRCADLOVÉ PŘIŘAZENÍ SKÓRE A VÝHER PRO SÉRII
+        // V enginu je scoreA vždy Tým 1 a scoreB vždy Tým 2
+        // Pokud je domácí B, musíme to pro zápis do série otočit (zrcadlit)
+        let finalDisplayScore;
+        if (currentHomeSide === "A") {
+            finalDisplayScore = `${scoreA}:${scoreB}`;
+            if (scoreA > scoreB) winsA++; else winsB++;
+        } else {
+            // Hraje se u týmu B (Kladno), takže výsledek v enginu scoreB:scoreA je ve skutečnosti pro sérii skóre týmu B
+            finalDisplayScore = `${scoreB}:${scoreA}`; // Zrcadlové zobrazení pro sérii Tým A vs Tým B
+            if (scoreB > scoreA) winsB++; else winsA++;
         }
 
         if (winsA < targetWins && winsB < targetWins) {
             const overlay = document.getElementById("series-overlay");
             const content = document.getElementById("overlay-content");
-            content.innerHTML = `Konec ${currentGameInSeries}. zápasu<br><span style="color:#fbbf24">${finalScore}</span><br><br><span style="font-size: 1.1rem; color: #38bdf8">Stav série: ${winsA}:${winsB}</span>`;
+            // V overlayi vždy ukazujeme skóre z pohledu série (A:B)
+            let seriesScoreToShow = currentHomeSide === "A" ? `${scoreA}:${scoreB}` : `${scoreA}:${scoreB}`;
+            content.innerHTML = `Konec ${currentGameInSeries}. zápasu<br><span style="color:#fbbf24">${seriesScoreToShow}</span><br><br><span style="font-size: 1.1rem; color: #38bdf8">Stav série: ${winsA}:${winsB}</span>`;
             overlay.style.display = "block";
 
             setTimeout(() => {
