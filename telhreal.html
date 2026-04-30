@@ -145,13 +145,15 @@
 
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false, passLock: 0 };
     
-    let playerA1 = { x: 150, y: 100, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
-    let playerA2 = { x: 150, y: 200, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerA1 = { x: 150, y: 150, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerA2 = { x: 150, y: 100, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerA5 = { x: 150, y: 200, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 5, role: 'forward', decisionTimer: 0, currentAction: 'move' };
     let playerA3 = { x: 80,  y: 120, color: "red", radius: 12, baseSpeed: 1.0, side: 'A', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
     let playerA4 = { x: 80,  y: 180, color: "red", radius: 12, baseSpeed: 1.0, side: 'A', id: 4, role: 'defender', decisionTimer: 0, currentAction: 'move' };
 
-    let playerB1 = { x: 450, y: 100, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
-    let playerB2 = { x: 450, y: 200, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerB1 = { x: 450, y: 150, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerB2 = { x: 450, y: 100, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerB5 = { x: 450, y: 200, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 5, role: 'forward', decisionTimer: 0, currentAction: 'move' };
     let playerB3 = { x: 520, y: 120, color: "blue", radius: 12, baseSpeed: 1.0, side: 'B', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
     let playerB4 = { x: 520, y: 180, color: "blue", radius: 12, baseSpeed: 1.0, side: 'B', id: 4, role: 'defender', decisionTimer: 0, currentAction: 'move' };
 
@@ -187,25 +189,29 @@
       puck.vx = 0; puck.vy = 0;
       puck.owner = null; puck.isShot = false; puck.passLock = 0;
       
-      let homeSide = (currentPeriod === 2 && !isOvertime) ? 450 : 150;
-      let awaySide = (currentPeriod === 2 && !isOvertime) ? 150 : 450;
-      let homeDef  = (currentPeriod === 2 && !isOvertime) ? 520 : 80;
-      let awayDef  = (currentPeriod === 2 && !isOvertime) ? 80 : 520;
+      let homeFwdX = (currentPeriod === 2 && !isOvertime) ? 450 : 150;
+      let awayFwdX = (currentPeriod === 2 && !isOvertime) ? 150 : 450;
+      let homeDefX = (currentPeriod === 2 && !isOvertime) ? 520 : 80;
+      let awayDefX = (currentPeriod === 2 && !isOvertime) ? 80 : 520;
 
-      [playerA1, playerA2, playerA3, playerA4, playerB1, playerB2, playerB3, playerB4].forEach(p => {
+      [playerA1, playerA2, playerA3, playerA4, playerA5, playerB1, playerB2, playerB3, playerB4, playerB5].forEach(p => {
           p.decisionTimer = 0;
           p.currentAction = 'move';
       });
 
-      playerA1.x = 280; playerA1.y = 150;
-      playerA2.x = homeSide; playerA2.y = 220;
-      playerA3.x = homeDef;  playerA3.y = 120;
-      playerA4.x = homeDef;  playerA4.y = 180;
+      // Tým A formace
+      playerA1.x = (currentPeriod === 2 && !isOvertime) ? 320 : 280; playerA1.y = 150; // Centr
+      playerA2.x = homeFwdX; playerA2.y = 100; // Levice
+      playerA5.x = homeFwdX; playerA5.y = 200; // Pravice
+      playerA3.x = homeDefX; playerA3.y = 120; // Obránce 1
+      playerA4.x = homeDefX; playerA4.y = 180; // Obránce 2
 
-      playerB1.x = 320; playerB1.y = 150;
-      playerB2.x = awaySide; playerB2.y = 80;
-      playerB3.x = awayDef;  playerB3.y = 120;
-      playerB4.x = awayDef;  playerB4.y = 180;
+      // Tým B formace
+      playerB1.x = (currentPeriod === 2 && !isOvertime) ? 280 : 320; playerB1.y = 150; // Centr
+      playerB2.x = awayFwdX; playerB2.y = 200; // Pravice (z pohledu buly)
+      playerB5.x = awayFwdX; playerB5.y = 100; // Levice (z pohledu buly)
+      playerB3.x = awayDefX; playerB3.y = 120; // Obránce 1
+      playerB4.x = awayDefX; awayDefX; playerB4.y = 180; // Obránce 2
 
       globalStuckTimer = 0;
     }
@@ -244,8 +250,8 @@
       } else { globalStuckTimer = 0; }
       lastPuckX = puck.x; lastPuckY = puck.y;
 
-      const teamA = [playerA1, playerA2, playerA3, playerA4];
-      const teamB = [playerB1, playerB2, playerB3, playerB4];
+      const teamA = [playerA1, playerA2, playerA3, playerA4, playerA5];
+      const teamB = [playerB1, playerB2, playerB3, playerB4, playerB5];
       const allPlayers = [...teamA, ...teamB];
 
       allPlayers.forEach(p => {
@@ -310,7 +316,10 @@
               } else {
                   if (puck.owner && puck.owner.side === p.side) {
                       let targetGoalX = attackRight ? 480 : 120;
-                      movePlayerToPoint(p, targetGoalX, 150 + (p.id === 1 ? -80 : 80), speed);
+                      let offset = 0;
+                      if(p.id === 2) offset = -80;
+                      if(p.id === 5) offset = 80;
+                      movePlayerToPoint(p, targetGoalX, 150 + offset, speed);
                   } else {
                       movePlayerToPoint(p, puck.x, puck.y, speed);
                   }
@@ -481,7 +490,7 @@
       ctx.fillStyle = "#111";
       ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI*2); ctx.fill();
       
-      [playerA1, playerA2, playerA3, playerA4, playerB1, playerB2, playerB3, playerB4].forEach(drawPlayer);
+      [playerA1, playerA2, playerA3, playerA4, playerA5, playerB1, playerB2, playerB3, playerB4, playerB5].forEach(drawPlayer);
       drawGoalie(goalieA); drawGoalie(goalieB);
     }
 
@@ -541,13 +550,13 @@
       document.getElementById("rink-container").style.display = "block";
       currentPeriod = 1; isOvertime = false;
       updateSidesDisplay();
-      [playerA1, playerA2, playerA3, playerA4, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
-      [playerB1, playerB2, playerB3, playerB4, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
+      [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
+      [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
       
       const s1 = 0.8 + (teams[selectedA].attack / 150);
       const s2 = 0.8 + (teams[selectedB].attack / 150);
-      playerA1.baseSpeed = playerA2.baseSpeed = s1; playerA3.baseSpeed = playerA4.baseSpeed = s1 * 0.85;
-      playerB1.baseSpeed = playerB2.baseSpeed = s2; playerB3.baseSpeed = playerB4.baseSpeed = s2 * 0.85;
+      playerA1.baseSpeed = playerA2.baseSpeed = playerA5.baseSpeed = s1; playerA3.baseSpeed = playerA4.baseSpeed = s1 * 0.85;
+      playerB1.baseSpeed = playerB2.baseSpeed = playerB5.baseSpeed = s2; playerB3.baseSpeed = playerB4.baseSpeed = s2 * 0.85;
       
       scoreA = 0; scoreB = 0; timeLeft = 30;
       document.getElementById("scoreText").innerText = "0:0";
