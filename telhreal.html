@@ -79,6 +79,8 @@
     }
 
     .button-container { margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    
+    .bo-buttons { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
 
     button {
       padding: 10px 20px; font-size: 15px; cursor: pointer; background-color: #f1f5f9;
@@ -136,7 +138,12 @@
   <div id="match">Vyber dva týmy</div>
 
   <div class="button-container">
-    <button id="simBtn" onclick="startSimulatedMatch()">Simulovat zápas</button>
+    <button id="simBtn" onclick="initSeries(1)">Simulovat zápas</button>
+    <div class="bo-buttons">
+        <button id="bo3Btn" onclick="initSeries(2)">Série BO3</button>
+        <button id="bo5Btn" onclick="initSeries(3)">Série BO5</button>
+        <button id="bo7Btn" onclick="initSeries(4)">Série BO7</button>
+    </div>
   </div>
 
   <div class="game-wrapper" id="gameWrapper" style="display: none;">
@@ -188,6 +195,13 @@
     let timerInterval = null;
     let isOvertime = false;
     const rinkLogo = new Image();
+
+    // Logika Séries
+    let winsA = 0;
+    let winsB = 0;
+    let targetWins = 1;
+    let currentGameInSeries = 0;
+    let currentHomeSide = "A";
 
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false, passLock: 0 };
     
@@ -514,7 +528,7 @@
       if (isOvertime) {
           clearInterval(timerInterval);
           document.getElementById("status").innerText = "KONEC PRODLOUŽENÍ!";
-          document.getElementById("simBtn").disabled = false;
+          setTimeout(finishMatch, 2000);
           return;
       }
       setTimeout(() => { if (timeLeft > 0) { resetPositions(); gameRunning = true; update(); } }, 1200);
@@ -579,7 +593,7 @@
           } else {
               clearInterval(timerInterval);
               document.getElementById("status").innerText = "KONEC ZÁPASU!";
-              document.getElementById("simBtn").disabled = false;
+              setTimeout(finishMatch, 2000);
           }
           return;
       }
@@ -588,16 +602,49 @@
       document.getElementById("timer").innerText = isOvertime ? "NÁHLÁ SMRT" : `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
-    function startSimulatedMatch() {
+    // --- LOGIKA SÉRIÍ (BO) ---
+
+    function initSeries(type) {
       if (!selectedA || !selectedB) return;
+      
+      winsA = 0;
+      winsB = 0;
+      currentGameInSeries = 0;
+      targetWins = type; // 1 = jeden zapas, 2 = BO3, 3 = BO5, 4 = BO7
+
       document.getElementById("simBtn").disabled = true;
+      document.getElementById("bo3Btn").disabled = true;
+      document.getElementById("bo5Btn").disabled = true;
+      document.getElementById("bo7Btn").disabled = true;
+
+      startSimulatedMatch();
+    }
+
+    function startSimulatedMatch() {
+      currentGameInSeries++;
+      
+      // Určení domácího týmu podle rozpisu
+      // BO3: A, B, A
+      // BO5: A, A, B, B, A
+      // BO7: A, A, B, B, A, B, A
+      if (targetWins === 2) { // BO3
+          currentHomeSide = [1, 3].includes(currentGameInSeries) ? "A" : "B";
+      } else if (targetWins === 3) { // BO5
+          currentHomeSide = [1, 2, 5].includes(currentGameInSeries) ? "A" : "B";
+      } else if (targetWins === 4) { // BO7
+          currentHomeSide = [1, 2, 5, 7].includes(currentGameInSeries) ? "A" : "B";
+      } else {
+          currentHomeSide = "A";
+      }
+
       document.getElementById("gameWrapper").style.display = "flex";
       document.getElementById("rink-container").style.display = "block";
       currentPeriod = 1; isOvertime = false;
-      
       scoreA = 0; scoreB = 0; timeLeft = 30;
+      
       updateSidesDisplay();
 
+      // Barvy a rychlost (vždy podle týmu A a B, bez ohledu na to kdo je doma)
       [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
       [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
       
@@ -606,10 +653,40 @@
       playerA1.baseSpeed = playerA2.baseSpeed = playerA5.baseSpeed = s1; playerA3.baseSpeed = playerA4.baseSpeed = s1 * 0.85;
       playerB1.baseSpeed = playerB2.baseSpeed = playerB5.baseSpeed = s2; playerB3.baseSpeed = playerB4.baseSpeed = s2 * 0.85;
       
+      let homeName = currentHomeSide === "A" ? teams[selectedA].name : teams[selectedB].name;
+      document.getElementById("status").innerText = "Zápas č." + currentGameInSeries + " (Domácí: " + homeName + ")";
+      if(targetWins > 1) {
+          document.getElementById("match").innerText = teams[selectedA].name + " [" + winsA + ":" + winsB + "] " + teams[selectedB].name;
+      }
+
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(updateTimer, 1000);
       gameRunning = true; resetPositions(); update();
     }
+
+    function finishMatch() {
+        if (scoreA > scoreB) winsA++; else winsB++;
+
+        if (winsA < targetWins && winsB < targetWins) {
+            // Série pokračuje
+            startSimulatedMatch();
+        } else {
+            // Konec série nebo zápasu
+            let winner = winsA > winsB ? teams[selectedA].name : teams[selectedB].name;
+            if (targetWins > 1) {
+                document.getElementById("status").innerHTML = "<strong style='color:#fbbf24'>VÍTĚZ SÉRIE: " + winner.toUpperCase() + " (" + winsA + ":" + winsB + ")</strong>";
+                document.getElementById("match").innerText = teams[selectedA].name + " [" + winsA + ":" + winsB + "] " + teams[selectedB].name;
+            } else {
+                document.getElementById("status").innerText = "VÍTĚZ ZÁPASU: " + winner.toUpperCase();
+            }
+            
+            document.getElementById("simBtn").disabled = false;
+            document.getElementById("bo3Btn").disabled = false;
+            document.getElementById("bo5Btn").disabled = false;
+            document.getElementById("bo7Btn").disabled = false;
+        }
+    }
+
     renderTeams();
   </script>
 </body>
