@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Extraliga simulátor - 2D Engine PRO v8.3</title>
+  <title>Extraliga simulátor - 2D Engine PRO v8.4</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -32,7 +32,6 @@
 
     #match { margin-top: 15px; font-size: 1rem; min-height: 1.4em; font-weight: 500; color: #38bdf8; padding: 0 10px; }
 
-    /* Úprava wrapperu pro mobil */
     .game-wrapper {
       display: flex;
       align-items: center;
@@ -57,21 +56,19 @@
 
     .side-logo img { max-width: 80%; max-height: 80%; object-fit: contain; }
 
-    /* RESPONZIVNÍ KONTEJNER PRO HŘIŠTĚ */
     #rink-container {
       background: #ffffff;
       border: 3px solid #475569;
       border-radius: 20px;
-      width: 100%; /* Roztažení na šířku mobilu */
+      width: 100%;
       max-width: 600px;
-      aspect-ratio: 2 / 1; /* Udržení poměru stran hokejového hřiště */
+      aspect-ratio: 2 / 1;
       position: relative;
       overflow: hidden;
       display: none; 
       box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
     }
 
-    /* Canvas se přizpůsobí kontejneru */
     canvas { 
       width: 100% !important; 
       height: auto !important; 
@@ -90,7 +87,6 @@
     button:hover { background-color: #38bdf8; color: white; }
     button:disabled { background-color: #2d3748; color: #475569; cursor: not-allowed; }
 
-    /* Responzivní výsledek */
     #result { 
       margin-top: 15px; 
       font-size: 1rem; 
@@ -117,7 +113,22 @@
     #period { color: #94a3b8; font-weight: bold; margin-bottom: 2px; font-size: 0.9rem; }
     #status { font-size: 0.9rem; }
 
-    /* Větší obrazovky */
+    #series-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(11, 14, 20, 0.95);
+      border: 2px solid #38bdf8;
+      padding: 30px;
+      border-radius: 15px;
+      z-index: 1000;
+      display: none;
+      min-width: 300px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      text-align: center;
+    }
+
     @media (min-width: 600px) { 
       .team { width: 85px; padding: 10px; } 
       h1 { font-size: 2.5rem; }
@@ -165,6 +176,11 @@
     <div id="status" style="font-style: italic; color: #94a3b8;">Vyber týmy a začni hru</div>
   </div>
 
+  <div id="series-overlay">
+      <h2 id="overlay-title" style="color: #38bdf8; margin-top: 0;">Výsledek zápasu</h2>
+      <div id="overlay-content" style="font-size: 1.5rem; font-weight: bold; color: white;"></div>
+  </div>
+
   <script>
     const teams = {
       pardubice: { name: "HC Dynamo Pardubice", attack: 94, dribling: 92, defense: 91, goalkeeper: 97, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1", homeColor: "#ce0000", awayColor: "#ffffff" },
@@ -196,12 +212,11 @@
     let isOvertime = false;
     const rinkLogo = new Image();
 
-    // Logika Séries
     let winsA = 0;
     let winsB = 0;
     let targetWins = 1;
     let currentGameInSeries = 0;
-    let currentHomeSide = "A";
+    let currentHomeSide = "A"; 
 
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false, passLock: 0 };
     
@@ -602,15 +617,13 @@
       document.getElementById("timer").innerText = isOvertime ? "NÁHLÁ SMRT" : `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
-    // --- LOGIKA SÉRIÍ (BO) ---
-
     function initSeries(type) {
       if (!selectedA || !selectedB) return;
       
       winsA = 0;
       winsB = 0;
       currentGameInSeries = 0;
-      targetWins = type; // 1 = jeden zapas, 2 = BO3, 3 = BO5, 4 = BO7
+      targetWins = type; 
 
       document.getElementById("simBtn").disabled = true;
       document.getElementById("bo3Btn").disabled = true;
@@ -623,15 +636,12 @@
     function startSimulatedMatch() {
       currentGameInSeries++;
       
-      // Určení domácího týmu podle rozpisu
-      // BO3: A, B, A
-      // BO5: A, A, B, B, A
-      // BO7: A, A, B, B, A, B, A
-      if (targetWins === 2) { // BO3
-          currentHomeSide = [1, 3].includes(currentGameInSeries) ? "A" : "B";
-      } else if (targetWins === 3) { // BO5
+      // LOGIKA STŘÍDÁNÍ DOMÁCÍHO PROSTŘEDÍ
+      if (targetWins === 2) { // BO3 (A-B-A)
+          currentHomeSide = (currentGameInSeries === 2) ? "B" : "A";
+      } else if (targetWins === 3) { // BO5 (A-A-B-B-A)
           currentHomeSide = [1, 2, 5].includes(currentGameInSeries) ? "A" : "B";
-      } else if (targetWins === 4) { // BO7
+      } else if (targetWins === 4) { // BO7 (A-A-B-B-A-B-A)
           currentHomeSide = [1, 2, 5, 7].includes(currentGameInSeries) ? "A" : "B";
       } else {
           currentHomeSide = "A";
@@ -641,12 +651,18 @@
       document.getElementById("rink-container").style.display = "block";
       currentPeriod = 1; isOvertime = false;
       scoreA = 0; scoreB = 0; timeLeft = 30;
+      document.getElementById("period").innerText = "1. třetina";
       
       updateSidesDisplay();
 
-      // Barvy a rychlost (vždy podle týmu A a B, bez ohledu na to kdo je doma)
-      [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
-      [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
+      // Nastavení barev dresů podle toho, kdo je v daném zápase DOMÁCÍ (homeColor)
+      if (currentHomeSide === "A") {
+          [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
+          [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
+      } else {
+          [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA].forEach(p => p.color = teams[selectedA].awayColor);
+          [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB].forEach(p => p.color = teams[selectedB].homeColor);
+      }
       
       const s1 = 0.8 + (teams[selectedA].attack / 150);
       const s2 = 0.8 + (teams[selectedB].attack / 150);
@@ -661,17 +677,27 @@
 
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(updateTimer, 1000);
-      gameRunning = true; resetPositions(); update();
+      gameRunning = true; 
+      resetPositions(); 
+      update();
     }
 
     function finishMatch() {
+        let finalScore = `${scoreA}:${scoreB}`;
         if (scoreA > scoreB) winsA++; else winsB++;
 
         if (winsA < targetWins && winsB < targetWins) {
-            // Série pokračuje
-            startSimulatedMatch();
+            // ZOBRAZENÍ MEZITABULKY NA 3 SEKUNDY
+            const overlay = document.getElementById("series-overlay");
+            const content = document.getElementById("overlay-content");
+            content.innerHTML = `Konec ${currentGameInSeries}. zápasu<br><span style="color:#fbbf24">${finalScore}</span><br><br><span style="font-size: 1.1rem; color: #38bdf8">Stav série: ${winsA}:${winsB}</span>`;
+            overlay.style.display = "block";
+
+            setTimeout(() => {
+                overlay.style.display = "none";
+                startSimulatedMatch(); // Automatické spuštění dalšího kola
+            }, 3000);
         } else {
-            // Konec série nebo zápasu
             let winner = winsA > winsB ? teams[selectedA].name : teams[selectedB].name;
             if (targetWins > 1) {
                 document.getElementById("status").innerHTML = "<strong style='color:#fbbf24'>VÍTĚZ SÉRIE: " + winner.toUpperCase() + " (" + winsA + ":" + winsB + ")</strong>";
