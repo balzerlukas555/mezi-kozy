@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Extraliga simulátor - 2D Engine PRO v8.4</title>
+  <title>Extraliga simulátor - 2D Engine PRO v8.5</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -245,13 +245,12 @@
         div.innerHTML = `<img src="${teams[key].logo}" alt="${teams[key].name}">`;
         div.onclick = () => {
             if (gameRunning) return;
-            if (!selectedA) { selectedA = key; div.classList.add("selected"); rinkLogo.src = teams[key].logo; }
+            if (!selectedA) { selectedA = key; div.classList.add("selected"); }
             else if (!selectedB && key !== selectedA) { selectedB = key; div.classList.add("selected"); }
             else { 
                 selectedA = key; selectedB = null; 
                 document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
                 div.classList.add("selected");
-                rinkLogo.src = teams[key].logo;
             }
             document.getElementById("match").innerText = selectedB ? `${teams[selectedA].name} vs ${teams[selectedB].name}` : "Vyber soupeře";
         };
@@ -264,27 +263,54 @@
       puck.vx = 0; puck.vy = 0;
       puck.owner = null; puck.isShot = false; puck.passLock = 0;
       
-      let homeFwdX = (currentPeriod === 2 && !isOvertime) ? 450 : 150;
-      let awayFwdX = (currentPeriod === 2 && !isOvertime) ? 150 : 450;
-      let homeDefX = (currentPeriod === 2 && !isOvertime) ? 520 : 80;
-      let awayDefX = (currentPeriod === 2 && !isOvertime) ? 80 : 520;
+      let sideInversion = (currentPeriod === 2 && !isOvertime);
 
       [playerA1, playerA2, playerA3, playerA4, playerA5, playerB1, playerB2, playerB3, playerB4, playerB5].forEach(p => {
           p.decisionTimer = 0;
           p.currentAction = 'move';
       });
 
-      playerA1.x = (currentPeriod === 2 && !isOvertime) ? 320 : 280; playerA1.y = 150;
-      playerA2.x = homeFwdX; playerA2.y = 100;
-      playerA5.x = homeFwdX; playerA5.y = 200;
-      playerA3.x = homeDefX; playerA3.y = 120;
-      playerA4.x = homeDefX; playerA4.y = 180;
+      // Pozice podle toho, kdo začíná vlevo (Domácí zápasu začínají vlevo v 1. třetině)
+      // Pokud sideInversion (2. třetina), strany se prohodí
+      let leftTeamStartsLeft = (currentHomeSide === "A"); 
 
-      playerB1.x = (currentPeriod === 2 && !isOvertime) ? 280 : 320; playerB1.y = 150;
-      playerB2.x = awayFwdX; playerB2.y = 200;
-      playerB5.x = awayFwdX; playerB5.y = 100;
-      playerB3.x = awayDefX; playerB3.y = 120;
-      playerB4.x = awayDefX; playerB4.y = 180;
+      if (leftTeamStartsLeft) {
+          // Team A začíná vlevo
+          let homeFwdX = sideInversion ? 450 : 150;
+          let awayFwdX = sideInversion ? 150 : 450;
+          let homeDefX = sideInversion ? 520 : 80;
+          let awayDefX = sideInversion ? 80 : 520;
+
+          playerA1.x = sideInversion ? 320 : 280; playerA1.y = 150;
+          playerA2.x = homeFwdX; playerA2.y = 100;
+          playerA5.x = homeFwdX; playerA5.y = 200;
+          playerA3.x = homeDefX; playerA3.y = 120;
+          playerA4.x = homeDefX; playerA4.y = 180;
+
+          playerB1.x = sideInversion ? 280 : 320; playerB1.y = 150;
+          playerB2.x = awayFwdX; playerB2.y = 200;
+          playerB5.x = awayFwdX; playerB5.y = 100;
+          playerB3.x = awayDefX; playerB3.y = 120;
+          playerB4.x = awayDefX; playerB4.y = 180;
+      } else {
+          // Team B začíná vlevo (je domácí)
+          let homeFwdX = sideInversion ? 150 : 450;
+          let awayFwdX = sideInversion ? 450 : 150;
+          let homeDefX = sideInversion ? 80 : 520;
+          let awayDefX = sideInversion ? 520 : 80;
+
+          playerB1.x = sideInversion ? 320 : 280; playerB1.y = 150;
+          playerB2.x = homeFwdX; playerB2.y = 100;
+          playerB5.x = homeFwdX; playerB5.y = 200;
+          playerB3.x = homeDefX; playerB3.y = 120;
+          playerB4.x = homeDefX; playerB4.y = 180;
+
+          playerA1.x = sideInversion ? 280 : 320; playerA1.y = 150;
+          playerA2.x = awayFwdX; playerA2.y = 200;
+          playerA5.x = awayFwdX; playerA5.y = 100;
+          playerA3.x = awayDefX; playerA3.y = 120;
+          playerA4.x = awayDefX; playerA4.y = 180;
+      }
 
       globalStuckTimer = 0;
     }
@@ -294,16 +320,30 @@
     }
 
     function updateSidesDisplay() {
-        if (currentPeriod === 2 && !isOvertime) {
-            document.getElementById("leftSideRinkLogo").innerHTML = `<img src="${teams[selectedB].logo}">`;
-            document.getElementById("rightSideRinkLogo").innerHTML = `<img src="${teams[selectedA].logo}">`;
-            goalieA.x = 575;
-            goalieB.x = 25;
+        let sideInversion = (currentPeriod === 2 && !isOvertime);
+        let leftTeamIsHome = (currentHomeSide === "A");
+
+        if (leftTeamIsHome) {
+            if (!sideInversion) {
+                document.getElementById("leftSideRinkLogo").innerHTML = `<img src="${teams[selectedA].logo}">`;
+                document.getElementById("rightSideRinkLogo").innerHTML = `<img src="${teams[selectedB].logo}">`;
+                goalieA.x = 25; goalieB.x = 575;
+            } else {
+                document.getElementById("leftSideRinkLogo").innerHTML = `<img src="${teams[selectedB].logo}">`;
+                document.getElementById("rightSideRinkLogo").innerHTML = `<img src="${teams[selectedA].logo}">`;
+                goalieA.x = 575; goalieB.x = 25;
+            }
         } else {
-            document.getElementById("leftSideRinkLogo").innerHTML = `<img src="${teams[selectedA].logo}">`;
-            document.getElementById("rightSideRinkLogo").innerHTML = `<img src="${teams[selectedB].logo}">`;
-            goalieA.x = 25;
-            goalieB.x = 575;
+            // Team B je domácí, začíná vlevo
+            if (!sideInversion) {
+                document.getElementById("leftSideRinkLogo").innerHTML = `<img src="${teams[selectedB].logo}">`;
+                document.getElementById("rightSideRinkLogo").innerHTML = `<img src="${teams[selectedA].logo}">`;
+                goalieB.x = 25; goalieA.x = 575;
+            } else {
+                document.getElementById("leftSideRinkLogo").innerHTML = `<img src="${teams[selectedA].logo}">`;
+                document.getElementById("rightSideRinkLogo").innerHTML = `<img src="${teams[selectedB].logo}">`;
+                goalieB.x = 575; goalieA.x = 25;
+            }
         }
         
         const logoA = document.getElementById("scoreLogoA");
@@ -336,7 +376,16 @@
           let opponents = (p.side === 'A') ? teamB : teamA;
           let speed = (puck.owner === p) ? p.baseSpeed : p.baseSpeed * 1.25;
           
-          let attackRight = (p.side === 'A' && (currentPeriod !== 2 || isOvertime)) || (p.side === 'B' && currentPeriod === 2 && !isOvertime);
+          let sideInversion = (currentPeriod === 2 && !isOvertime);
+          let isHome = (p.side === 'A' && currentHomeSide === "A") || (p.side === 'B' && currentHomeSide === "B");
+          
+          // Logika směru útoku: domácí (vlevo) útočí doprava v 1. třetině. Hosté (vpravo) útočí doleva.
+          let attackRight;
+          if (isHome) {
+              attackRight = !sideInversion;
+          } else {
+              attackRight = sideInversion;
+          }
 
           teammates.forEach(tm => {
               let d = getDistance(p, tm);
@@ -417,7 +466,10 @@
       
       if (puck.owner) {
         let p = puck.owner;
-        let attackRight = (p.side === 'A' && (currentPeriod !== 2 || isOvertime)) || (p.side === 'B' && currentPeriod === 2 && !isOvertime);
+        let sideInversion = (currentPeriod === 2 && !isOvertime);
+        let isHome = (p.side === 'A' && currentHomeSide === "A") || (p.side === 'B' && currentHomeSide === "B");
+        let attackRight = isHome ? !sideInversion : sideInversion;
+
         if (attackRight && p.x > 380) checkShot(p, 600, 150);
         else if (!attackRight && p.x < 220) checkShot(p, 0, 150);
       }
@@ -517,15 +569,28 @@
     function handleBouncesAndGoals() {
       if (puck.y < 5 || puck.y > 295) puck.vy *= -1;
       
+      let sideInversion = (currentPeriod === 2 && !isOvertime);
+      let leftTeamIsHome = (currentHomeSide === "A");
+
       if (puck.x < 0) {
         if (puck.y > 105 && puck.y < 195) { 
-            if (currentPeriod === 2 && !isOvertime) scoreA++; else scoreB++;
+            // Gól do levé brány
+            if (leftTeamIsHome) {
+                if (!sideInversion) scoreB++; else scoreA++;
+            } else {
+                if (!sideInversion) scoreA++; else scoreB++;
+            }
             goalScored(); 
         } else { puck.x = 5; puck.vx *= -1; }
       }
       if (puck.x > 600) {
         if (puck.y > 105 && puck.y < 195) { 
-            if (currentPeriod === 2 && !isOvertime) scoreB++; else scoreA++;
+            // Gól do pravé brány
+            if (leftTeamIsHome) {
+                if (!sideInversion) scoreA++; else scoreB++;
+            } else {
+                if (!sideInversion) scoreB++; else scoreA++;
+            }
             goalScored(); 
         } else { puck.x = 595; puck.vx *= -1; }
       }
@@ -647,6 +712,9 @@
           currentHomeSide = "A";
       }
 
+      // Aktualizace loga na ledě podle domácího týmu
+      rinkLogo.src = currentHomeSide === "A" ? teams[selectedA].logo : teams[selectedB].logo;
+
       document.getElementById("gameWrapper").style.display = "flex";
       document.getElementById("rink-container").style.display = "block";
       currentPeriod = 1; isOvertime = false;
@@ -655,7 +723,7 @@
       
       updateSidesDisplay();
 
-      // Nastavení barev dresů podle toho, kdo je v daném zápase DOMÁCÍ (homeColor)
+      // Nastavení barev dresů
       if (currentHomeSide === "A") {
           [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
           [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
@@ -687,7 +755,6 @@
         if (scoreA > scoreB) winsA++; else winsB++;
 
         if (winsA < targetWins && winsB < targetWins) {
-            // ZOBRAZENÍ MEZITABULKY NA 3 SEKUNDY
             const overlay = document.getElementById("series-overlay");
             const content = document.getElementById("overlay-content");
             content.innerHTML = `Konec ${currentGameInSeries}. zápasu<br><span style="color:#fbbf24">${finalScore}</span><br><br><span style="font-size: 1.1rem; color: #38bdf8">Stav série: ${winsA}:${winsB}</span>`;
@@ -695,7 +762,7 @@
 
             setTimeout(() => {
                 overlay.style.display = "none";
-                startSimulatedMatch(); // Automatické spuštění dalšího kola
+                startSimulatedMatch();
             }, 3000);
         } else {
             let winner = winsA > winsB ? teams[selectedA].name : teams[selectedB].name;
