@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NHL Simulator - 2D Engine PRO v9.0</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 10px;
+      background: #0b0e14;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    h1 { margin-bottom: 15px; font-size: 1.4rem; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
+
+    .teams { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 1000px; margin: auto; }
+
+    .team {
+      cursor: pointer; transition: all 0.2s ease-in-out; width: 55px; padding: 5px;
+      background: #1a1f29; border-radius: 8px; border: 1px solid #2d3748; box-sizing: border-box;
+    }
+
+    .team img { width: 100%; height: auto; aspect-ratio: 1/1; object-fit: contain; }
+
+    .team:hover { background: #2d3748; transform: translateY(-3px); }
+
+    .selected { border-color: #38bdf8; background: #1e293b; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); transform: scale(1.05); }
+
+    #match { margin-top: 15px; font-size: 1rem; min-height: 1.4em; font-weight: 500; color: #38bdf8; padding: 0 10px; }
+
+    .game-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin: 15px auto;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .side-logo {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      border: 1px solid #2d3748;
+      flex-shrink: 0;
+    }
+
+    .side-logo img { max-width: 80%; max-height: 80%; object-fit: contain; }
+
+    #rink-container {
+      background: #ffffff;
+      border: 3px solid #475569;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 600px;
+      aspect-ratio: 2 / 1;
+      position: relative;
+      overflow: hidden;
+      display: none; 
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    canvas { width: 100% !important; height: auto !important; display: block; }
+
+    .button-container { margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .bo-buttons { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+
+    button {
+      padding: 10px 20px; font-size: 15px; cursor: pointer; background-color: #f1f5f9;
+      border: none; border-radius: 8px; color: #0b0e14; font-weight: bold; transition: 0.3s;
+    }
+
+    button:hover { background-color: #38bdf8; color: white; }
+    button:disabled { background-color: #2d3748; color: #475569; cursor: not-allowed; }
+
+    #result { 
+      margin-top: 15px; 
+      font-size: 1rem; 
+      background: rgba(255,255,255,0.05); 
+      padding: 10px; 
+      border-radius: 12px; 
+      display: inline-block; 
+      width: 95%; 
+      max-width: 450px; 
+      box-sizing: border-box;
+    }
+    
+    .score-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 5px 0;
+    }
+    .score-display { font-size: 2.2rem; font-weight: bold; color: #38bdf8; min-width: 120px; }
+    .mini-logo { width: 35px; height: 35px; object-fit: contain; }
+
+    #timer { font-size: 1.2rem; color: #fbbf24; font-weight: bold; margin-bottom: 2px; }
+    #period { color: #94a3b8; font-weight: bold; margin-bottom: 2px; font-size: 0.9rem; }
+    #status { font-size: 0.9rem; }
+
+    #series-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(11, 14, 20, 0.95);
+      border: 2px solid #38bdf8;
+      padding: 30px;
+      border-radius: 15px;
+      z-index: 1000;
+      display: none;
+      min-width: 300px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      text-align: center;
+    }
+
+    @media (min-width: 600px) { 
+      .team { width: 85px; padding: 10px; } 
+      h1 { font-size: 2.5rem; }
+      .side-logo { width: 80px; height: 80px; }
+      #rink-container { border-radius: 40px; border-width: 5px; }
+      .score-display { font-size: 3.5rem; }
+      .mini-logo { width: 50px; height: 50px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🏒 NHL SIMULATOR 2026</h1>
+
+  <div class="teams" id="teams"></div>
+
+  <div id="match">Select two teams</div>
+
+  <div class="button-container">
+    <button id="simBtn" onclick="initSeries(1)">Simulate Game</button>
+    <div class="bo-buttons">
+        <button id="bo3Btn" onclick="initSeries(2)">Series BO3</button>
+        <button id="bo5Btn" onclick="initSeries(3)">Series BO5</button>
+        <button id="bo7Btn" onclick="initSeries(4)">Series BO7</button>
+    </div>
+  </div>
+
+  <div class="game-wrapper" id="gameWrapper" style="display: none;">
+    <div class="side-logo" id="leftSideRinkLogo"></div>
+    <div id="rink-container">
+      <canvas id="hockeyRink" width="600" height="300"></canvas>
+    </div>
+    <div class="side-logo" id="rightSideRinkLogo"></div>
+  </div>
+
+  <div id="result">
+    <div id="period">1st Period</div>
+    <div id="timer">00:30</div>
+    <div class="score-container">
+        <img id="scoreLogoA" class="mini-logo" src="" style="display:none;">
+        <div id="scoreText" class="score-display">0:0</div>
+        <img id="scoreLogoB" class="mini-logo" src="" style="display:none;">
+    </div>
+    <div id="status" style="font-style: italic; color: #94a3b8;">Choose teams and start</div>
+  </div>
+
+  <div id="series-overlay">
+      <h2 id="overlay-title" style="color: #38bdf8; margin-top: 0;">Game Result</h2>
+      <div id="overlay-content" style="font-size: 1.5rem; font-weight: bold; color: white;"></div>
+  </div>
+
+  <script>
+    const teams = {
+      bos: { name: "Boston Bruins", attack: 88, defense: 90, dribling: 87, goalkeeper: 92, logo: "https://assets.nhle.com/logos/nhl/svg/BOS_dark.svg", homeColor: "#FFB81C", awayColor: "#FFFFFF" },
+      buf: { name: "Buffalo Sabres", attack: 84, defense: 82, dribling: 83, goalkeeper: 84, logo: "https://assets.nhle.com/logos/nhl/svg/BUF_dark.svg", homeColor: "#002654", awayColor: "#FFFFFF" },
+      det: { name: "Detroit Red Wings", attack: 85, defense: 83, dribling: 86, goalkeeper: 82, logo: "https://assets.nhle.com/logos/nhl/svg/DET_dark.svg", homeColor: "#CE1126", awayColor: "#FFFFFF" },
+      fla: { name: "Florida Panthers", attack: 92, defense: 89, dribling: 90, goalkeeper: 91, logo: "https://assets.nhle.com/logos/nhl/svg/FLA_dark.svg", homeColor: "#C8102E", awayColor: "#FFFFFF" },
+      mtl: { name: "Montreal Canadiens", attack: 79, defense: 80, dribling: 81, goalkeeper: 85, logo: "https://assets.nhle.com/logos/nhl/svg/MTL_dark.svg", homeColor: "#AF1E2D", awayColor: "#FFFFFF" },
+      ott: { name: "Ottawa Senators", attack: 83, defense: 82, dribling: 84, goalkeeper: 81, logo: "https://assets.nhle.com/logos/nhl/svg/OTT_dark.svg", homeColor: "#C8102E", awayColor: "#FFFFFF" },
+      tbl: { name: "Tampa Bay Lightning", attack: 89, defense: 86, dribling: 88, goalkeeper: 90, logo: "https://assets.nhle.com/logos/nhl/svg/TBL_dark.svg", homeColor: "#002868", awayColor: "#FFFFFF" },
+      tor: { name: "Toronto Maple Leafs", attack: 93, defense: 85, dribling: 92, goalkeeper: 84, logo: "https://assets.nhle.com/logos/nhl/svg/TOR_dark.svg", homeColor: "#00205B", awayColor: "#FFFFFF" },
+      car: { name: "Carolina Hurricanes", attack: 87, defense: 91, dribling: 85, goalkeeper: 88, logo: "https://assets.nhle.com/logos/nhl/svg/CAR_dark.svg", homeColor: "#CE1126", awayColor: "#FFFFFF" },
+      cbj: { name: "Columbus Blue Jackets", attack: 78, defense: 77, dribling: 76, goalkeeper: 79, logo: "https://assets.nhle.com/logos/nhl/svg/CBJ_dark.svg", homeColor: "#002654", awayColor: "#FFFFFF" },
+      njd: { name: "New Jersey Devils", attack: 88, defense: 84, dribling: 89, goalkeeper: 83, logo: "https://assets.nhle.com/logos/nhl/svg/NJD_dark.svg", homeColor: "#CE1126", awayColor: "#FFFFFF" },
+      nyi: { name: "New York Islanders", attack: 81, defense: 86, dribling: 80, goalkeeper: 90, logo: "https://assets.nhle.com/logos/nhl/svg/NYI_dark.svg", homeColor: "#00539B", awayColor: "#FFFFFF" },
+      nyr: { name: "New York Rangers", attack: 91, defense: 89, dribling: 90, goalkeeper: 94, logo: "https://assets.nhle.com/logos/nhl/svg/NYR_dark.svg", homeColor: "#0038A8", awayColor: "#FFFFFF" },
+      phi: { name: "Philadelphia Flyers", attack: 80, defense: 82, dribling: 81, goalkeeper: 82, logo: "https://assets.nhle.com/logos/nhl/svg/PHI_dark.svg", homeColor: "#F74902", awayColor: "#FFFFFF" },
+      pit: { name: "Pittsburgh Penguins", attack: 84, defense: 81, dribling: 85, goalkeeper: 84, logo: "https://assets.nhle.com/logos/nhl/svg/PIT_dark.svg", homeColor: "#FCB514", awayColor: "#FFFFFF" },
+      wsh: { name: "Washington Capitals", attack: 82, defense: 83, dribling: 81, goalkeeper: 85, logo: "https://assets.nhle.com/logos/nhl/svg/WSH_dark.svg", homeColor: "#041E42", awayColor: "#FFFFFF" },
+      chi: { name: "Chicago Blackhawks", attack: 77, defense: 78, dribling: 82, goalkeeper: 80, logo: "https://assets.nhle.com/logos/nhl/svg/CHI_dark.svg", homeColor: "#CF0A2C", awayColor: "#FFFFFF" },
+      col: { name: "Colorado Avalanche", attack: 94, defense: 89, dribling: 93, goalkeeper: 86, logo: "https://assets.nhle.com/logos/nhl/svg/COL_dark.svg", homeColor: "#6F263D", awayColor: "#FFFFFF" },
+      dal: { name: "Dallas Stars", attack: 91, defense: 91, dribling: 88, goalkeeper: 91, logo: "https://assets.nhle.com/logos/nhl/svg/DAL_dark.svg", homeColor: "#006847", awayColor: "#FFFFFF" },
+      min: { name: "Minnesota Wild", attack: 83, defense: 85, dribling: 84, goalkeeper: 86, logo: "https://assets.nhle.com/logos/nhl/svg/MIN_dark.svg", homeColor: "#154734", awayColor: "#FFFFFF" },
+      nsh: { name: "Nashville Predators", attack: 86, defense: 87, dribling: 85, goalkeeper: 90, logo: "https://assets.nhle.com/logos/nhl/svg/NSH_dark.svg", homeColor: "#FFB81C", awayColor: "#FFFFFF" },
+      stl: { name: "St. Louis Blues", attack: 82, defense: 82, dribling: 83, goalkeeper: 84, logo: "https://assets.nhle.com/logos/nhl/svg/STL_dark.svg", homeColor: "#002F87", awayColor: "#FFFFFF" },
+      uta: { name: "Utah Hockey Club", attack: 81, defense: 80, dribling: 82, goalkeeper: 83, logo: "https://assets.nhle.com/logos/nhl/svg/UTA_dark.svg", homeColor: "#010101", awayColor: "#FFFFFF" },
+      wpg: { name: "Winnipeg Jets", attack: 87, defense: 89, dribling: 84, goalkeeper: 93, logo: "https://assets.nhle.com/logos/nhl/svg/WPG_dark.svg", homeColor: "#041E42", awayColor: "#FFFFFF" },
+      ana: { name: "Anaheim Ducks", attack: 78, defense: 79, dribling: 81, goalkeeper: 85, logo: "https://assets.nhle.com/logos/nhl/svg/ANA_dark.svg", homeColor: "#F47A38", awayColor: "#FFFFFF" },
+      cgy: { name: "Calgary Flames", attack: 80, defense: 81, dribling: 80, goalkeeper: 83, logo: "https://assets.nhle.com/logos/nhl/svg/CGY_dark.svg", homeColor: "#C8102E", awayColor: "#FFFFFF" },
+      edm: { name: "Edmonton Oilers", attack: 95, defense: 84, dribling: 96, goalkeeper: 82, logo: "https://assets.nhle.com/logos/nhl/svg/EDM_dark.svg", homeColor: "#FF4C00", awayColor: "#FFFFFF" },
+      lak: { name: "Los Angeles Kings", attack: 85, defense: 87, dribling: 84, goalkeeper: 86, logo: "https://assets.nhle.com/logos/nhl/svg/LAK_dark.svg", homeColor: "#111111", awayColor: "#FFFFFF" },
+      sjs: { name: "San Jose Sharks", attack: 75, defense: 76, dribling: 77, goalkeeper: 78, logo: "https://assets.nhle.com/logos/nhl/svg/SJS_dark.svg", homeColor: "#006272", awayColor: "#FFFFFF" },
+      sea: { name: "Seattle Kraken", attack: 81, defense: 84, dribling: 82, goalkeeper: 83, logo: "https://assets.nhle.com/logos/nhl/svg/SEA_dark.svg", homeColor: "#001628", awayColor: "#FFFFFF" },
+      van: { name: "Vancouver Canucks", attack: 88, defense: 87, dribling: 89, goalkeeper: 90, logo: "https://assets.nhle.com/logos/nhl/svg/VAN_dark.svg", homeColor: "#00205B", awayColor: "#FFFFFF" },
+      vgk: { name: "Vegas Golden Knights", attack: 89, defense: 88, dribling: 87, goalkeeper: 89, logo: "https://assets.nhle.com/logos/nhl/svg/VGK_dark.svg", homeColor: "#B4975A", awayColor: "#FFFFFF" }
+    };
+
+    const canvas = document.getElementById("hockeyRink");
+    const ctx = canvas.getContext("2d");
+    let selectedA = null, selectedB = null;
+    let scoreA = 0, scoreB = 0;
+    let gameRunning = false;
+    let timeLeft = 30;
+    let currentPeriod = 1;
+    let timerInterval = null;
+    let isOvertime = false;
+    const rinkLogo = new Image();
+
+    let winsA = 0;
+    let winsB = 0;
+    let targetWins = 1;
+    let currentGameInSeries = 0;
+    let currentHomeSide = "B"; // V NHL je domácí ten VPRAVO (strana B)
+
+    let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false, passLock: 0 };
+    
+    let playerA1 = { x: 150, y: 150, color: "white", radius: 12, baseSpeed: 1.2, side: 'A', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerA2 = { x: 150, y: 100, color: "white", radius: 12, baseSpeed: 1.2, side: 'A', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerA5 = { x: 150, y: 200, color: "white", radius: 12, baseSpeed: 1.2, side: 'A', id: 5, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerA3 = { x: 80,  y: 120, color: "white", radius: 12, baseSpeed: 1.0, side: 'A', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
+    let playerA4 = { x: 80,  y: 180, color: "white", radius: 12, baseSpeed: 1.0, side: 'A', id: 4, role: 'defender', decisionTimer: 0, currentAction: 'move' };
+
+    let playerB1 = { x: 450, y: 150, color: "red", radius: 12, baseSpeed: 1.2, side: 'B', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerB2 = { x: 450, y: 100, color: "red", radius: 12, baseSpeed: 1.2, side: 'B', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerB5 = { x: 450, y: 200, color: "red", radius: 12, baseSpeed: 1.2, side: 'B', id: 5, role: 'forward', decisionTimer: 0, currentAction: 'move' };
+    let playerB3 = { x: 520, y: 120, color: "red", radius: 12, baseSpeed: 1.0, side: 'B', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
+    let playerB4 = { x: 520, y: 180, color: "red", radius: 12, baseSpeed: 1.0, side: 'B', id: 4, role: 'defender', decisionTimer: 0, currentAction: 'move' };
+
+    let goalieA = { x: 25, y: 150, radius: 14, color: "white", side: 'A' };
+    let goalieB = { x: 575, y: 150, radius: 14, color: "red", side: 'B' };
+
+    let lastPuckX = 0, lastPuckY = 0, globalStuckTimer = 0;
+
+    function renderTeams() {
+      const container = document.getElementById("teams");
+      for (let key in teams) {
+        const div = document.createElement("div");
+        div.classList.add("team");
+        div.innerHTML = `<img src="${teams[key].logo}" alt="${teams[key].name}">`;
+        div.onclick = () => {
+            if (gameRunning) return;
+            if (!selectedA) { selectedA = key; div.classList.add("selected"); }
+            else if (!selectedB && key !== selectedA) { selectedB = key; div.classList.add("selected"); }
+            else { 
+                selectedA = key; selectedB = null; 
+                document.querySelectorAll(".team").forEach(t => t.classList.remove("selected"));
+                div.classList.add("selected");
+            }
+            document.getElementById("match").innerText = selectedB ? `${teams[selectedA].name} @ ${teams[selectedB].name}` : "Select Opponent";
+        };
+        container.appendChild(div);
+      }
+    }
+
+    function resetPositions() {
+      puck.x = 300; puck.y = 150; 
+      puck.vx = 0; puck.vy = 0;
+      puck.owner = null; puck.isShot = false; puck.passLock = 0;
+      
+      let sideInversion = (currentPeriod === 2 && !isOvertime);
+
+      [playerA1, playerA2, playerA3, playerA4, playerA5, playerB1, playerB2, playerB3, playerB4, playerB5].forEach(p => {
+          p.decisionTimer = 0;
+          p.currentAction = 'move';
+      });
+
+      let teamA_Arr = [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA];
+      let teamB_Arr = [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB];
+
+      // NHL: Home is on the Right (currentHomeSide = "B")
+      // If sideInversion (2nd period), they switch sides
+      let leftSideTeam = (!sideInversion) ? teamA_Arr : teamB_Arr;
+      let rightSideTeam = (!sideInversion) ? teamB_Arr : teamA_Arr;
+
+      leftSideTeam[0].x = 280; leftSideTeam[0].y = 150; 
+      leftSideTeam[1].x = 150; leftSideTeam[1].y = 100;
+      leftSideTeam[4].x = 150; leftSideTeam[4].y = 200;
+      leftSideTeam[2].x = 80; leftSideTeam[2].y = 120;
+      leftSideTeam[3].x = 80; leftSideTeam[3].y = 180;
+      leftSideTeam[5].x = 25; leftSideTeam[5].y = 150;
+
+      rightSideTeam[0].x = 320; rightSideTeam[0].y = 150; 
+      rightSideTeam[1].x = 450; rightSideTeam[1].y = 200;
+      rightSideTeam[4].x = 450; rightSideTeam[4].y = 100;
+      rightSideTeam[2].x = 520; rightSideTeam[2].y = 120;
+      rightSideTeam[3].x = 520; rightSideTeam[3].y = 180;
+      rightSideTeam[5].x = 575; rightSideTeam[5].y = 150;
+
+      globalStuckTimer = 0;
+    }
+
+    function updateScoreDisplay() {
+        let sideInversion = (currentPeriod === 2 && !isOvertime);
+        // NHL display style: AWAY @ HOME (Left @ Right)
+        if (!sideInversion) {
+            document.getElementById("scoreText").innerText = `${scoreA} : ${scoreB}`;
+        } else {
+            document.getElementById("scoreText").innerText = `${scoreB} : ${scoreA}`;
+        }
+    }
+
+    function updateSidesDisplay() {
+        let sideInversion = (currentPeriod === 2 && !isOvertime);
+        let logoA = teams[selectedA].logo;
+        let logoB = teams[selectedB].logo;
+
+        const rinkLeft = document.getElementById("leftSideRinkLogo");
+        const rinkRight = document.getElementById("rightSideRinkLogo");
+        const scoreLogoL = document.getElementById("scoreLogoA");
+        const scoreLogoR = document.getElementById("scoreLogoB");
+
+        let currentLeftLogo = (!sideInversion ? logoA : logoB);
+        let currentRightLogo = (!sideInversion ? logoB : logoA);
+
+        rinkLeft.innerHTML = `<img src="${currentLeftLogo}">`;
+        rinkRight.innerHTML = `<img src="${currentRightLogo}">`;
+        scoreLogoL.src = currentLeftLogo;
+        scoreLogoR.src = currentRightLogo;
+        
+        scoreLogoL.style.display = "block";
+        scoreLogoR.style.display = "block";
+
+        updateScoreDisplay();
+    }
+
+    function update() {
+      if (!gameRunning) return;
+      if (puck.passLock > 0) puck.passLock--;
+
+      if (Math.abs(puck.x - lastPuckX) < 0.2 && Math.abs(puck.y - lastPuckY) < 0.2) {
+          globalStuckTimer++;
+          if (globalStuckTimer > 180) { resetPositions(); document.getElementById("status").innerText = "Face-off!"; }
+      } else { globalStuckTimer = 0; }
+      lastPuckX = puck.x; lastPuckY = puck.y;
+
+      const teamA = [playerA1, playerA2, playerA3, playerA4, playerA5];
+      const teamB = [playerB1, playerB2, playerB3, playerB4, playerB5];
+      const allPlayers = [...teamA, ...teamB];
+
+      allPlayers.forEach(p => {
+          let teammates = (p.side === 'A') ? teamA.filter(x => x !== p) : teamB.filter(x => x !== p);
+          let opponents = (p.side === 'A') ? teamB : teamA;
+          let speed = (puck.owner === p) ? p.baseSpeed : p.baseSpeed * 1.25;
+          
+          let sideInversion = (currentPeriod === 2 && !isOvertime);
+          let attackRight = (p.side === 'A') ? sideInversion : !sideInversion;
+
+          if (puck.owner === p) {
+              let targetGoalX = attackRight ? 600 : 0;
+              if (p.decisionTimer <= 0) {
+                  let passChance = (p.role === 'defender') ? 0.6 : 0.3;
+                  p.currentAction = (Math.random() < passChance) ? 'pass' : 'move';
+                  p.decisionTimer = 50 + Math.random() * 40;
+              }
+              p.decisionTimer--;
+
+              if (p.currentAction === 'pass') {
+                  let bestTarget = teammates.reduce((prev, curr) => {
+                      let dPrev = Math.abs(prev.x - targetGoalX);
+                      let dCurr = Math.abs(curr.x - targetGoalX);
+                      return dCurr < dPrev ? curr : prev;
+                  });
+                  passPuck(p, bestTarget, opponents);
+                  p.currentAction = 'move';
+              } else {
+                  moveWithPuckComplex(p, targetGoalX, 150, getClosest(p, opponents), speed);
+              }
+              puck.x = attackRight ? p.x + 12 : p.x - 12;
+              puck.y = p.y;
+          } else {
+              movePlayerToPoint(p, puck.x, puck.y, speed);
+          }
+      });
+
+      if (!puck.owner) {
+          puck.x += puck.vx; puck.y += puck.vy;
+          puck.vx *= 0.98; puck.vy *= 0.98;
+      }
+
+      goalieA.y = 150 + (puck.y - 150) * 0.35;
+      goalieB.y = 150 + (puck.y - 150) * 0.35;
+
+      handleBouncesAndGoals();
+      
+      if (puck.owner) {
+        let p = puck.owner;
+        let sideInversion = (currentPeriod === 2 && !isOvertime);
+        let attackRight = (p.side === 'A') ? sideInversion : !sideInversion;
+        if (attackRight && p.x > 380) checkShot(p, 600, 150);
+        else if (!attackRight && p.x < 220) checkShot(p, 0, 150);
+      }
+
+      allPlayers.forEach(p => checkInteraction(p, allPlayers));
+      checkGoalieCollision(goalieA); checkGoalieCollision(goalieB);
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function getDistance(p1, p2) { return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)); }
+    function getClosest(p, list) { return list.reduce((prev, curr) => getDistance(p, curr) < getDistance(p, prev) ? curr : prev); }
+
+    function passPuck(from, to, opponents) {
+        puck.owner = null;
+        let angle = Math.atan2(to.y - from.y, to.x - from.x);
+        puck.vx = Math.cos(angle) * 8; puck.vy = Math.sin(angle) * 8;
+        document.getElementById("status").innerText = "Passing!";
+    }
+
+    function movePlayerToPoint(p, tx, ty, speed) {
+      let dx = tx - p.x; let dy = ty - p.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > 5) { p.x += (dx/dist) * speed; p.y += (dy/dist) * speed; }
+      keepInRink(p);
+    }
+
+    function moveWithPuckComplex(p, targetX, targetY, closestOpp, speed) {
+      let dx = targetX - p.x; let dy = targetY - p.y;
+      let distToOpp = getDistance(p, closestOpp);
+      let dribbleMod = (p.side === 'A' ? teams[selectedA].dribling : teams[selectedB].dribling) / 100;
+      if (distToOpp < 60) {
+        let angleToOpp = Math.atan2(closestOpp.y - p.y, closestOpp.x - p.x);
+        p.x -= Math.cos(angleToOpp) * (0.8 * dribbleMod);
+        p.y += (p.y > closestOpp.y ? 1 : -1) * (1.2 * dribbleMod);
+      }
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      p.x += (dx/dist) * (speed * 0.85); p.y += (dy/dist) * (speed * 0.85);
+      keepInRink(p);
+    }
+
+    function checkInteraction(p, others) {
+      if (puck.passLock > 0) return;
+      if (!puck.owner && !puck.isShot) {
+        if (getDistance(p, puck) < p.radius + 6) puck.owner = p;
+      }
+      if (puck.owner && puck.owner.side !== p.side) {
+        if (getDistance(p, puck.owner) < p.radius * 2 + 2) {
+            let sideStats = (p.side === 'A' ? teams[selectedA] : teams[selectedB]);
+            let ownerStats = (puck.owner.side === 'A' ? teams[selectedA] : teams[selectedB]);
+            let stealChance = (sideStats.defense * 0.4) - (ownerStats.dribling * 0.2) + 5;
+            if (Math.random() * 100 < stealChance) { 
+                puck.owner = null; puck.vx = (Math.random()-0.5)*4; 
+                document.getElementById("status").innerText = "Steal!";
+            }
+        }
+      }
+    }
+
+    function checkGoalieCollision(g) {
+      if (getDistance(g, puck) < g.radius + puck.radius) {
+        let gkStat = (g.side === 'A' ? teams[selectedA].goalkeeper : teams[selectedB].goalkeeper);
+        if (Math.random() * 110 < gkStat) {
+          puck.isShot = false; puck.owner = null;
+          puck.vx *= -0.8; puck.vy += (Math.random() - 0.5) * 8;
+          document.getElementById("status").innerText = "Big Save!";
+          puck.x += (g.x < 300 ? 15 : -15);
+        }
+      }
+    }
+
+    function checkShot(p, goalX, goalY) {
+      if (!puck.owner || puck.isShot) return;
+      let stats = (p.side === 'A' ? teams[selectedA] : teams[selectedB]);
+      if (Math.random() * 100 < stats.attack * 0.07) {
+        puck.isShot = true; puck.owner = null;
+        let targetY = 150 + (Math.random() - 0.5) * 80; 
+        let angle = Math.atan2(targetY - p.y, goalX - p.x);
+        puck.vx = Math.cos(angle) * 11; puck.vy = Math.sin(angle) * 11;
+        document.getElementById("status").innerText = "Shot on Goal!";
+      }
+    }
+
+    function handleBouncesAndGoals() {
+      if (puck.y < 5 || puck.y > 295) puck.vy *= -1;
+      let sideInversion = (currentPeriod === 2 && !isOvertime);
+
+      if (puck.x < 0) {
+        if (puck.y > 105 && puck.y < 195) { 
+            if (!sideInversion) scoreB++; else scoreA++;
+            goalScored(); 
+        } else { puck.x = 5; puck.vx *= -1; }
+      }
+      if (puck.x > 600) {
+        if (puck.y > 105 && puck.y < 195) { 
+            if (!sideInversion) scoreA++; else scoreB++;
+            goalScored(); 
+        } else { puck.x = 595; puck.vx *= -1; }
+      }
+    }
+
+    function keepInRink(p) {
+      p.x = Math.max(p.radius, Math.min(600 - p.radius, p.x));
+      p.y = Math.max(p.radius, Math.min(300 - p.radius, p.y));
+    }
+
+    function goalScored() {
+      updateScoreDisplay();
+      document.getElementById("status").innerText = "GOOOOAL!";
+      gameRunning = false;
+      if (isOvertime) {
+          clearInterval(timerInterval);
+          setTimeout(finishMatch, 2000);
+          return;
+      }
+      setTimeout(() => { if (timeLeft > 0) { resetPositions(); gameRunning = true; update(); } }, 1200);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, 600, 300);
+      if (rinkLogo.complete) {
+        ctx.globalAlpha = 0.15;
+        ctx.drawImage(rinkLogo, 225, 75, 150, 150);
+        ctx.globalAlpha = 1.0;
+      }
+      ctx.strokeStyle = "rgba(255, 0, 0, 0.4)"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 300); ctx.stroke();
+      ctx.strokeStyle = "rgba(0, 0, 255, 0.3)"; ctx.lineWidth = 4;
+      ctx.strokeRect(200, 0, 0.1, 300); ctx.strokeRect(400, 0, 0.1, 300);
+      ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2;
+      ctx.strokeRect(0, 105, 25, 90); ctx.strokeRect(575, 105, 25, 90); 
+      ctx.fillStyle = "#111";
+      ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI*2); ctx.fill();
+      [playerA1, playerA2, playerA3, playerA4, playerA5, playerB1, playerB2, playerB3, playerB4, playerB5].forEach(drawPlayer);
+      drawGoalie(goalieA); drawGoalie(goalieB);
+    }
+
+    function drawPlayer(p) {
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = puck.owner === p ? "gold" : "rgba(0,0,0,0.3)"; 
+      ctx.lineWidth = puck.owner === p ? 4 : 2; ctx.stroke();
+    }
+
+    function drawGoalie(g) {
+      ctx.fillStyle = g.color;
+      ctx.fillRect(g.x - 8, g.y - 15, 16, 30);
+      ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(g.x - 8, g.y - 15, 16, 30);
+    }
+
+    function updateTimer() {
+      if (timeLeft <= 0) { 
+          gameRunning = false;
+          if (currentPeriod < 3) {
+              currentPeriod++; timeLeft = 30;
+              document.getElementById("period").innerText = currentPeriod + (currentPeriod === 2 ? "nd" : "rd") + " Period";
+              updateSidesDisplay();
+              setTimeout(() => { resetPositions(); gameRunning = true; update(); }, 1500);
+          } else if (scoreA === scoreB) {
+              isOvertime = true; timeLeft = 999;
+              document.getElementById("period").innerText = "OVERTIME";
+              updateSidesDisplay();
+              setTimeout(() => { resetPositions(); gameRunning = true; update(); }, 1500);
+          } else {
+              clearInterval(timerInterval);
+              setTimeout(finishMatch, 2000);
+          }
+          return;
+      }
+      if (!isOvertime) timeLeft--;
+      let m = Math.floor(timeLeft / 60); let s = timeLeft % 60;
+      document.getElementById("timer").innerText = isOvertime ? "SUDDEN DEATH" : `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function initSeries(type) {
+      if (!selectedA || !selectedB) return;
+      winsA = 0; winsB = 0; currentGameInSeries = 0; targetWins = type; 
+      document.getElementById("simBtn").disabled = true;
+      ["bo3Btn", "bo5Btn", "bo7Btn"].forEach(id => document.getElementById(id).disabled = true);
+      startSimulatedMatch();
+    }
+
+    function startSimulatedMatch() {
+      currentGameInSeries++;
+      // NHL Format: 2-2-1-1-1 (Higher seed is home Games 1,2,5,7)
+      // Here selectedB is the "Home Team" of the series
+      let homeTeamIsSeriesHost = [1, 2, 5, 7].includes(currentGameInSeries);
+      
+      // In our code: 
+      // scoreA, playerA = Team 1 (Away at start)
+      // scoreB, playerB = Team 2 (Home at start)
+      
+      // Reset logic: In Game 1, Team B is Home (Right side)
+      rinkLogo.src = homeTeamIsSeriesHost ? teams[selectedB].logo : teams[selectedA].logo;
+      document.getElementById("gameWrapper").style.display = "flex";
+      document.getElementById("rink-container").style.display = "block";
+      currentPeriod = 1; isOvertime = false; scoreA = 0; scoreB = 0; timeLeft = 30;
+      
+      // Colors: Away = White, Home = Colored
+      if (homeTeamIsSeriesHost) {
+          [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA].forEach(p => p.color = teams[selectedA].awayColor);
+          [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB].forEach(p => p.color = teams[selectedB].homeColor);
+      } else {
+          [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
+          [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
+      }
+      
+      updateSidesDisplay();
+      
+      const s1 = 0.8 + (teams[selectedA].attack / 150);
+      const s2 = 0.8 + (teams[selectedB].attack / 150);
+      [playerA1, playerA2, playerA3, playerA4, playerA5].forEach(p => p.baseSpeed = s1);
+      [playerB1, playerB2, playerB3, playerB4, playerB5].forEach(p => p.baseSpeed = s2);
+      
+      document.getElementById("status").innerText = "Game " + currentGameInSeries;
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+      gameRunning = true; resetPositions(); update();
+    }
+
+    function finishMatch() {
+        if (scoreA > scoreB) winsA++; else winsB++;
+
+        if (winsA < targetWins && winsB < targetWins) {
+            const overlay = document.getElementById("series-overlay");
+            const content = document.getElementById("overlay-content");
+            content.innerHTML = `Final Score<br><span style="color:#fbbf24">${scoreA} : ${scoreB}</span><br><br><span style="font-size: 1.1rem; color: #38bdf8">Series: ${winsA} - ${winsB}</span>`;
+            overlay.style.display = "block";
+            setTimeout(() => { overlay.style.display = "none"; startSimulatedMatch(); }, 2500);
+        } else {
+            let winner = winsA > winsB ? teams[selectedA].name : teams[selectedB].name;
+            document.getElementById("status").innerHTML = `<strong style='color:#fbbf24'>${winner.toUpperCase()} WIN THE SERIES!</strong>`;
+            document.getElementById("simBtn").disabled = false;
+            ["bo3Btn", "bo5Btn", "bo7Btn"].forEach(id => document.getElementById(id).disabled = false);
+        }
+    }
+
+    renderTeams();
+  </script>
+</body>
+</html>
