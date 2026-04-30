@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Extraliga simulátor - 2D Engine PRO v8.5</title>
+  <title>Extraliga simulátor - v8.5</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -719,7 +719,13 @@
 
     function finishMatch() {
         let finalScore = `${scoreA}:${scoreB}`;
-        if (scoreA > scoreB) winsA++; else winsB++;
+        
+        // OPRAVA: Přiřazení bodu vítězi na základě skóre v aktuálním zápase
+        if (scoreA > scoreB) {
+            winsA++; 
+        } else {
+            winsB++;
+        }
 
         if (winsA < targetWins && winsB < targetWins) {
             const overlay = document.getElementById("series-overlay");
