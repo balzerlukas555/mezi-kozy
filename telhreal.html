@@ -147,11 +147,13 @@
     
     let playerA1 = { x: 150, y: 100, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
     let playerA2 = { x: 150, y: 200, color: "red", radius: 12, baseSpeed: 1.2, side: 'A', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
-    let playerA3 = { x: 80,  y: 150, color: "red", radius: 12, baseSpeed: 1.0, side: 'A', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
+    let playerA3 = { x: 80,  y: 120, color: "red", radius: 12, baseSpeed: 1.0, side: 'A', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
+    let playerA4 = { x: 80,  y: 180, color: "red", radius: 12, baseSpeed: 1.0, side: 'A', id: 4, role: 'defender', decisionTimer: 0, currentAction: 'move' };
 
     let playerB1 = { x: 450, y: 100, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 1, role: 'forward', decisionTimer: 0, currentAction: 'move' };
     let playerB2 = { x: 450, y: 200, color: "blue", radius: 12, baseSpeed: 1.2, side: 'B', id: 2, role: 'forward', decisionTimer: 0, currentAction: 'move' };
-    let playerB3 = { x: 520, y: 150, color: "blue", radius: 12, baseSpeed: 1.0, side: 'B', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
+    let playerB3 = { x: 520, y: 120, color: "blue", radius: 12, baseSpeed: 1.0, side: 'B', id: 3, role: 'defender', decisionTimer: 0, currentAction: 'move' };
+    let playerB4 = { x: 520, y: 180, color: "blue", radius: 12, baseSpeed: 1.0, side: 'B', id: 4, role: 'defender', decisionTimer: 0, currentAction: 'move' };
 
     let goalieA = { x: 25, y: 150, radius: 14, color: "red", side: 'A' };
     let goalieB = { x: 575, y: 150, radius: 14, color: "blue", side: 'B' };
@@ -190,20 +192,30 @@
       let homeDef  = (currentPeriod === 2 && !isOvertime) ? 520 : 80;
       let awayDef  = (currentPeriod === 2 && !isOvertime) ? 80 : 520;
 
-      [playerA1, playerA2, playerA3, playerB1, playerB2, playerB3].forEach(p => {
+      [playerA1, playerA2, playerA3, playerA4, playerB1, playerB2, playerB3, playerB4].forEach(p => {
           p.decisionTimer = 0;
           p.currentAction = 'move';
       });
 
       playerA1.x = 280; playerA1.y = 150;
       playerA2.x = homeSide; playerA2.y = 220;
-      playerA3.x = homeDef;  playerA3.y = 150;
+      playerA3.x = homeDef;  playerA3.y = 120;
+      playerA4.x = homeDef;  playerA4.y = 180;
 
       playerB1.x = 320; playerB1.y = 150;
       playerB2.x = awaySide; playerB2.y = 80;
-      playerB3.x = awayDef;  playerB3.y = 150;
+      playerB3.x = awayDef;  playerB3.y = 120;
+      playerB4.x = awayDef;  playerB4.y = 180;
 
       globalStuckTimer = 0;
+    }
+
+    function updateScoreDisplay() {
+        if (currentPeriod === 2 && !isOvertime) {
+            document.getElementById("scoreText").innerText = `${scoreB}:${scoreA}`;
+        } else {
+            document.getElementById("scoreText").innerText = `${scoreA}:${scoreB}`;
+        }
     }
 
     function updateSidesDisplay() {
@@ -218,6 +230,7 @@
             goalieA.x = 25;
             goalieB.x = 575;
         }
+        updateScoreDisplay();
     }
 
     function update() {
@@ -231,8 +244,8 @@
       } else { globalStuckTimer = 0; }
       lastPuckX = puck.x; lastPuckY = puck.y;
 
-      const teamA = [playerA1, playerA2, playerA3];
-      const teamB = [playerB1, playerB2, playerB3];
+      const teamA = [playerA1, playerA2, playerA3, playerA4];
+      const teamB = [playerB1, playerB2, playerB3, playerB4];
       const allPlayers = [...teamA, ...teamB];
 
       allPlayers.forEach(p => {
@@ -288,7 +301,7 @@
                   movePlayerToPoint(p, targetX, puck.y, speed);
               } else {
                   let targetX = attackRight ? Math.min(puck.x - 80, defensiveBaseX) : Math.max(puck.x + 80, defensiveBaseX);
-                  movePlayerToPoint(p, targetX, 150, speed * 0.8);
+                  movePlayerToPoint(p, targetX, 150 + (p.id === 3 ? -30 : 30), speed * 0.8);
               }
           }
           else {
@@ -417,19 +430,15 @@
     function handleBouncesAndGoals() {
       if (puck.y < 5 || puck.y > 295) puck.vy *= -1;
       
-      // Detekce branky vlevo (x < 0)
       if (puck.x < 0) {
         if (puck.y > 105 && puck.y < 195) { 
-            // Ve 2. třetině je vlevo branka týmu A, skóruje B
-            if (currentPeriod === 2 && !isOvertime) scoreB++; else scoreB++; 
+            scoreB++; 
             goalScored(); 
         } else { puck.x = 5; puck.vx *= -1; }
       }
-      // Detekce branky vpravo (x > 600)
       if (puck.x > 600) {
         if (puck.y > 105 && puck.y < 195) { 
-            // Ve 2. třetině je vpravo branka týmu B, skóruje A
-            if (currentPeriod === 2 && !isOvertime) scoreA++; else scoreA++;
+            scoreA++;
             goalScored(); 
         } else { puck.x = 595; puck.vx *= -1; }
       }
@@ -441,7 +450,7 @@
     }
 
     function goalScored() {
-      document.getElementById("scoreText").innerText = `${scoreA}:${scoreB}`;
+      updateScoreDisplay();
       document.getElementById("status").innerText = "GÓÓÓL!";
       gameRunning = false;
       if (isOvertime) {
@@ -472,7 +481,7 @@
       ctx.fillStyle = "#111";
       ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI*2); ctx.fill();
       
-      [playerA1, playerA2, playerA3, playerB1, playerB2, playerB3].forEach(drawPlayer);
+      [playerA1, playerA2, playerA3, playerA4, playerB1, playerB2, playerB3, playerB4].forEach(drawPlayer);
       drawGoalie(goalieA); drawGoalie(goalieB);
     }
 
@@ -532,13 +541,13 @@
       document.getElementById("rink-container").style.display = "block";
       currentPeriod = 1; isOvertime = false;
       updateSidesDisplay();
-      [playerA1, playerA2, playerA3, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
-      [playerB1, playerB2, playerB3, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
+      [playerA1, playerA2, playerA3, playerA4, goalieA].forEach(p => p.color = teams[selectedA].homeColor);
+      [playerB1, playerB2, playerB3, playerB4, goalieB].forEach(p => p.color = teams[selectedB].awayColor);
       
       const s1 = 0.8 + (teams[selectedA].attack / 150);
       const s2 = 0.8 + (teams[selectedB].attack / 150);
-      playerA1.baseSpeed = playerA2.baseSpeed = s1; playerA3.baseSpeed = s1 * 0.85;
-      playerB1.baseSpeed = playerB2.baseSpeed = s2; playerB3.baseSpeed = s2 * 0.85;
+      playerA1.baseSpeed = playerA2.baseSpeed = s1; playerA3.baseSpeed = playerA4.baseSpeed = s1 * 0.85;
+      playerB1.baseSpeed = playerB2.baseSpeed = s2; playerB3.baseSpeed = playerB4.baseSpeed = s2 * 0.85;
       
       scoreA = 0; scoreB = 0; timeLeft = 30;
       document.getElementById("scoreText").innerText = "0:0";
