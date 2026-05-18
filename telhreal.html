@@ -118,83 +118,15 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(17, 22, 32, 0.98);
-      border: 2px solid #2d3748;
-      padding: 25px;
+      background: rgba(11, 14, 20, 0.95);
+      border: 2px solid #38bdf8;
+      padding: 30px;
       border-radius: 15px;
       z-index: 1000;
       display: none;
-      width: 90%;
-      max-width: 380px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+      min-width: 300px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
       text-align: center;
-      box-sizing: border-box;
-    }
-
-    .series-title {
-      font-size: 1.1rem;
-      font-style: italic;
-      color: #94a3b8;
-      margin-bottom: 5px;
-    }
-
-    .series-score {
-      font-size: 3rem;
-      font-weight: bold;
-      color: #ffffff;
-      margin: 5px 0 15px 0;
-      letter-spacing: 2px;
-    }
-
-    .series-history-title {
-      font-weight: bold;
-      color: #ffffff;
-      margin-bottom: 12px;
-      font-size: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #2d3748;
-      padding-bottom: 5px;
-    }
-
-    .series-history-list {
-      text-align: left;
-      font-size: 0.9rem;
-      color: #cbd5e1;
-      max-height: 200px;
-      overflow-y: auto;
-      margin-bottom: 15px;
-    }
-
-    .series-history-item {
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.03);
-    }
-
-    .series-winner-box {
-      border: 2px solid #fbbf24;
-      background: rgba(251, 191, 36, 0.05);
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 15px;
-    }
-
-    .series-winner-title {
-      color: #fbbf24;
-      font-weight: bold;
-      font-size: 1.1rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .series-winner-name {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #ffffff;
-      margin-top: 5px;
     }
 
     @media (min-width: 600px) { 
@@ -241,18 +173,12 @@
         <div id="scoreText" class="score-display">0:0</div>
         <img id="scoreLogoB" class="mini-logo" src="" style="display:none;">
     </div>
-    <div id="status" style="font-style: italic; color: #94a3b8;">Vyber týmy and začni hru</div>
+    <div id="status" style="font-style: italic; color: #94a3b8;">Vyber týmy a začni hru</div>
   </div>
 
   <div id="series-overlay">
-      <div class="series-title" id="overlay-series-title">Průběh série</div>
-      <div class="series-score" id="overlay-series-score">0 : 0</div>
-      <div class="series-history-title">Historie zápasů:</div>
-      <div class="series-history-list" id="overlay-history-list"></div>
-      <div class="series-winner-box" id="overlay-winner-box" style="display: none;">
-          <div class="series-winner-title">🏆 VÍTĚZ SÉRIE:</div>
-          <div class="series-winner-name" id="overlay-winner-name">---</div>
-      </div>
+      <h2 id="overlay-title" style="color: #38bdf8; margin-top: 0;">Výsledek zápasu</h2>
+      <div id="overlay-content" style="font-size: 1.5rem; font-weight: bold; color: white;"></div>
   </div>
 
   <script>
@@ -272,19 +198,7 @@
       kladno: { name: "Rytíři Kladno", attack: 79, dribling: 80, defense: 80, goalkeeper: 92, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F7wb9o-kla.png&w=120&h=120&exact=1", homeColor: "#00233b", awayColor: "#e3f4ff" },
       ceske_budejovice: { name: "Motor České Budějovice", attack: 82, dribling: 83, defense: 78, goalkeeper: 85, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2F4zj2z-ceb.png&w=120&h=120&exact=1", homeColor: "#006ab0", awayColor: "#fff30d" },
       jihlava: { name: "HC Dukla Jihlava", attack: 70, dribling: 70, defense: 69, goalkeeper: 74, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FJIH-2x.png&w=120&h=120&exact=1", homeColor: "#6e0c21", awayColor: "#deb618" },
-      zlin: { name: "Rl Okna Berani Zlín", attack: 67, dribling: 65, defense: 70, goalkeeper: 72, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FZLN-2x.png&w=120&h=120&exact=1", homeColor: "#d9d900", awayColor: "#1a3152" },
-      slavia: { name: "HC Slavia Praha", attack: 66, dribling: 70, defense: 70, goalkeeper: 67, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FSLA-2x.png&w=120&h=120&exact=1", homeColor: "#ff2121", awayColor: "#ffe8e8" },
-      sokolov: { name: "HC Baník Sokolov", attack: 65, dribling: 66, defense: 64, goalkeeper: 65, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FSOK-2x.png&w=120&h=120&exact=1", homeColor: "#141414", awayColor: "#c2aa21" },
-      dynamoB: { name: "HC Dynamo Pardubice B", attack: 56, dribling: 54, defense: 56, goalkeeper: 66, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPCE-2x.png&w=120&h=120&exact=1", homeColor: "#ff0000", awayColor: "#ffebeb" },
-      frydek_mistek: { name: "HC Frýdek-Místek", attack: 60, dribling: 59, defense: 60, goalkeeper: 65, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FFRM-2x.png&w=120&h=120&exact=1", homeColor: "#ff9c9c", awayColor: "#c74248" },
-      torax_poruba: { name: "HC RT Torax Poruba", attack: 43, dribling: 45, defense: 44, goalkeeper: 40, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPOR-2x.png&w=120&h=120&exact=1", homeColor: "#d6040f", awayColor: "#d1d1d1" },
-      litomerice: { name: "HC Stadion Litoměrice", attack: 61, dribling: 60, defense: 59, goalkeeper: 75, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FLIT-2x-tmave.png&w=120&h=120&exact=1", homeColor: "#030138", awayColor: "#d8d6ff" },
-      tabor: { name: "HC Tábor", attack: 50, dribling: 53, defense: 52, goalkeeper: 60, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FTAB-2x.png&w=120&h=120&exact=1", homeColor: "#1e3375", awayColor: "#e3e9ff" },
-      prerov: { name: "HC ZUBR Přerov", attack: 47, dribling: 50, defense: 46, goalkeeper: 46, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FPRE-2x.png&w=120&h=120&exact=1", homeColor: "#a3ab37", awayColor: "#1f2c47" },
-      chomutov: { name: "HC Piráti Chomutov", attack: 45, dribling: 44, defense: 43, goalkeeper: 44, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FCHM-2x.png&w=120&h=120&exact=1", homeColor: "#383838", awayColor: "#cfcfcf" },
-      kolin: { name: "HC Marimex Kolín", attack: 66, dribling: 63, defense: 65, goalkeeper: 70, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FKOL-2x.png&w=120&h=120&exact=1", homeColor: "#a7bdd1", awayColor: "#2c4257" },
-      horacka_slavia: { name: "SK Horácka Slavia Třebíč", attack: 57, dribling: 56, defense: 59, goalkeeper: 56, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FTRE-2x.png&w=120&h=120&exact=1", homeColor: "#e0f0ff", awayColor: "#c42e23" },
-      vsetin: { name: "VHK ROBE Vsetín", attack: 62, dribling: 60, defense: 61, goalkeeper: 65, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FVSE-2x.png&w=120&h=120&exact=1", homeColor: "#154502", awayColor: "#c7c038" }
+      zlin: { name: "Rl Okna Berani Zlín", attack: 67, dribling: 65, defense: 70, goalkeeper: 72, logo: "https://www.hokej.cz/min.php?file=%2Ffiles%2Flogos%2FZLN-2x.png&w=120&h=120&exact=1", homeColor: "#d9d900", awayColor: "#1a3152" }
     };
 
     const canvas = document.getElementById("hockeyRink");
@@ -303,8 +217,6 @@
     let targetWins = 1;
     let currentGameInSeries = 0;
     let currentHomeSide = "A"; 
-    let seriesHistory = [];
-    let currentMatchGoals = [];
 
     let puck = { x: 300, y: 150, vx: 0, vy: 0, radius: 5, owner: null, isShot: false, passLock: 0 };
     
@@ -361,6 +273,7 @@
       let teamA_Arr = [playerA1, playerA2, playerA3, playerA4, playerA5, goalieA];
       let teamB_Arr = [playerB1, playerB2, playerB3, playerB4, playerB5, goalieB];
 
+      // Pozice určujeme podle periody a domácí strany, ale HRÁČŮM zůstává jejich ID
       let leftSideTeam = (currentHomeSide === "A") ? (!sideInversion ? teamA_Arr : teamB_Arr) : (!sideInversion ? teamB_Arr : teamA_Arr);
       let rightSideTeam = (currentHomeSide === "A") ? (!sideInversion ? teamB_Arr : teamA_Arr) : (!sideInversion ? teamA_Arr : teamB_Arr);
 
@@ -384,6 +297,7 @@
     function updateScoreDisplay() {
         let sideInversion = (currentPeriod === 2 && !isOvertime);
         
+        // Zobrazujeme skóre tak, aby odpovídalo aktuální straně log na displeji
         if (currentHomeSide === "A") {
             if (!sideInversion) {
                 document.getElementById("scoreText").innerText = `${scoreA}:${scoreB}`;
@@ -410,6 +324,7 @@
         const scoreLogoL = document.getElementById("scoreLogoA");
         const scoreLogoR = document.getElementById("scoreLogoB");
 
+        // Určíme, co je vlevo a co vpravo pro UI
         let currentLeftLogo = (currentHomeSide === "A") ? (!sideInversion ? logoA : logoB) : (!sideInversion ? logoB : logoA);
         let currentRightLogo = (currentHomeSide === "A") ? (!sideInversion ? logoB : logoA) : (!sideInversion ? logoA : logoB);
 
@@ -422,27 +337,6 @@
         scoreLogoR.style.display = "block";
 
         updateScoreDisplay();
-    }
-
-    function showPeriodOverlay() {
-      const overlay = document.getElementById("series-overlay");
-      document.getElementById("overlay-series-title").innerText = `Konec ${currentPeriod-1}. třetiny`;
-      document.getElementById("overlay-series-score").innerText = `${scoreA} : ${scoreB}`;
-      
-      let historyHtml = currentMatchGoals.length === 0 
-        ? `<div class="series-history-item" style="text-align:center;color:#94a3b8;">Zatím nepadly žádné góly</div>`
-        : currentMatchGoals.map(g => `<div class="series-history-item">⏱️ ${g.time} - <strong>${g.team}</strong> skóruje (${g.currentScore})</div>`).join('');
-      
-      document.getElementById("overlay-history-list").innerHTML = historyHtml;
-      document.getElementById("overlay-winner-box").style.display = "none";
-      overlay.style.display = "block";
-
-      setTimeout(() => {
-        overlay.style.display = "none";
-        resetPositions(); 
-        gameRunning = true; 
-        update();
-      }, 3000);
     }
 
     function update() {
@@ -665,34 +559,26 @@
 
       if (puck.x < 0) {
         if (puck.y > 105 && puck.y < 195) { 
+            // Kdo dostal gól, když puk proletěl vlevo?
             if (currentHomeSide === "A") {
-                if (!sideInversion) { scoreB++; logGoal('B'); } else { scoreA++; logGoal('A'); }
+                if (!sideInversion) scoreB++; else scoreA++;
             } else {
-                if (!sideInversion) { scoreA++; logGoal('A'); } else { scoreB++; logGoal('B'); }
+                if (!sideInversion) scoreA++; else scoreB++;
             }
             goalScored(); 
         } else { puck.x = 5; puck.vx *= -1; }
       }
       if (puck.x > 600) {
         if (puck.y > 105 && puck.y < 195) { 
+            // Kdo dostal gól, když puk proletěl vpravo?
             if (currentHomeSide === "A") {
-                if (!sideInversion) { scoreA++; logGoal('A'); } else { scoreB++; logGoal('B'); }
+                if (!sideInversion) scoreA++; else scoreB++;
             } else {
-                if (!sideInversion) { scoreB++; logGoal('B'); } else { scoreA++; logGoal('A'); }
+                if (!sideInversion) scoreB++; else scoreA++;
             }
             goalScored(); 
         } else { puck.x = 595; puck.vx *= -1; }
       }
-    }
-
-    function logGoal(scoringSide) {
-      let timeStr = isOvertime ? "Prodluž." : `${currentPeriod}. třetina`;
-      let teamName = scoringSide === 'A' ? teams[selectedA].name : teams[selectedB].name;
-      currentMatchGoals.push({
-        time: timeStr,
-        team: teamName,
-        currentScore: `${scoreA}:${scoreB}`
-      });
     }
 
     function keepInRink(p) {
@@ -763,7 +649,7 @@
               document.getElementById("period").innerText = currentPeriod + ". třetina";
               updateSidesDisplay();
               document.getElementById("status").innerText = "Buly " + currentPeriod + ". třetiny!";
-              setTimeout(showPeriodOverlay, 500);
+              setTimeout(() => { resetPositions(); gameRunning = true; update(); }, 1500);
           } else if (scoreA === scoreB) {
               isOvertime = true; timeLeft = 999;
               document.getElementById("period").innerText = "PRODLOUŽENÍ";
@@ -783,7 +669,7 @@
 
     function initSeries(type) {
       if (!selectedA || !selectedB) return;
-      winsA = 0; winsB = 0; currentGameInSeries = 0; targetWins = type; seriesHistory = [];
+      winsA = 0; winsB = 0; currentGameInSeries = 0; targetWins = type; 
       document.getElementById("simBtn").disabled = true;
       document.getElementById("bo3Btn").disabled = true;
       document.getElementById("bo5Btn").disabled = true;
@@ -793,7 +679,6 @@
 
     function startSimulatedMatch() {
       currentGameInSeries++;
-      currentMatchGoals = [];
       
       if (targetWins === 2) { 
           currentHomeSide = (currentGameInSeries === 2) ? "B" : "A";
@@ -842,24 +727,18 @@
     }
 
     function finishMatch() {
+        // OPRAVA: scoreA VŽDY patří týmu A, scoreB VŽDY patří týmu B.
+        // Žádné prohazování skóre podle domácího prostředí.
         if (scoreA > scoreB) {
             winsA++;
         } else if (scoreB > scoreA) {
             winsB++;
         }
 
-        let otText = isOvertime ? " (v prodl.)" : "";
-        seriesHistory.push(`Zápas ${currentGameInSeries}: ${teams[selectedA].name} <strong>${scoreA}:${scoreB}</strong> ${teams[selectedB].name}${otText}`);
-
-        const overlay = document.getElementById("series-overlay");
-        document.getElementById("overlay-series-title").innerText = targetWins > 1 ? "Průběh série" : "Výsledek zápasu";
-        document.getElementById("overlay-series-score").innerText = targetWins > 1 ? `${winsA} : ${winsB}` : `${scoreA} : ${scoreB}`;
-        
-        let historyHtml = seriesHistory.map(item => `<div class="series-history-item">${item}</div>`).join('');
-        document.getElementById("overlay-history-list").innerHTML = historyHtml;
-
         if (winsA < targetWins && winsB < targetWins) {
-            document.getElementById("overlay-winner-box").style.display = "none";
+            const overlay = document.getElementById("series-overlay");
+            const content = document.getElementById("overlay-content");
+            content.innerHTML = `Konec ${currentGameInSeries}. zápasu<br><span style="color:#fbbf24">${scoreA}:${scoreB}</span><br><br><span style="font-size: 1.1rem; color: #38bdf8">Stav série: ${winsA}:${winsB}</span>`;
             overlay.style.display = "block";
 
             setTimeout(() => {
@@ -868,26 +747,16 @@
             }, 3000);
         } else {
             let winner = winsA > winsB ? teams[selectedA].name : teams[selectedB].name;
-            let finalScoreText = targetWins > 1 ? `(${winsA}:${winsB})` : `(${scoreA}:${scoreB})`;
-            
-            document.getElementById("overlay-winner-name").innerText = `${winner.toUpperCase()} ${finalScoreText}`;
-            document.getElementById("overlay-winner-box").style.display = "block";
-            overlay.style.display = "block";
-
             if (targetWins > 1) {
                 document.getElementById("status").innerHTML = "<strong style='color:#fbbf24'>VÍTĚZ SÉRIE: " + winner.toUpperCase() + " (" + winsA + ":" + winsB + ")</strong>";
                 document.getElementById("match").innerText = teams[selectedA].name + " [" + winsA + ":" + winsB + "] " + teams[selectedB].name;
             } else {
                 document.getElementById("status").innerText = "VÍTĚZ ZÁPASU: " + winner.toUpperCase();
             }
-
-            setTimeout(() => {
-                overlay.style.display = "none";
-                document.getElementById("simBtn").disabled = false;
-                document.getElementById("bo3Btn").disabled = false;
-                document.getElementById("bo5Btn").disabled = false;
-                document.getElementById("bo7Btn").disabled = false;
-            }, 4000);
+            document.getElementById("simBtn").disabled = false;
+            document.getElementById("bo3Btn").disabled = false;
+            document.getElementById("bo5Btn").disabled = false;
+            document.getElementById("bo7Btn").disabled = false;
         }
     }
 
